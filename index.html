@@ -469,12 +469,18 @@ const books = (data.docs || []).map(book => {
         results.innerHTML = books.map(coverCard).join('')
           || '<p class="muted">No books found. Try another title ♡</p>';
 
-      } catch (error) {
-        if (version === searchVersion) {
-          results.innerHTML =
-            '<p class="muted">Could not load books. Please try again ♡</p>';
-        }
-      }
+    
+} catch (error) {
+  console.error('Shelfie book search error:', error);
+
+  if (version === searchVersion) {
+    results.innerHTML =
+      '<p class="muted">Book search error: '
+      + esc(error.message || String(error))
+      + '</p>';
+  }
+}
+
     }, 350);
   };
 
