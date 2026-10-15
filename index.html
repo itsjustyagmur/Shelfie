@@ -333,4 +333,59 @@ refreshCloud();
 
 </style>
 
+<script>
+(function () {
+  // Remove the large account banner from Home and Profile.
+  home = (function (oldHome) {
+    return function () {
+      return oldHome().replace(
+        /<div class="cloudbar">[\s\S]*?<\/div>/,
+        ''
+      );
+    };
+  })(home);
+
+  profilePage = (function (oldProfile) {
+    return function () {
+      return oldProfile().replace(
+        /<div class="cloudbar">[\s\S]*?<\/div>/,
+        ''
+      );
+    };
+  })(profilePage);
+
+  // Add a settings button to the header.
+  const headerButtons = document.querySelector('.header-right');
+
+  if (headerButtons && !document.getElementById('shelfieSettings')) {
+    const button = document.createElement('button');
+    button.id = 'shelfieSettings';
+    button.className = 'iconbtn';
+    button.setAttribute('aria-label', 'Account settings');
+    button.innerHTML = '⚙';
+    button.onclick = function () {
+      modal('Account settings ♡', `
+        <p class="muted">
+          ${cloudUser
+            ? 'Signed in as ' + esc(cloudProfile?.display_name || 'Shelfie member')
+            : 'Welcome to Shelfie'}
+        </p>
+
+        <button class="secondary full" onclick="closeModal();openAccount()"
+          My account / Find friends
+        </button>
+
+        ${cloudUser ? `
+          <button class="secondary full" style="margin-top:12px"
+            onclick="signOutShelfie()">
+            Sign out ↗
+          </button>
+        ` : ''}
+      `);
+    };
+    headerButtons.appendChild(button);
+  }
+})();
+</script>
+
 </body></html>
