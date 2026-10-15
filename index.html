@@ -115,4 +115,98 @@ updateCloudProfile = async function(e) {
 };
 </script>
  
+<script>
+const shelfieProfileOriginal = profilePage;
+
+profilePage = function() {
+  const html = shelfieProfileOriginal();
+
+  if (!cloudUser || !cloudProfile) return html;
+
+  const bio = (cloudProfile.bio || '').trim();
+  const status = (cloudProfile.status || '').trim();
+
+  if (!bio && !status) return html;
+
+  const extra = `
+    ${bio ? `<p class="shelfie-bio">${esc(bio)}</p>` : ''}
+    ${status ? `
+      <div class="shelfie-status">
+        <div class="eyebrow">✦ MY STATUS</div>
+        <p>${esc(status)}</p>
+      </div>
+    ` : ''}
+  `;
+
+  return html.replace(
+    '<button class="secondary" style="margin-top:13px"',
+    extra + '<button class="secondary" style="margin-top:13px"'
+  );
+};
+
+const shelfieRefreshOriginal = refreshCloud;
+
+refreshCloud = async function() {
+  await shelfieRefreshOriginal();
+
+  if (!cloudUser) return;
+
+  const { data, error } = await cloud
+    .from('profiles')
+    .select('bio,status')
+    .eq('id', cloudUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('Profile details:', error);
+    return;
+  }
+
+  if (cloudProfile && data) {
+    cloudProfile.bio = data.bio || '';
+    cloudProfile.status = data.status || '';
+  }
+
+  if (tab === 'Profile') render();
+};
+
+refreshCloud();
+</script>
+
+<style>
+.shelfie-bio {
+  max-width: 340px;
+  margin: 16px auto 10px;
+  color: #d8c9d5;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.shelfie-status {
+  max-width: 360px;
+  margin: 14px auto 6px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #302533, #211b2a);
+  border: 1px solid #594151;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.shelfie-status .eyebrow {
+  color: #dda7bc;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+
+.shelfie-status p {
+  margin: 9px 0 0;
+  color: #f7edf2;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+</style>
+
 </body></html>
