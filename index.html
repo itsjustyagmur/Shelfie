@@ -1694,4 +1694,19 @@ searchFriends = async function() {
   });
 };
 </script>
+
+ <script>
+function shelfieUsernameFromEmail(email) {
+  let name = (email || '')
+    .split('@')[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '');
+
+  if (name.length < 3) {
+    name = (name + 'reader').slice(0, 3);
+  }
+
+  return name.slice(0, 40);
+}
+</script>
 </body></html>
