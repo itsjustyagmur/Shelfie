@@ -440,7 +440,39 @@ if (!response.ok) throw new Error('Book search unavailable');
 const data = await response.json();
 if (version !== searchVersion || tab !== 'Search') return;
 
-const books = (data.docs || []).map(book => {
+
+const queryWords = search.trim().toLowerCase().split(/\s+/);
+
+const seenTitles = new Set();
+
+const books = (data.docs || [])
+  .filter(book => {
+    const title = (book.title || '').trim().toLowerCase();
+    const normalized = title.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+    if (!normalized || seenTitles.has(normalized)) return false;
+
+    // Exclude collection sets and bundles.
+    if (/\b(box set|boxed set|collection set|bundle)\b/i.test(title)) {
+      return false;
+    }
+
+    seenTitles.add(normalized);
+    return true;
+  })
+  .sort((a, b) => {
+    const q = search.trim().toLowerCase();
+    const score = book => {
+      const title = (book.title || '').toLowerCase();
+      if (title === q) return 0;
+      if (title.startsWith(q)) return 1;
+      if (queryWords.every(word => title.includes(word))) return 2;
+      return 3;
+    };
+    return score(a) - score(b);
+  })
+  .map(book => {
+
   const id = 'openlibrary_' + book.key.split('/').pop();
   const existing = catalog.find(x => x.id === id);
 
