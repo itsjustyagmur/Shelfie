@@ -240,4 +240,88 @@ refreshCloud();
 </script>
 
 
+<script>
+(function () {
+  editProfile = function () {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    modal('Edit your Shelfie ♡', `
+      <form onsubmit="saveShelfieEdit(event)">
+        <div class="field">
+          <label>Display name</label>
+          <input id="editName" maxlength="40"
+            required value="${esc(cloudProfile?.display_name || state.name)}">
+        </div>
+
+        <div class="field">
+          <label>Username</label>
+          <input id="editHandle" maxlength="40"
+            minlength="3" required
+            pattern="[a-z0-9_]{3,40}"
+            value="${esc(cloudProfile?.username || state.handle.replace('@',''))}">
+        </div>
+
+        <div class="field">
+          <label>About me</label>
+          <textarea id="editBio" maxlength="500"
+            placeholder="Tell people a little about yourself...">${esc(cloudProfile?.bio || '')}</textarea>
+        </div>
+
+        <div class="field">
+          <label>My status</label>
+          <textarea id="editStatus" maxlength="200"
+            placeholder="Currently reading, watching, or feeling...">${esc(cloudProfile?.status || '')}</textarea>
+        </div>
+
+        <button class="primary full" type="submit">
+          Save my profile ♡
+        </button>
+      </form>
+    `);
+  };
+
+  window.saveShelfieEdit = async function (e) {
+    e.preventDefault();
+
+    const button = e.submitter;
+    if (button) button.disabled = true;
+
+    const display_name = document.getElementById('editName').value.trim();
+    const username = document.getElementById('editHandle').value.trim().toLowerCase();
+    const bio = document.getElementById('editBio').value.trim();
+    const status = document.getElementById('editStatus').value.trim();
+
+    try {
+      const { error } = await cloud
+        .from('profiles')
+        .update({ display_name, username, bio, status })
+        .eq('id', cloudUser.id);
+
+      if (error) throw error;
+
+      state.name = display_name;
+      state.handle = '@' + username;
+      save();
+
+      if (cloudProfile) {
+        Object.assign(cloudProfile, {
+          display_name, username, bio, status
+        });
+      }
+
+      closeModal();
+      render();
+      toast('Your Shelfie is updated! 💗');
+    } catch (err) {
+      toast(err.message || 'Could not save profile');
+    } finally {
+      if (button) button.disabled = false;
+    }
+  };
+})();
+</script>
+
 </body></html>
