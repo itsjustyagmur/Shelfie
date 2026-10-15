@@ -428,37 +428,43 @@ refreshCloud();
 
     searchTimer = setTimeout(async function () {
       try {
-        const url = 'https://www.googleapis.com/books/v1/volumes?q='
-          + encodeURIComponent(search.trim()) + '&maxResults=18';
+        
+const url = 'https://openlibrary.org/search.json?q='
+  + encodeURIComponent(search.trim())
+  + '&fields=key,title,author_name,cover_i,first_publish_year'
+  + '&limit=18';
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Book search unavailable');
+const response = await fetch(url);
+if (!response.ok) throw new Error('Book search unavailable');
 
-        const data = await response.json();
-        if (version !== searchVersion || tab !== 'Search') return;
+const data = await response.json();
+if (version !== searchVersion || tab !== 'Search') return;
 
-        const books = (data.items || []).map(book => {
-          const info = book.volumeInfo || {};
-          const id = 'google_' + book.id;
-          const existing = catalog.find(x => x.id === id);
+const books = (data.docs || []).map(book => {
+  const id = 'openlibrary_' + book.key.split('/').pop();
+  const existing = catalog.find(x => x.id === id);
 
-          const details = {
-            id,
-            title: info.title || 'Untitled',
-            type: 'Book',
-            year: (info.publishedDate || '').slice(0, 4),
-            genre: (info.categories || []).join(', ') || 'Book',
-            author: (info.authors || []).join(', '),
-            description: info.description || '',
-            cover: (info.imageLinks?.thumbnail || '').replace('http:', 'https:'),
-            fallback: 'https://placehold.co/300x450/38213f/f8b5e4?text=Book'
-          };
+  const details = {
+    id,
+    title: book.title || 'Untitled',
+    type: 'Book',
+    year: String(book.first_publish_year || ''),
+    genre: 'Book',
+    author: (book.author_name || []).join(', '),
+    description: '',
+    workKey: book.key,
+    cover: book.cover_i
+      ? 'https://covers.openlibrary.org/b/id/' + book.cover_i + '-M.jpg'
+      : 'https://placehold.co/300x450/38213f/f8b5e4?text=Book',
+    fallback: 'https://placehold.co/300x450/38213f/f8b5e4?text=Book'
+  };
 
-          if (existing) Object.assign(existing, details);
-          else catalog.push(details);
+  if (existing) Object.assign(existing, details);
+  else catalog.push(details);
 
-          return details;
-        });
+  return details;
+});
+
 
         results.innerHTML = books.map(coverCard).join('')
           || '<p class="muted">No books found. Try another title ♡</p>';
