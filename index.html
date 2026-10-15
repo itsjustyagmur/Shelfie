@@ -445,7 +445,9 @@ const queryWords = search.trim().toLowerCase().split(/\s+/);
 
 const seenTitles = new Set();
 
-const books = (data.docs || [])
+
+const books = (data.docs || []).filter(book => book.cover_i)
+
   .filter(book => {
     const title = (book.title || '').trim().toLowerCase();
     const normalized = title.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
