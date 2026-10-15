@@ -13,7 +13,7 @@ const catalog=[
 {id:'s2',title:'Stranger Things',type:'Show',year:'2016',genre:'Sci-fi',cover:'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',fallback:'https://placehold.co/300x450/4b202e/ffffff?text=Stranger+Things'},
 {id:'s3',title:'Wednesday',type:'Show',year:'2022',genre:'Mystery',cover:'https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg',fallback:'https://placehold.co/300x450/2b283a/ffffff?text=Wednesday'}];
 const key='shelfie-prototype-v1';const defaults={name:'Yagmur',handle:'@yagmurreads',reviews:[{id:'b1',stars:5,text:'Dragons, drama, and a romance I cannot stop thinking about.',date:'Today'},{id:'s1',stars:5,text:'The performances and the storytelling? Incredible.',date:'Yesterday'}],comments:{b1:[{name:'Emma',text:'Team Xaden forever! 💗'}],s1:[{name:'Lily',text:'I need the next season immediately.'}]},groups:[{id:'g1',name:'Spicy Book Club 🔥',description:'Fantasy romance, dragons, and all the plot twists.',members:['Yagmur','Emma','Lily'],posts:[{name:'Emma',text:'What are we reading next? 📚'}]},{id:'g2',name:'Movie Night 🎬',description:'Our next favorite Friday-night watch.',members:['Yagmur','Shane'],posts:[{name:'Shane',text:'Dune rewatch this weekend?'}]}],saved:['b3','m2'],likes:[]};
-let state;try{state={...JSON.parse(JSON.stringify(defaults)),...JSON.parse(localStorage.getItem(key)||'{}')}}catch{state=JSON.parse(JSON.stringify(defaults))};let 
+let state;try{state={...JSON.parse(JSON.stringify(defaults)),...JSON.parse(localStorage.getItem(key)||'{}')}}catch{state=JSON.parse(JSON.stringify(defaults))};
  let tab=sessionStorage.getItem('shelfie-current-page')||'Home',filter='All',search='',selected=null,groupSelected=null,starValue=5;function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){toast('Browser storage unavailable; changes last until refresh')}}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function item(id){return catalog.find(x=>x.id===id)}function imageTag(x,cls='cover'){return `<img class="${cls}" src="${x.cover}" alt="${esc(x.title)} cover" loading="lazy" onerror="if(this.src!=='${x.fallback}')this.src='${x.fallback}'">`}function toast(s){document.querySelector('.notice')?.remove();let d=document.createElement('div');d.className='notice';d.textContent=s;document.body.append(d);setTimeout(()=>d.remove(),2300)}function avg(id){let r=state.reviews.filter(x=>x.id===id);return r.length?(r.reduce((a,b)=>a+b.stars,0)/r.length).toFixed(1):'—'}function coverCard(x){return `<div class="coveritem" onclick="openDetail('${x.id}')">${imageTag(x)}<b>${esc(x.title)}</b><small>${x.type} · <span class="stars">★</span> ${avg(x.id)}</small></div>`}function nav(){document.getElementById('nav').innerHTML=[['Home','⌂'],['Search','⌕'],['Add','+'],['Groups','♧'],['Profile','♙']].map(([n,ic])=>`<button class="${tab===n?'active':''} ${n==='Add'?'plus':''}" onclick="${n==='Add'?'openAdd()':`go('${n}')`}"><span>${ic}</span>${n==='Add'?'':n}</button>`).join('')} function go(t){
   tab=t;
   sessionStorage.setItem('shelfie-current-page',t);
@@ -995,7 +995,7 @@ function saveBookStatuses() {
 })();
 </script>
 
-</body></html>
+
 
 <script>
 (function () {
@@ -1596,17 +1596,4 @@ function saveBookStatuses() {
 })();
 </script>
 
-<script>
-(function () {
-  const previousRender = render;
-
-  render = function () {
-    loadBookStatuses();
-    previousRender();
-  };
-
-  loadBookStatuses();
-  render();
-})();
-</script>
-
+</body></html>
