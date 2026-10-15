@@ -398,4 +398,93 @@ refreshCloud();
   };
 })();
 </script>
+
+<script>
+(function () {
+  let searchTimer;
+  let searchVersion = 0;
+
+  const oldUpdateResults = updateResults;
+
+  updateResults = function () {
+    clearTimeout(searchTimer);
+    const version = ++searchVersion;
+
+    if (filter !== 'Books' || !search.trim()) {
+      oldUpdateResults();
+      return;
+    }
+
+    document.querySelector('.chips').innerHTML =
+      ['All', 'Books', 'Movies', 'Shows'].map(f =>
+        `<button class="chip ${filter === f ? 'active' : ''}"
+          onclick="filter='${f}';updateResults()">${f}</button>`
+      ).join('');
+
+    const results = document.getElementById('results');
+    if (!results) return;
+
+    results.innerHTML = '<p class="muted">Searching books... ♡</p>';
+
+    searchTimer = setTimeout(async function () {
+      try {
+        const url = 'https://www.googleapis.com/books/v1/volumes?q='
+          + encodeURIComponent(search.trim()) + '&maxResults=18';
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Book search unavailable');
+
+        const data = await response.json();
+        if (version !== searchVersion || tab !== 'Search') return;
+
+        const books = (data.items || []).map(book => {
+          const info = book.volumeInfo || {};
+          const id = 'google_' + book.id;
+          const existing = catalog.find(x => x.id === id);
+
+          const details = {
+            id,
+            title: info.title || 'Untitled',
+            type: 'Book',
+            year: (info.publishedDate || '').slice(0, 4),
+            genre: (info.categories || []).join(', ') || 'Book',
+            author: (info.authors || []).join(', '),
+            description: info.description || '',
+            cover: (info.imageLinks?.thumbnail || '').replace('http:', 'https:'),
+            fallback: 'https://placehold.co/300x450/38213f/f8b5e4?text=Book'
+          };
+
+          if (existing) Object.assign(existing, details);
+          else catalog.push(details);
+
+          return details;
+        });
+
+        results.innerHTML = books.map(coverCard).join('')
+          || '<p class="muted">No books found. Try another title ♡</p>';
+
+      } catch (error) {
+        if (version === searchVersion) {
+          results.innerHTML =
+            '<p class="muted">Could not load books. Please try again ♡</p>';
+        }
+      }
+    }, 350);
+  };
+
+  const oldSearchPage = searchPage;
+
+  searchPage = function () {
+    const html = oldSearchPage();
+    setTimeout(() => {
+      if (tab === 'Search' && search.trim() && filter === 'Books') {
+        updateResults();
+      }
+    }, 0);
+    return html;
+  };
+})();
+</script>
+
+ 
 </body></html>
