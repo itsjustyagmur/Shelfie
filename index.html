@@ -1714,4 +1714,46 @@ function shelfieUsernameFromEmail(email) {
   return name.slice(0, 40);
 }
 </script>
+<script>
+(function () {
+  const previousOpenStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = async function(kind) {
+    await previousOpenStat(kind);
+
+    if (kind !== 'friends' || !cloudUser) return;
+
+    const { data: follows, error } = await cloud
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', cloudUser.id);
+
+    if (error || !follows?.length) return;
+
+    const ids = follows.map(f => f.following_id);
+
+    const { data: friends } = await cloud
+      .from('profiles')
+      .select('id,username,display_name')
+      .in('id', ids);
+
+    if (!friends) return;
+
+    modal('My Friends ♡', friends.map(friend => `
+      <button class="shelfie-book-button"
+        style="margin-bottom:10px;text-align:left"
+        onclick="shelfieViewFriend('${friend.id}')">
+
+        <b>${esc(friend.display_name || friend.username)}</b>
+        <div class="muted">@${esc(friend.username)}</div>
+        <div style="color:var(--pink);margin-top:5px">
+          View profile →
+        </div>
+
+      </button>
+    `).join(''));
+  };
+})();
+</script>
+ 
 </body></html>
