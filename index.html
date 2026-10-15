@@ -391,10 +391,10 @@ refreshCloud();
   profilePage = function () {
     const html = previousProfilePage();
 
-    return html.replace(
-      /<div class="sectionhead"><h2>Friends & social<\/h2><\/div>[\s\S]*?<p class="cloudhint">[\s\S]*?<\/p>/,
-      ''
-    );
+   return html.replace(
+  /<div class="sectionhead">\s*<h2>Friends & social<\/h2>\s*<\/div>[\s\S]*?<p class="cloudhint">[\s\S]*?<\/p>/,
+  ''
+);
   };
 })();
 </script>
