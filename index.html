@@ -1596,18 +1596,25 @@ function saveBookStatuses() {
 })();
 </script>
 <style>
-/* Center all Shelfie pop-ups */
+/* Force all Shelfie pop-ups into the center */
 .modalwrap {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
   align-items: center !important;
-  padding: 20px;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
 }
 
 .modal {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  max-height: 75dvh !important;
+  margin: 0 auto !important;
   border-radius: 24px !important;
-  max-height: 85dvh;
-  overflow-y: auto;
-  width: 100%;
-  margin: auto;
+  overflow-y: auto !important;
 }
 </style>
 </body></html>
