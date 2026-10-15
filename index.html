@@ -335,24 +335,21 @@ refreshCloud();
 
 <script>
 (function () {
-  // Remove the large account banner from Home and Profile.
+
+  // Remove the account banner from Home and Profile.
   home = (function (oldHome) {
     return function () {
-      return oldHome().replace(
-        /<div class="cloudbar">[\s\S]*?<\/div>/,
-        ''
-      );
+      return oldHome().replace(accountBar(), '');
     };
   })(home);
 
   profilePage = (function (oldProfile) {
     return function () {
-      return oldProfile().replace(
-        /<div class="cloudbar">[\s\S]*?<\/div>/,
-        ''
-      );
+      return oldProfile().replace(accountBar(), '');
     };
   })(profilePage);
+
+
 
   // Add a settings button to the header.
   const headerButtons = document.querySelector('.header-right');
@@ -371,7 +368,7 @@ refreshCloud();
             : 'Welcome to Shelfie'}
         </p>
 
-        <button class="secondary full" onclick="closeModal();openAccount()"
+        <button class="secondary full" onclick="closeModal();openAccount()">
           My account / Find friends
         </button>
 
