@@ -13,7 +13,15 @@ const catalog=[
 {id:'s2',title:'Stranger Things',type:'Show',year:'2016',genre:'Sci-fi',cover:'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',fallback:'https://placehold.co/300x450/4b202e/ffffff?text=Stranger+Things'},
 {id:'s3',title:'Wednesday',type:'Show',year:'2022',genre:'Mystery',cover:'https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg',fallback:'https://placehold.co/300x450/2b283a/ffffff?text=Wednesday'}];
 const key='shelfie-prototype-v1';const defaults={name:'Yagmur',handle:'@yagmurreads',reviews:[{id:'b1',stars:5,text:'Dragons, drama, and a romance I cannot stop thinking about.',date:'Today'},{id:'s1',stars:5,text:'The performances and the storytelling? Incredible.',date:'Yesterday'}],comments:{b1:[{name:'Emma',text:'Team Xaden forever! 💗'}],s1:[{name:'Lily',text:'I need the next season immediately.'}]},groups:[{id:'g1',name:'Spicy Book Club 🔥',description:'Fantasy romance, dragons, and all the plot twists.',members:['Yagmur','Emma','Lily'],posts:[{name:'Emma',text:'What are we reading next? 📚'}]},{id:'g2',name:'Movie Night 🎬',description:'Our next favorite Friday-night watch.',members:['Yagmur','Shane'],posts:[{name:'Shane',text:'Dune rewatch this weekend?'}]}],saved:['b3','m2'],likes:[]};
-let state;try{state={...JSON.parse(JSON.stringify(defaults)),...JSON.parse(localStorage.getItem(key)||'{}')}}catch{state=JSON.parse(JSON.stringify(defaults))};let tab='Home',filter='All',search='',selected=null,groupSelected=null,starValue=5;function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){toast('Browser storage unavailable; changes last until refresh')}}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function item(id){return catalog.find(x=>x.id===id)}function imageTag(x,cls='cover'){return `<img class="${cls}" src="${x.cover}" alt="${esc(x.title)} cover" loading="lazy" onerror="if(this.src!=='${x.fallback}')this.src='${x.fallback}'">`}function toast(s){document.querySelector('.notice')?.remove();let d=document.createElement('div');d.className='notice';d.textContent=s;document.body.append(d);setTimeout(()=>d.remove(),2300)}function avg(id){let r=state.reviews.filter(x=>x.id===id);return r.length?(r.reduce((a,b)=>a+b.stars,0)/r.length).toFixed(1):'—'}function coverCard(x){return `<div class="coveritem" onclick="openDetail('${x.id}')">${imageTag(x)}<b>${esc(x.title)}</b><small>${x.type} · <span class="stars">★</span> ${avg(x.id)}</small></div>`}function nav(){document.getElementById('nav').innerHTML=[['Home','⌂'],['Search','⌕'],['Add','+'],['Groups','♧'],['Profile','♙']].map(([n,ic])=>`<button class="${tab===n?'active':''} ${n==='Add'?'plus':''}" onclick="${n==='Add'?'openAdd()':`go('${n}')`}"><span>${ic}</span>${n==='Add'?'':n}</button>`).join('')}function go(t){tab=t;filter='All';search='';render();window.scrollTo(0,0)}function render(){nav();let el=document.getElementById('screen');if(tab==='Home')el.innerHTML=home();if(tab==='Search')el.innerHTML=searchPage();if(tab==='Groups')el.innerHTML=groupsPage();if(tab==='Profile')el.innerHTML=profilePage();if(tab==='Add')el.innerHTML=home()}function home(){return `<section class="hero"><div class="eyebrow">Your little corner of culture ✦</div><h1>Good stories. Better company.</h1><div class="muted">Your next obsession starts here.</div></section><div class="tabs">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';render()">${f}</button>`).join('')}</div><div class="sectionhead"><h2>✦ Discover something good</h2><button class="linkbtn" onclick="go('Search')">See all →</button></div><div class="coverrail">${catalog.filter(x=>filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).map(coverCard).join('')}</div><div class="sectionhead"><h2>💗 Your circle</h2><span class="subtle">Recent reviews</span></div>${state.reviews.filter(r=>filter==='All'||item(r.id)?.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).slice().reverse().map(r=>feedCard(r)).join('')||'<div class="empty">No reviews yet. Be the first to rate something!</div>'}<div class="sectionhead"><h2>✨ Your groups</h2><button class="linkbtn" onclick="go('Groups')">View groups →</button></div>${state.groups.slice(0,2).map(groupCard).join('')}`}function feedCard(r){let x=item(r.id);if(!x)return '';return `<div class="feedcard"><div class="feedtop"><div class="avatar">${esc(state.name[0]||'Y')}</div><div><b>${esc(state.name)}</b> <span class="subtle">rated a ${x.type.toLowerCase()}</span><div class="subtle">${esc(r.date||'Recently')}</div></div></div><div class="feedbody" onclick="openDetail('${x.id}')" style="cursor:pointer">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><p>${esc(r.text)}</p><span class="subtle">${x.type} · ${x.year}</span></div></div><div class="actions"><button class="linkbtn" onclick="toggleLike('${x.id}')">${state.likes.includes(x.id)?'♥ Liked':'♡ Like'}</button><button class="linkbtn" onclick="openDetail('${x.id}')">💬 ${state.comments[x.id]?.length||0} comments</button></div></div>`}function searchPage(){let list=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase()));return `<div class="hero"><div class="eyebrow">Find your next favorite</div><h1>Explore</h1></div><input class="searchbox" id="searchInput" placeholder="Search books, movies, shows..." value="${esc(search)}" oninput="search=this.value;updateResults()"><div class="chips">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('')}</div><div id="results" class="gridcovers">${list.map(coverCard).join('')}</div>`}function updateResults(){document.querySelector('.chips').innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');document.getElementById('results').innerHTML=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase())).map(coverCard).join('')||'<p class="muted">No titles found.</p>'}function groupCard(g){return `<div class="groupcard" onclick="openGroup('${g.id}')"><div class="row spaced"><h3>${esc(g.name)}</h3><span style="color:var(--pink)">↗</span></div><div class="muted tiny">${esc(g.description)}</div><span class="badge">♧ ${g.members.length} members</span> <span class="badge">💬 ${g.posts.length} posts</span></div>`}function groupsPage(){return `<div class="hero"><div class="eyebrow">The best part is sharing</div><h1>Your groups ♡</h1><div class="muted">Your people, your stories, your opinions.</div></div><button class="primary full" onclick="openCreateGroup()">＋ Create a group</button><div class="sectionhead"><h2>Groups you're in</h2><span class="subtle">${state.groups.length} groups</span></div>${state.groups.map(groupCard).join('')}`}function profilePage(){return `<div class="profiletop"><div class="avatar">${esc(state.name[0]||'Y')}</div><h2 style="margin:0">${esc(state.name)}</h2><div class="muted">${esc(state.handle)}</div><button class="secondary" style="margin-top:13px" onclick="editProfile()">Edit profile ✎</button><div class="stats"><div><b>${state.reviews.length}</b><small>Ratings</small></div><div><b>${Object.values(state.comments).flat().filter(c=>c.name===state.name).length}</b><small>Comments</small></div><div><b>${state.groups.length}</b><small>Groups</small></div></div></div><div class="sectionhead"><h2>♡ My watchlist & TBR</h2></div><div class="coverrail">${state.saved.map(id=>item(id)).filter(Boolean).map(coverCard).join('')||'<div class="muted">Your saved titles will appear here.</div>'}</div><div class="sectionhead"><h2>★ My reviews</h2></div>${state.reviews.slice().reverse().map(feedCard).join('')||'<div class="empty">Your ratings will appear here.</div>'}<button class="secondary full" onclick="openInvite()">↗ Share my profile</button>`}function modal(title,body){document.getElementById('overlay').innerHTML=`<div class="modalwrap" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()"><div class="modalhead"><h2>${title}</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>${body}</div></div>`}function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('overlay').innerHTML=''}function openDetail(id){selected=id;let x=item(id),comments=state.comments[id]||[],my=state.reviews.find(r=>r.id===id);modal('Details ✦',`<div class="detail">${imageTag(x,'')}<div><div class="eyebrow">${x.type} · ${x.year}</div><h2>${esc(x.title)}</h2><div class="muted">${esc(x.genre)}</div><p class="stars">★ ${avg(id)} <span class="subtle">(${state.reviews.filter(r=>r.id===id).length} ratings)</span></p><button class="primary" onclick="openReview('${id}')">${my?'Edit rating':'★ Rate & review'}</button></div></div><div class="row" style="margin-top:15px"><button class="secondary full" onclick="toggleSave('${id}')">${state.saved.includes(id)?'✓ Saved to list':'＋ Add to watchlist / TBR'}</button></div><hr class="divider"><h3>Community discussion</h3><div id="commentList">${comments.map(c=>`<div class="comment"><b>${esc(c.name)}</b><p>${esc(c.text)}</p></div>`).join('')||'<p class="muted">Start the conversation!</p>'}</div><form onsubmit="addComment(event,'${id}')"><div class="field"><input id="commentText" required maxlength="500" placeholder="Add a comment..."></div><button class="primary full" type="submit">Post comment</button></form>`)}function openReview(id){selected=id;let x=item(id),r=state.reviews.find(r=>r.id===id);starValue=r?.stars||5;modal('Rate & review',`<div class="row">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="muted">${x.type} · ${x.year}</div></div></div><div class="field"><label>Your rating</label><div class="rateStars" id="rateStars">${starButtons()}</div></div><div class="field"><label>Your thoughts</label><textarea id="reviewText" placeholder="What did you think?">${esc(r?.text||'')}</textarea></div><button class="primary full" onclick="submitReview('${id}')">Save my review ♡</button>`)}function starButtons(){return [1,2,3,4,5].map(n=>`<button class="${n<=starValue?'on':''}" onclick="starValue=${n};document.getElementById('rateStars').innerHTML=starButtons()">★</button>`).join('')}function submitReview(id){let text=document.getElementById('reviewText').value.trim();state.reviews=state.reviews.filter(r=>r.id!==id);state.reviews.push({id,stars:starValue,text,date:'Just now'});save();closeModal();render();toast('Review saved ✨')}function addComment(e,id){e.preventDefault();let text=document.getElementById('commentText').value.trim();if(!text)return;(state.comments[id]??=[]).push({name:state.name,text});save();openDetail(id);toast('Comment posted 💗')}function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];save();openDetail(id);toast(state.saved.includes(id)?'Added to your list':'Removed from your list')}function toggleLike(id){state.likes=state.likes.includes(id)?state.likes.filter(x=>x!==id):[...state.likes,id];save();render()}function openAdd(){modal('What did you finish? ✨',`<p class="muted">Choose a book, movie, or show to rate.</p><input class="searchbox" placeholder="Filter titles..." oninput="document.querySelectorAll('.picktitle').forEach(el=>el.style.display=el.textContent.toLowerCase().includes(this.value.toLowerCase())?'flex':'none')">${catalog.map(x=>`<div class="row picktitle" style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openReview('${x.id}')">${imageTag(x,'')}<div><b>${esc(x.title)}</b><div class="subtle">${x.type}</div></div><span style="margin-left:auto;color:var(--pink)">→</span></div>`).join('')}`);document.querySelectorAll('.picktitle img').forEach(img=>{img.style.width='42px';img.style.height='62px';img.style.objectFit='cover';img.style.borderRadius='6px'})}function openCreateGroup(){modal('Create your group ♡',`<form onsubmit="createGroup(event)"><div class="field"><label>Group name</label><input id="groupName" required maxlength="50" placeholder="e.g. Fantasy Girls ✨"></div><div class="field"><label>What's your group about?</label><textarea id="groupDesc" maxlength="240" placeholder="Books, movies, shows, or all three!"></textarea></div><button class="primary full" type="submit">Create group</button></form>`)}function createGroup(e){e.preventDefault();let name=document.getElementById('groupName').value.trim(),description=document.getElementById('groupDesc').value.trim();if(!name)return;let id='g'+Date.now();state.groups.push({id,name,description,members:[state.name],posts:[]});save();closeModal();go('Groups');openGroup(id);toast('Your group is live! ✨')}function openGroup(id){groupSelected=id;let g=state.groups.find(x=>x.id===id);if(!g)return;modal(esc(g.name),`<p class="muted">${esc(g.description)}</p><div class="row spaced"><span class="subtle">♧ ${g.members.length} members · ${esc(g.members.join(', '))}</span><button class="linkbtn" onclick="shareGroup('${id}')">Invite ↗</button></div><hr class="divider"><h3>Group chat 💬</h3>${g.posts.map(p=>`<div class="comment"><b>${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('')||'<div class="empty">Say hello to your group!</div>'}<form onsubmit="postGroup(event,'${id}')"><div class="field"><textarea id="groupPost" required maxlength="1000" placeholder="Share your latest thoughts..."></textarea></div><button class="primary full" type="submit">Post to group</button></form>`)}function postGroup(e,id){e.preventDefault();let text=document.getElementById('groupPost').value.trim();if(!text)return;state.groups.find(x=>x.id===id).posts.push({name:state.name,text});save();openGroup(id);toast('Posted to group 💗')}function editProfile(){modal('Edit profile',`<form onsubmit="saveProfile(event)"><div class="field"><label>Display name</label><input id="profileName" required maxlength="40" value="${esc(state.name)}"></div><div class="field"><label>Username</label><input id="profileHandle" required maxlength="40" value="${esc(state.handle)}"></div><button class="primary full" type="submit">Save profile</button></form>`)}function saveProfile(e){e.preventDefault();state.name=document.getElementById('profileName').value.trim();state.handle=document.getElementById('profileHandle').value.trim();save();closeModal();render();toast('Profile updated ✨')}function shareGroup(id){shareText(`Join my Shelfie group: ${state.groups.find(g=>g.id===id).name}!`)}function openInvite(){modal('Share Shelfie with friends ↗',`<p class="muted">Share your love of books, movies, and TV with your favorite people.</p><button class="primary full" onclick="shareText('Check out Shelfie — let’s rate books, movies and shows together!')">↗ Share Shelfie</button><p class="subtle">This is a local HTML prototype. Friends can open their own copy, but accounts and group messages are not synced across devices yet.</p>`)}async function shareText(text){try{if(navigator.share)await navigator.share({title:'Shelfie',text,url:location.protocol==='file:'?undefined:location.href});else if(navigator.clipboard){await navigator.clipboard.writeText(text+' '+(location.protocol==='file:'?'':location.href));toast('Copied to clipboard!')}else toast('Sharing not supported in this browser')}catch(e){if(e.name!=='AbortError')toast('Unable to share')}}function openSearch(){go('Search');setTimeout(()=>document.getElementById('searchInput')?.focus(),50)}render();
+let state;try{state={...JSON.parse(JSON.stringify(defaults)),...JSON.parse(localStorage.getItem(key)||'{}')}}catch{state=JSON.parse(JSON.stringify(defaults))};let 
+ let tab=sessionStorage.getItem('shelfie-current-page')||'Home',filter='All',search='',selected=null,groupSelected=null,starValue=5;function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){toast('Browser storage unavailable; changes last until refresh')}}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function item(id){return catalog.find(x=>x.id===id)}function imageTag(x,cls='cover'){return `<img class="${cls}" src="${x.cover}" alt="${esc(x.title)} cover" loading="lazy" onerror="if(this.src!=='${x.fallback}')this.src='${x.fallback}'">`}function toast(s){document.querySelector('.notice')?.remove();let d=document.createElement('div');d.className='notice';d.textContent=s;document.body.append(d);setTimeout(()=>d.remove(),2300)}function avg(id){let r=state.reviews.filter(x=>x.id===id);return r.length?(r.reduce((a,b)=>a+b.stars,0)/r.length).toFixed(1):'—'}function coverCard(x){return `<div class="coveritem" onclick="openDetail('${x.id}')">${imageTag(x)}<b>${esc(x.title)}</b><small>${x.type} · <span class="stars">★</span> ${avg(x.id)}</small></div>`}function nav(){document.getElementById('nav').innerHTML=[['Home','⌂'],['Search','⌕'],['Add','+'],['Groups','♧'],['Profile','♙']].map(([n,ic])=>`<button class="${tab===n?'active':''} ${n==='Add'?'plus':''}" onclick="${n==='Add'?'openAdd()':`go('${n}')`}"><span>${ic}</span>${n==='Add'?'':n}</button>`).join('')} function go(t){
+  tab=t;
+  sessionStorage.setItem('shelfie-current-page',t);
+  filter='All';
+  search='';
+  render();
+  window.scrollTo(0,0);
+} function render(){nav();let el=document.getElementById('screen');if(tab==='Home')el.innerHTML=home();if(tab==='Search')el.innerHTML=searchPage();if(tab==='Groups')el.innerHTML=groupsPage();if(tab==='Profile')el.innerHTML=profilePage();if(tab==='Add')el.innerHTML=home()}function home(){return `<section class="hero"><div class="eyebrow">Your little corner of culture ✦</div><h1>Good stories. Better company.</h1><div class="muted">Your next obsession starts here.</div></section><div class="tabs">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';render()">${f}</button>`).join('')}</div><div class="sectionhead"><h2>✦ Discover something good</h2><button class="linkbtn" onclick="go('Search')">See all →</button></div><div class="coverrail">${catalog.filter(x=>filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).map(coverCard).join('')}</div><div class="sectionhead"><h2>💗 Your circle</h2><span class="subtle">Recent reviews</span></div>${state.reviews.filter(r=>filter==='All'||item(r.id)?.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).slice().reverse().map(r=>feedCard(r)).join('')||'<div class="empty">No reviews yet. Be the first to rate something!</div>'}<div class="sectionhead"><h2>✨ Your groups</h2><button class="linkbtn" onclick="go('Groups')">View groups →</button></div>${state.groups.slice(0,2).map(groupCard).join('')}`}function feedCard(r){let x=item(r.id);if(!x)return '';return `<div class="feedcard"><div class="feedtop"><div class="avatar">${esc(state.name[0]||'Y')}</div><div><b>${esc(state.name)}</b> <span class="subtle">rated a ${x.type.toLowerCase()}</span><div class="subtle">${esc(r.date||'Recently')}</div></div></div><div class="feedbody" onclick="openDetail('${x.id}')" style="cursor:pointer">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><p>${esc(r.text)}</p><span class="subtle">${x.type} · ${x.year}</span></div></div><div class="actions"><button class="linkbtn" onclick="toggleLike('${x.id}')">${state.likes.includes(x.id)?'♥ Liked':'♡ Like'}</button><button class="linkbtn" onclick="openDetail('${x.id}')">💬 ${state.comments[x.id]?.length||0} comments</button></div></div>`}function searchPage(){let list=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase()));return `<div class="hero"><div class="eyebrow">Find your next favorite</div><h1>Explore</h1></div><input class="searchbox" id="searchInput" placeholder="Search books, movies, shows..." value="${esc(search)}" oninput="search=this.value;updateResults()"><div class="chips">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('')}</div><div id="results" class="gridcovers">${list.map(coverCard).join('')}</div>`}function updateResults(){document.querySelector('.chips').innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');document.getElementById('results').innerHTML=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase())).map(coverCard).join('')||'<p class="muted">No titles found.</p>'}function groupCard(g){return `<div class="groupcard" onclick="openGroup('${g.id}')"><div class="row spaced"><h3>${esc(g.name)}</h3><span style="color:var(--pink)">↗</span></div><div class="muted tiny">${esc(g.description)}</div><span class="badge">♧ ${g.members.length} members</span> <span class="badge">💬 ${g.posts.length} posts</span></div>`}function groupsPage(){return `<div class="hero"><div class="eyebrow">The best part is sharing</div><h1>Your groups ♡</h1><div class="muted">Your people, your stories, your opinions.</div></div><button class="primary full" onclick="openCreateGroup()">＋ Create a group</button><div class="sectionhead"><h2>Groups you're in</h2><span class="subtle">${state.groups.length} groups</span></div>${state.groups.map(groupCard).join('')}`}function profilePage(){return `<div class="profiletop"><div class="avatar">${esc(state.name[0]||'Y')}</div><h2 style="margin:0">${esc(state.name)}</h2><div class="muted">${esc(state.handle)}</div><button class="secondary" style="margin-top:13px" onclick="editProfile()">Edit profile ✎</button><div class="stats"><div><b>${state.reviews.length}</b><small>Ratings</small></div><div><b>${Object.values(state.comments).flat().filter(c=>c.name===state.name).length}</b><small>Comments</small></div><div><b>${state.groups.length}</b><small>Groups</small></div></div></div><div class="sectionhead"><h2>♡ My watchlist & TBR</h2></div><div class="coverrail">${state.saved.map(id=>item(id)).filter(Boolean).map(coverCard).join('')||'<div class="muted">Your saved titles will appear here.</div>'}</div><div class="sectionhead"><h2>★ My reviews</h2></div>${state.reviews.slice().reverse().map(feedCard).join('')||'<div class="empty">Your ratings will appear here.</div>'}<button class="secondary full" onclick="openInvite()">↗ Share my profile</button>`}function modal(title,body){document.getElementById('overlay').innerHTML=`<div class="modalwrap" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()"><div class="modalhead"><h2>${title}</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>${body}</div></div>`}function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('overlay').innerHTML=''}function openDetail(id){selected=id;let x=item(id),comments=state.comments[id]||[],my=state.reviews.find(r=>r.id===id);modal('Details ✦',`<div class="detail">${imageTag(x,'')}<div><div class="eyebrow">${x.type} · ${x.year}</div><h2>${esc(x.title)}</h2><div class="muted">${esc(x.genre)}</div><p class="stars">★ ${avg(id)} <span class="subtle">(${state.reviews.filter(r=>r.id===id).length} ratings)</span></p><button class="primary" onclick="openReview('${id}')">${my?'Edit rating':'★ Rate & review'}</button></div></div><div class="row" style="margin-top:15px"><button class="secondary full" onclick="toggleSave('${id}')">${state.saved.includes(id)?'✓ Saved to list':'＋ Add to watchlist / TBR'}</button></div><hr class="divider"><h3>Community discussion</h3><div id="commentList">${comments.map(c=>`<div class="comment"><b>${esc(c.name)}</b><p>${esc(c.text)}</p></div>`).join('')||'<p class="muted">Start the conversation!</p>'}</div><form onsubmit="addComment(event,'${id}')"><div class="field"><input id="commentText" required maxlength="500" placeholder="Add a comment..."></div><button class="primary full" type="submit">Post comment</button></form>`)}function openReview(id){selected=id;let x=item(id),r=state.reviews.find(r=>r.id===id);starValue=r?.stars||5;modal('Rate & review',`<div class="row">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="muted">${x.type} · ${x.year}</div></div></div><div class="field"><label>Your rating</label><div class="rateStars" id="rateStars">${starButtons()}</div></div><div class="field"><label>Your thoughts</label><textarea id="reviewText" placeholder="What did you think?">${esc(r?.text||'')}</textarea></div><button class="primary full" onclick="submitReview('${id}')">Save my review ♡</button>`)}function starButtons(){return [1,2,3,4,5].map(n=>`<button class="${n<=starValue?'on':''}" onclick="starValue=${n};document.getElementById('rateStars').innerHTML=starButtons()">★</button>`).join('')}function submitReview(id){let text=document.getElementById('reviewText').value.trim();state.reviews=state.reviews.filter(r=>r.id!==id);state.reviews.push({id,stars:starValue,text,date:'Just now'});save();closeModal();render();toast('Review saved ✨')}function addComment(e,id){e.preventDefault();let text=document.getElementById('commentText').value.trim();if(!text)return;(state.comments[id]??=[]).push({name:state.name,text});save();openDetail(id);toast('Comment posted 💗')}function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];save();openDetail(id);toast(state.saved.includes(id)?'Added to your list':'Removed from your list')}function toggleLike(id){state.likes=state.likes.includes(id)?state.likes.filter(x=>x!==id):[...state.likes,id];save();render()}function openAdd(){modal('What did you finish? ✨',`<p class="muted">Choose a book, movie, or show to rate.</p><input class="searchbox" placeholder="Filter titles..." oninput="document.querySelectorAll('.picktitle').forEach(el=>el.style.display=el.textContent.toLowerCase().includes(this.value.toLowerCase())?'flex':'none')">${catalog.map(x=>`<div class="row picktitle" style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openReview('${x.id}')">${imageTag(x,'')}<div><b>${esc(x.title)}</b><div class="subtle">${x.type}</div></div><span style="margin-left:auto;color:var(--pink)">→</span></div>`).join('')}`);document.querySelectorAll('.picktitle img').forEach(img=>{img.style.width='42px';img.style.height='62px';img.style.objectFit='cover';img.style.borderRadius='6px'})}function openCreateGroup(){modal('Create your group ♡',`<form onsubmit="createGroup(event)"><div class="field"><label>Group name</label><input id="groupName" required maxlength="50" placeholder="e.g. Fantasy Girls ✨"></div><div class="field"><label>What's your group about?</label><textarea id="groupDesc" maxlength="240" placeholder="Books, movies, shows, or all three!"></textarea></div><button class="primary full" type="submit">Create group</button></form>`)}function createGroup(e){e.preventDefault();let name=document.getElementById('groupName').value.trim(),description=document.getElementById('groupDesc').value.trim();if(!name)return;let id='g'+Date.now();state.groups.push({id,name,description,members:[state.name],posts:[]});save();closeModal();go('Groups');openGroup(id);toast('Your group is live! ✨')}function openGroup(id){groupSelected=id;let g=state.groups.find(x=>x.id===id);if(!g)return;modal(esc(g.name),`<p class="muted">${esc(g.description)}</p><div class="row spaced"><span class="subtle">♧ ${g.members.length} members · ${esc(g.members.join(', '))}</span><button class="linkbtn" onclick="shareGroup('${id}')">Invite ↗</button></div><hr class="divider"><h3>Group chat 💬</h3>${g.posts.map(p=>`<div class="comment"><b>${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('')||'<div class="empty">Say hello to your group!</div>'}<form onsubmit="postGroup(event,'${id}')"><div class="field"><textarea id="groupPost" required maxlength="1000" placeholder="Share your latest thoughts..."></textarea></div><button class="primary full" type="submit">Post to group</button></form>`)}function postGroup(e,id){e.preventDefault();let text=document.getElementById('groupPost').value.trim();if(!text)return;state.groups.find(x=>x.id===id).posts.push({name:state.name,text});save();openGroup(id);toast('Posted to group 💗')}function editProfile(){modal('Edit profile',`<form onsubmit="saveProfile(event)"><div class="field"><label>Display name</label><input id="profileName" required maxlength="40" value="${esc(state.name)}"></div><div class="field"><label>Username</label><input id="profileHandle" required maxlength="40" value="${esc(state.handle)}"></div><button class="primary full" type="submit">Save profile</button></form>`)}function saveProfile(e){e.preventDefault();state.name=document.getElementById('profileName').value.trim();state.handle=document.getElementById('profileHandle').value.trim();save();closeModal();render();toast('Profile updated ✨')}function shareGroup(id){shareText(`Join my Shelfie group: ${state.groups.find(g=>g.id===id).name}!`)}function openInvite(){modal('Share Shelfie with friends ↗',`<p class="muted">Share your love of books, movies, and TV with your favorite people.</p><button class="primary full" onclick="shareText('Check out Shelfie — let’s rate books, movies and shows together!')">↗ Share Shelfie</button><p class="subtle">This is a local HTML prototype. Friends can open their own copy, but accounts and group messages are not synced across devices yet.</p>`)}async function shareText(text){try{if(navigator.share)await navigator.share({title:'Shelfie',text,url:location.protocol==='file:'?undefined:location.href});else if(navigator.clipboard){await navigator.clipboard.writeText(text+' '+(location.protocol==='file:'?'':location.href));toast('Copied to clipboard!')}else toast('Sharing not supported in this browser')}catch(e){if(e.name!=='AbortError')toast('Unable to share')}}function openSearch(){go('Search');setTimeout(()=>document.getElementById('searchInput')?.focus(),50)}render();
 </script>
 <style>
 .cloudbar{background:#261e2b;border:1px solid #72405d;border-radius:14px;margin:12px 16px;padding:12px;color:#ffb8d9;font-size:13px}.cloudbar button{margin:5px 5px 0 0}.socialresult{border-bottom:1px solid #473647;padding:12px 0}.cloudhint{color:#d4b9c7;font-size:12px;margin:10px 0}
@@ -641,16 +649,39 @@ if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|
 (function () {
   const previousOpenDetail = openDetail;
 
-  const bookStatuses = JSON.parse(
-    localStorage.getItem('shelfie-book-statuses') || '{}'
+  
+const bookStatuses = {};
+
+function bookStatusKey() {
+  return 'shelfie-book-statuses-' +
+    (cloudUser?.id || 'guest');
+}
+
+function loadBookStatuses() {
+  let saved = {};
+
+  try {
+    saved = JSON.parse(
+      localStorage.getItem(bookStatusKey()) || '{}'
+    );
+  } catch {
+    saved = {};
+  }
+
+  Object.keys(bookStatuses).forEach(
+    id => delete bookStatuses[id]
   );
 
-  function saveBookStatuses() {
-    localStorage.setItem(
-      'shelfie-book-statuses',
-      JSON.stringify(bookStatuses)
-    );
-  }
+  Object.assign(bookStatuses, saved);
+}
+
+function saveBookStatuses() {
+  localStorage.setItem(
+    bookStatusKey(),
+    JSON.stringify(bookStatuses)
+  );
+}
+
 
   function getStatus(id) {
     if (bookStatuses[id]) return bookStatuses[id];
@@ -1021,4 +1052,561 @@ if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|
 })();
 </script>
 
+
+<style>
+/* Shelfie Profile Dashboard */
+.shelfie-profile-stats {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin:20px 0;
+}
+.shelfie-profile-stat {
+  background:#3C2241;
+  color:#FFE5F5;
+  border:1px solid #754B73;
+  border-radius:15px;
+  padding:14px 5px;
+  text-align:center;
+  min-width:0;
+}
+.shelfie-profile-stat:active {
+  background:#51304D;
+}
+.shelfie-profile-stat .symbol {
+  display:block;
+  color:#F5A4DF;
+  font-size:21px;
+}
+.shelfie-profile-stat strong {
+  display:block;
+  color:#FFE5F5;
+  font-size:23px;
+  margin:5px 0;
+}
+.shelfie-profile-stat small {
+  color:#FFE5F5;
+  font-size:11px;
+  line-height:1.3;
+}
+.shelfie-profile-section {
+  margin:23px 0;
+}
+.shelfie-profile-section h2 {
+  font-size:18px;
+  color:#FFE5F5;
+}
+.shelfie-profile-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.shelfie-profile-tile {
+  background:none;
+  border:0;
+  color:#FFE5F5;
+  padding:0;
+  text-align:left;
+  min-width:0;
+}
+.shelfie-profile-tile img {
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  border-radius:11px;
+}
+.shelfie-profile-tile span {
+  display:block;
+  font-size:12px;
+  margin-top:6px;
+}
+.shelfie-activity-entry {
+  background:#3C2241;
+  border:1px solid #754B73;
+  border-radius:13px;
+  padding:13px;
+  margin:9px 0;
+  color:#FFE5F5;
+}
+.shelfie-activity-entry button {
+  margin-top:8px;
+}
+.shelfie-profile-stat:focus-visible,
+.shelfie-profile-tile:focus-visible {
+  outline:2px solid #F5A4DF;
+}
+</style>
+
+<script>
+(function () {
+  const legacyKey = 'shelfie-prototype-v1';
+  const personalPrefix = 'shelfie-account-v2-';
+  const originalRender = render;
+  const originalRefresh = refreshCloud;
+  const originalSave = save;
+  const originalSubmitReview = submitReview;
+  const originalAddComment = addComment;
+  const originalPostGroup = postGroup;
+  const originalCreateGroup = createGroup;
+  const originalBookStatus = window.shelfieBookStatus;
+  const originalOpenDetail = openDetail;
+
+  let activeAccount = null;
+  let ready = false;
+
+  function emptyData() {
+    return {
+      reviews:[],
+      comments:{},
+      groups:[],
+      saved:[],
+      likes:[],
+      completed:[],
+      activity:[]
+    };
+  }
+
+  function storageKey(id) {
+    return personalPrefix + id;
+  }
+
+  function safeRead(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  function loadAccount() {
+    const id = cloudUser?.id || 'guest';
+
+    if (ready && activeAccount === id) return;
+
+    // Save the previous account's changes before switching.
+  
+
+    let data = safeRead(storageKey(id));
+
+    // Preserve the original owner's demo-era data.
+    // Other users always begin with empty collections.
+    if (!data && cloudUser &&
+        cloudProfile?.username === 'yagmurreads') {
+      const old = safeRead(legacyKey);
+      if (old) {
+        data = Object.assign(emptyData(), old);
+      }
+    }
+
+    state = Object.assign(emptyData(), data || {});
+    state.comments ||= {};
+    state.activity ||= [];
+    state.completed ||= [];
+
+    activeAccount = id;
+    ready = true;
+  }
+
+  save = function () {
+    loadAccount();
+    try {
+      localStorage.setItem(
+        storageKey(activeAccount),
+        JSON.stringify(state)
+      );
+    } catch {
+      toast('Could not save on this device');
+    }
+  };
+
+  function isFinished(id) {
+    return state.completed.includes(id);
+  }
+
+  function finishedItems(type) {
+    return state.completed
+      .map(id => item(id))
+      .filter(x => x && x.type === type);
+  }
+
+  function mediaCards(items) {
+    if (!items.length) {
+      return '<div class="empty">Nothing here yet ♡</div>';
+    }
+
+    return `
+      <div class="shelfie-profile-grid">
+        ${items.map(x => `
+          <button class="shelfie-profile-tile"
+            onclick="openDetail('${x.id}')">
+            ${imageTag(x)}
+            <span>${esc(x.title)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function stat(symbol, count, label, kind) {
+    return `
+      <button class="shelfie-profile-stat"
+        onclick="shelfieOpenStat('${kind}')">
+        <span class="symbol">${symbol}</span>
+        <strong>${count}</strong>
+        <small>${label}</small>
+      </button>
+    `;
+  }
+
+  profilePage = function () {
+    loadAccount();
+
+    const name = cloudProfile?.display_name ||
+      state.name || 'Shelfie Member';
+
+    const username = cloudProfile?.username ||
+      state.handle?.replace(/^@/, '') || 'member';
+
+    const bio = cloudProfile?.bio || '';
+    const status = cloudProfile?.status || '';
+
+    const recent = (state.activity || []).slice().reverse();
+
+    return `
+      <div class="profiletop">
+        <div class="avatar">${esc(name[0] || 'S')}</div>
+        <h2 style="margin:0;color:#FFE5F5">
+          ${esc(name)}
+        </h2>
+        <div class="muted">@${esc(username)}</div>
+
+        ${bio ? `
+          <p class="shelfie-bio">${esc(bio)}</p>
+        ` : ''}
+
+        ${status ? `
+          <div class="shelfie-status">
+            <div class="eyebrow">✦ MY STATUS</div>
+            <p>${esc(status)}</p>
+          </div>
+        ` : ''}
+
+        <button class="secondary"
+          style="margin-top:13px"
+          onclick="editProfile()">
+          Edit profile ✎
+        </button>
+      </div>
+
+      <div class="shelfie-profile-stats">
+        ${stat('♡', cloudFollowing.length,
+          'Friends','friends')}
+
+        ${stat('★', state.reviews.length,
+          'Ratings','ratings')}
+
+        ${stat('♧', state.groups.length,
+          'Groups','groups')}
+
+        ${stat('📖', finishedItems('Book').length,
+          'Books Read','books')}
+
+        ${stat('🎬', finishedItems('Movie').length,
+          'Movies Watched','movies')}
+
+        ${stat('📺', finishedItems('Show').length,
+          'Shows Watched','shows')}
+      </div>
+
+      <section class="shelfie-profile-section">
+        <h2>♡ My TBR & Watchlist</h2>
+        ${mediaCards(
+          state.saved.map(id => item(id)).filter(Boolean)
+        )}
+      </section>
+
+      <section class="shelfie-profile-section">
+        <h2>✦ My Activity</h2>
+
+        ${recent.length ? recent.map(a => `
+          <div class="shelfie-activity-entry">
+            <div class="eyebrow">
+              ${a.kind === 'comment'
+                ? '💬 Commented'
+                : '♧ Group post'}
+            </div>
+            <p>${esc(a.text)}</p>
+            <div class="subtle">
+              ${esc(a.title || '')}
+              · ${esc(a.date || '')}
+            </div>
+            <button class="linkbtn"
+              onclick="shelfieOpenActivity(
+                '${a.kind}',
+                '${a.target}'
+              )">
+              View conversation →
+            </button>
+          </div>
+        `).join('') :
+          '<div class="empty">Your activity will appear here ♡</div>'
+        }
+      </section>
+
+      <button class="secondary full"
+        onclick="openInvite()">
+        ↗ Share my profile
+      </button>
+    `;
+  };
+
+  window.shelfieOpenActivity = function (kind, target) {
+    if (kind === 'group') openGroup(target);
+    else openDetail(target);
+  };
+
+  window.shelfieOpenStat = async function (kind) {
+    loadAccount();
+
+    if (kind === 'ratings') {
+      modal('My Ratings ♡',
+        mediaCards(
+          state.reviews.map(r => item(r.id)).filter(Boolean)
+        )
+      );
+      return;
+    }
+
+    if (kind === 'books') {
+      modal('Books Read ♡',
+        mediaCards(finishedItems('Book')));
+      return;
+    }
+
+    if (kind === 'movies') {
+      modal('Movies Watched ♡',
+        mediaCards(finishedItems('Movie')));
+      return;
+    }
+
+    if (kind === 'shows') {
+      modal('Shows Watched ♡',
+        mediaCards(finishedItems('Show')));
+      return;
+    }
+
+    if (kind === 'groups') {
+      modal('My Groups ♡',
+        state.groups.length
+          ? state.groups.map(g => `
+            <button class="shelfie-book-button"
+              style="margin-bottom:9px"
+              onclick="openGroup('${g.id}')">
+              ♧ ${esc(g.name)}
+            </button>
+          `).join('')
+          : '<div class="empty">No groups joined yet ♡</div>'
+      );
+      return;
+    }
+
+    if (kind === 'friends') {
+      if (!cloudUser) {
+        openAccount();
+        return;
+      }
+
+      modal('My Friends ♡',
+        '<p class="muted">Loading friends...</p>');
+
+      const { data, error } = await cloud
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', cloudUser.id);
+
+      if (error) {
+        toast(error.message);
+        return;
+      }
+
+      const ids = (data || []).map(f => f.following_id);
+
+      if (!ids.length) {
+        modal('My Friends ♡',
+          '<div class="empty">No friends followed yet ♡</div>');
+        return;
+      }
+
+      const result = await cloud
+        .from('profiles')
+        .select('id,username,display_name')
+        .in('id', ids);
+
+      if (result.error) {
+        toast(result.error.message);
+        return;
+      }
+
+      modal('My Friends ♡',
+        (result.data || []).map(p => `
+          <div class="socialresult">
+            <b>${esc(p.display_name || p.username)}</b>
+            <div class="muted">@${esc(p.username)}</div>
+          </div>
+        `).join('')
+      );
+    }
+  };
+
+  window.shelfieMarkFinished = function (id) {
+    loadAccount();
+
+    const finished = isFinished(id);
+
+    state.completed = finished
+      ? state.completed.filter(x => x !== id)
+      : [...state.completed, id];
+
+    if (!finished) {
+      state.saved = state.saved.filter(x => x !== id);
+    }
+
+    save();
+    openDetail(id);
+    toast(finished
+      ? 'Removed from completed ♡'
+      : 'Added to completed ♡');
+  };
+
+  // Movies and shows get their own watched button.
+  openDetail = function (id) {
+    loadAccount();
+    originalOpenDetail(id);
+
+    const x = item(id);
+    if (!x || x.type === 'Book') return;
+
+    const modalBody = document.querySelector('.modal');
+    if (!modalBody) return;
+
+    const button = document.createElement('button');
+    button.className = 'shelfie-book-button';
+    button.style.marginTop = '12px';
+    button.textContent = isFinished(id)
+      ? '✓ Watched · Undo'
+      : '✓ Mark as Watched';
+
+    button.onclick = () => shelfieMarkFinished(id);
+    modalBody.appendChild(button);
+  };
+
+  // Books already have a Read button.
+  window.shelfieBookStatus = function (id, status) {
+    loadAccount();
+
+    if (status === 'read') {
+      const wasRead = isFinished(id);
+      state.completed = wasRead
+        ? state.completed.filter(x => x !== id)
+        : [...state.completed, id];
+
+      save();
+    }
+
+    if (status === 'tbr') {
+      state.completed =
+        state.completed.filter(x => x !== id);
+      save();
+    }
+
+    originalBookStatus(id, status);
+  };
+
+  submitReview = async function (id) {
+    loadAccount();
+    await originalSubmitReview(id);
+
+    // Rating is separate from Read / Watched.
+    save();
+  };
+
+  addComment = function (e, id) {
+    loadAccount();
+
+    const input = document.getElementById('commentText');
+    const text = input?.value.trim();
+
+    if (text) {
+      state.activity.push({
+        kind:'comment',
+        target:id,
+        title:item(id)?.title || 'Discussion',
+        text,
+        date:new Date().toLocaleDateString()
+      });
+    }
+
+    originalAddComment(e, id);
+    save();
+  };
+
+  postGroup = function (e, id) {
+    loadAccount();
+
+    const input = document.getElementById('groupPost');
+    const text = input?.value.trim();
+
+    if (text) {
+      state.activity.push({
+        kind:'group',
+        target:id,
+        title:state.groups.find(g => g.id === id)?.name ||
+          'Group',
+        text,
+        date:new Date().toLocaleDateString()
+      });
+    }
+
+    originalPostGroup(e, id);
+    save();
+  };
+
+  createGroup = function (e) {
+    loadAccount();
+    originalCreateGroup(e);
+    save();
+  };
+
+  render = function () {
+    loadAccount();
+    originalRender();
+  };
+
+  refreshCloud = async function () {
+    await originalRefresh();
+    loadAccount();
+    render();
+  };
+
+  // The account-change listener in the existing app
+  // calls refreshCloud after sign-in or sign-out.
+  // Switching accounts now loads separate local data.
+  loadAccount();
+  render();
+})();
+</script>
+
+<script>
+(function () {
+  const previousRender = render;
+
+  render = function () {
+    loadBookStatuses();
+    previousRender();
+  };
+
+  loadBookStatuses();
+  render();
+})();
+</script>
 
