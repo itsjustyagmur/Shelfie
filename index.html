@@ -384,5 +384,18 @@ refreshCloud();
   }
 })();
 </script>
+<script>
+(function () {
+  const previousProfilePage = profilePage;
 
+  profilePage = function () {
+    const html = previousProfilePage();
+
+    return html.replace(
+      /<div class="sectionhead"><h2>Friends & social<\/h2><\/div>[\s\S]*?<p class="cloudhint">[\s\S]*?<\/p>/,
+      ''
+    );
+  };
+})();
+</script>
 </body></html>
