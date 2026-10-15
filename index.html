@@ -450,7 +450,10 @@ const books = (data.docs || [])
     const title = (book.title || '').trim().toLowerCase();
     const normalized = title.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
-    if (!normalized || seenTitles.has(normalized)) return false;
+    
+if (!normalized || seenTitles.has(normalized)) return false;
+if (!queryWords.every(word => normalized.split(' ').includes(word))) return false;
+if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|edition|set of|books set/i.test(title)) return false;
 
     // Exclude collection sets and bundles.
     if (/\b(box set|boxed set|collection set|bundle)\b/i.test(title)) {
