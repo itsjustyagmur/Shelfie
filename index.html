@@ -965,3 +965,60 @@ if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|
 </script>
 
 </body></html>
+
+<script>
+(function () {
+  // Keep the displayed identity tied to the signed-in account.
+  function syncShelfieIdentity() {
+    if (!cloudUser) {
+      state.name = 'Shelfie Member';
+      state.handle = '@guest';
+      return;
+    }
+
+    const name = cloudProfile?.display_name ||
+      cloudProfile?.username ||
+      cloudUser.email?.split('@')[0] ||
+      'Shelfie Member';
+
+    const username = cloudProfile?.username || '';
+
+    state.name = name;
+    state.handle = username ? '@' + username : '@member';
+  }
+
+  const previousRender = render;
+
+  render = function () {
+    syncShelfieIdentity();
+    previousRender();
+  };
+
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    syncShelfieIdentity();
+    render();
+  };
+
+  const previousComment = addComment;
+
+  addComment = function (event, id) {
+    syncShelfieIdentity();
+    return previousComment(event, id);
+  };
+
+  const previousGroupPost = postGroup;
+
+  postGroup = function (event, id) {
+    syncShelfieIdentity();
+    return previousGroupPost(event, id);
+  };
+
+  syncShelfieIdentity();
+  render();
+})();
+</script>
+
+
