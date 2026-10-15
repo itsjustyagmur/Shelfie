@@ -837,4 +837,131 @@ if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|
 })();
 </script>
 
+<script>
+(function () {
+  window.shelfieBookRecommend = async function (id) {
+    const book = item(id);
+    if (!book) return;
+
+    if (!cloudUser || !cloud) {
+      toast('Sign in to recommend books ♡');
+      openAccount();
+      return;
+    }
+
+    modal('Recommend a book ♡', `
+      <div class="shelfie-book-detail">
+        <div class="row" style="align-items:flex-start">
+          ${imageTag(book, '')}
+          <div>
+            <h3>${esc(book.title)}</h3>
+            <p class="muted">Send this to a Shelfie friend ♡</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Choose a friend</label>
+          <select id="recommendFriend">
+            <option value="">Loading friends...</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Your message ♡</label>
+          <textarea id="recommendMessage"
+            maxlength="1000"
+            placeholder="You HAVE to read this! ♡"></textarea>
+        </div>
+
+        <button class="shelfie-book-button"
+          onclick="shelfieSendRecommendation('${id}')">
+          ♡ Send Recommendation
+        </button>
+
+        <button class="shelfie-book-button"
+          style="margin-top:10px"
+          onclick="openDetail('${id}')">
+          ← Back to Book
+        </button>
+      </div>
+    `);
+
+    const select = document.getElementById('recommendFriend');
+
+    const { data: follows, error } = await cloud
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', cloudUser.id);
+
+    if (!select) return;
+
+    if (error) {
+      select.innerHTML = '<option value="">Could not load friends</option>';
+      toast(error.message);
+      return;
+    }
+
+    const ids = (follows || []).map(f => f.following_id);
+
+    if (!ids.length) {
+      select.innerHTML = '<option value="">Follow friends first ♡</option>';
+      return;
+    }
+
+    const { data: friends, error: profileError } = await cloud
+      .from('profiles')
+      .select('id,username,display_name')
+      .in('id', ids);
+
+    if (profileError) {
+      select.innerHTML = '<option value="">Could not load friends</option>';
+      toast(profileError.message);
+      return;
+    }
+
+    select.innerHTML = '<option value="">Choose a friend ♡</option>' +
+      (friends || []).map(friend =>
+        `<option value="${friend.id}">
+          ${esc(friend.display_name || friend.username)}
+          (@${esc(friend.username)})
+        </option>`
+      ).join('');
+  };
+
+  window.shelfieSendRecommendation = async function (id) {
+    const book = item(id);
+    const recipient_id = document.getElementById('recommendFriend')?.value;
+    const message = document.getElementById('recommendMessage')?.value.trim() || '';
+
+    if (!book || !recipient_id) {
+      toast('Choose a friend first ♡');
+      return;
+    }
+
+    const { error } = await cloud
+      .from('book_recommendations')
+      .insert({
+        sender_id: cloudUser.id,
+        recipient_id,
+        book_id: id,
+        book_title: book.title,
+        book_cover: book.cover || null,
+        book_author: book.author || null,
+        book_year: book.year || null,
+        book_work_key: book.workKey || null,
+        message,
+        status: 'pending'
+      });
+
+    if (error) {
+      toast('Could not send: ' + error.message);
+      return;
+    }
+
+    closeModal();
+    toast('Recommendation sent! ♡');
+  };
+})();
+</script>
+
 </body></html>
