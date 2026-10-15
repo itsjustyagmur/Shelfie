@@ -1756,4 +1756,460 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
  
+<style>
+/* Full-page friend profiles */
+.shelfie-friend-back {
+  background:transparent;
+  border:0;
+  color:#f5a4df;
+  font-weight:750;
+  padding:18px 0 5px;
+}
+.shelfie-friend-list {
+  display:flex;
+  gap:11px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #49364d;
+}
+.shelfie-friend-list-cover {
+  width:55px;
+  height:82px;
+  object-fit:cover;
+  border-radius:8px;
+  flex-shrink:0;
+  background:#38263d;
+}
+.shelfie-friend-list-info {
+  flex:1;
+  min-width:0;
+  cursor:pointer;
+}
+.shelfie-friend-list-info b {
+  display:block;
+  color:#ffe5f5;
+  font-size:14px;
+}
+.shelfie-friend-list-info small {
+  color:#baa9bd;
+  font-size:12px;
+}
+.shelfie-friend-list-action {
+  background:#f5a4df;
+  color:#291427;
+  border:0;
+  border-radius:11px;
+  padding:9px 11px;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.shelfie-friend-list-action.saved {
+  background:#51304d;
+  color:#ffe5f5;
+  border:1px solid #a76b99;
+}
+.shelfie-friend-list .avatar {
+  width:42px;
+  height:42px;
+}
+</style>
+
+<script>
+(function () {
+  let friendProfile = null;
+  let friendRatings = [];
+  let friendFollowing = [];
+  let friendPageVersion = 0;
+
+  const previousRender = render;
+  const previousGo = go;
+  const previousViewFriend = window.shelfieViewFriend;
+
+  function mediaId(value) {
+    return String(value || '');
+  }
+
+  function getFriendBook(r) {
+    let x = item(r.title_id);
+
+    if (x) return x;
+
+    const id = mediaId(r.title_id);
+    const isBook = id.startsWith('openlibrary_');
+
+    x = {
+      id,
+      title:r.title_name || 'Untitled',
+      type:isBook ? 'Book' :
+        (id.startsWith('m') ? 'Movie' :
+        id.startsWith('s') ? 'Show' : 'Book'),
+      year:'',
+      genre:'',
+      description:'',
+      author:'',
+      workKey:isBook
+        ? '/works/' + id.replace('openlibrary_', '')
+        : '',
+      cover:'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie',
+      fallback:'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'
+    };
+
+    catalog.push(x);
+
+    if (isBook) {
+      fetch('https://openlibrary.org' + x.workKey + '.json')
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+          if (!data) return;
+          x.description = typeof data.description === 'string'
+            ? data.description
+            : data.description?.value || '';
+          if (data.covers?.[0]) {
+            x.cover = 'https://covers.openlibrary.org/b/id/' +
+              data.covers[0] + '-M.jpg';
+          }
+          if (tab === 'Friend') render();
+        })
+        .catch(() => {});
+    }
+
+    return x;
+  }
+
+  function friendHeader() {
+    if (!friendProfile) {
+      return '<div class="empty">Loading profile ♡</div>';
+    }
+
+    const p = friendProfile;
+    const name = p.display_name || p.username || 'Shelfie member';
+    const books = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Book'
+    ).length;
+    const movies = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Movie'
+    ).length;
+    const shows = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Show'
+    ).length;
+
+    function tile(symbol, count, label, kind) {
+      return `<button class="shelfie-profile-stat"
+        onclick="shelfieFriendSection('${kind}')">
+        <span class="symbol">${symbol}</span>
+        <strong>${count}</strong>
+        <small>${label}</small>
+      </button>`;
+    }
+
+    return `
+      <button class="shelfie-friend-back"
+        onclick="shelfieFriendBack()">← Back</button>
+
+      <div class="profiletop">
+        <div class="avatar">${esc(name[0])}</div>
+        <h2 style="margin:0">${esc(name)}</h2>
+        <div class="muted">@${esc(p.username)}</div>
+
+        ${p.bio ? `<p class="shelfie-bio">${esc(p.bio)}</p>` : ''}
+        ${p.status ? `
+          <div class="shelfie-status">
+            <div class="eyebrow">✦ MY STATUS</div>
+            <p>${esc(p.status)}</p>
+          </div>` : ''}
+
+        ${cloudUser && cloudUser.id !== p.id ? `
+          <button class="secondary"
+            style="margin-top:13px"
+            onclick="shelfieFriendFollow('${p.id}')">
+            ${cloudFollowing.includes(p.id)
+              ? '✓ Following · Unfollow'
+              : '＋ Add Friend'}
+          </button>` : ''}
+      </div>
+
+      <div class="shelfie-profile-stats">
+        ${tile('♡',friendFollowing.length,'Friends','friends')}
+        ${tile('★',friendRatings.length,'Ratings','ratings')}
+        ${tile('♧','—','Groups','groups')}
+        ${tile('📖',books,'Books Rated','books')}
+        ${tile('🎬',movies,'Movies Rated','movies')}
+        ${tile('📺',shows,'Shows Rated','shows')}
+      </div>
+
+      <section class="shelfie-profile-section">
+        <h2>★ Their Reviews</h2>
+        ${friendRatings.length
+          ? friendMediaList(friendRatings)
+          : '<div class="empty">No public reviews yet ♡</div>'}
+      </section>
+    `;
+  }
+
+  function friendMediaList(ratings) {
+    if (!ratings.length) {
+      return '<div class="empty">Nothing here yet ♡</div>';
+    }
+
+    return ratings.map(r => {
+      const x = getFriendBook(r);
+      const isBook = x.type === 'Book';
+      const saved = state.saved.includes(x.id);
+
+      return `
+        <div class="shelfie-friend-list">
+          <img class="shelfie-friend-list-cover"
+            src="${esc(x.cover)}"
+            alt="${esc(x.title)}"
+            onclick="openDetail('${x.id}')"
+            onerror="this.src='https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'">
+
+          <div class="shelfie-friend-list-info"
+            onclick="shelfieFriendItem('${x.id}')">
+            <b>${esc(x.title)}</b>
+            <small class="stars">
+              ${'★'.repeat(r.stars)}
+              ${'☆'.repeat(5-r.stars)}
+            </small>
+            ${r.review
+              ? `<small style="display:block;margin-top:5px">
+                  ${esc(r.review)}
+                </small>`
+              : ''}
+            <small style="display:block;margin-top:5px;color:#f5a4df">
+              View details →
+            </small>
+          </div>
+
+          ${isBook ? `
+            <button class="shelfie-friend-list-action ${saved?'saved':''}"
+              onclick="shelfieFriendTBR('${x.id}')">
+              ${saved ? '✓ In TBR' : '＋ TBR'}
+            </button>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.shelfieFriendItem = function(id) {
+    openDetail(id);
+
+    const r = friendRatings.find(r => r.title_id === id);
+    const body = document.querySelector('.modal');
+
+    if (r && body) {
+      const section = document.createElement('div');
+      section.className = 'shelfie-about-text';
+      section.innerHTML = `
+        <b>${esc(friendProfile.display_name ||
+          friendProfile.username)}'s review</b>
+        <p class="stars">${'★'.repeat(r.stars)}
+          ${'☆'.repeat(5-r.stars)}</p>
+        <p>${esc(r.review || 'No written review.')}</p>
+      `;
+      body.appendChild(section);
+    }
+  };
+
+  window.shelfieFriendTBR = function(id) {
+    const x = item(id);
+    if (!x || x.type !== 'Book') return;
+
+    const saved = state.saved.includes(id);
+
+    state.saved = saved
+      ? state.saved.filter(bookId => bookId !== id)
+      : [...state.saved, id];
+
+    save();
+
+    render();
+
+    toast(saved
+      ? 'Removed from your TBR ♡'
+      : 'Added to your TBR ♡');
+  };
+
+  window.shelfieFriendBack = function() {
+    friendPageVersion++;
+    friendProfile = null;
+    previousGo('Profile');
+  };
+
+  window.shelfieViewFriend = async function(id) {
+    if (!cloud || !id) return;
+
+    if (cloudUser?.id === id) {
+      previousGo('Profile');
+      return;
+    }
+
+    const version = ++friendPageVersion;
+
+    friendProfile = null;
+    friendRatings = [];
+    friendFollowing = [];
+
+    tab = 'Friend';
+    sessionStorage.setItem('shelfie-current-page','Profile');
+    render();
+    window.scrollTo(0,0);
+
+    const [profileResult, ratingResult, followResult] =
+      await Promise.all([
+        cloud.from('profiles')
+          .select('id,username,display_name,bio,status')
+          .eq('id',id).maybeSingle(),
+
+        cloud.from('ratings')
+          .select('id,title_id,title_name,stars,review,created_at')
+          .eq('user_id',id)
+          .order('created_at',{ascending:false}),
+
+        cloud.from('follows')
+          .select('following_id')
+          .eq('follower_id',id)
+      ]);
+
+    if (version !== friendPageVersion) return;
+
+    if (profileResult.error || !profileResult.data) {
+      toast('Could not load this profile');
+      shelfieFriendBack();
+      return;
+    }
+
+    friendProfile = profileResult.data;
+    friendRatings = ratingResult.data || [];
+    friendFollowing = (followResult.data || [])
+      .map(f => f.following_id);
+
+    render();
+  };
+
+  window.shelfieFriendFollow = async function(id) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    await toggleFollow(id);
+    render();
+  };
+
+  window.shelfieFriendSection = async function(kind) {
+    if (!friendProfile) return;
+
+    if (kind === 'groups') {
+      modal('Their Groups ♡', `
+        <div class="empty">
+          Public groups will appear here when
+          group syncing is enabled ♡
+        </div>
+      `);
+      return;
+    }
+
+    if (kind === 'friends') {
+      modal('Their Friends ♡',
+        '<p class="muted">Loading friends...</p>');
+
+      if (!friendFollowing.length) {
+        modal('Their Friends ♡',
+          '<div class="empty">No friends to show yet ♡</div>');
+        return;
+      }
+
+      const {data,error} = await cloud.from('profiles')
+        .select('id,username,display_name')
+        .in('id',friendFollowing);
+
+      if (error) {
+        toast(error.message);
+        return;
+      }
+
+      modal('Their Friends ♡',
+        (data || []).map(p => `
+          <div class="shelfie-friend-list">
+            <div class="avatar"
+              onclick="shelfieViewFriend('${p.id}')">
+              ${esc((p.display_name || p.username)[0])}
+            </div>
+
+            <div class="shelfie-friend-list-info"
+              onclick="shelfieViewFriend('${p.id}')">
+              <b>${esc(p.display_name || p.username)}</b>
+              <small>@${esc(p.username)}</small>
+              <small style="display:block;color:#f5a4df">
+                View profile →
+              </small>
+            </div>
+
+            ${cloudUser?.id !== p.id ? `
+              <button class="shelfie-friend-list-action"
+                onclick="shelfieFriendFollowFromList('${p.id}')">
+                ${cloudFollowing.includes(p.id)
+                  ? '✓ Following'
+                  : '＋ Friend'}
+              </button>` : ''}
+          </div>
+        `).join('') ||
+        '<div class="empty">No profiles found ♡</div>');
+      return;
+    }
+
+    let list = friendRatings;
+
+    if (kind === 'books') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Book');
+    } else if (kind === 'movies') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Movie');
+    } else if (kind === 'shows') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Show');
+    }
+
+    const labels = {
+      ratings:'Their Ratings ♡',
+      books:'Their Books ♡',
+      movies:'Their Movies ♡',
+      shows:'Their Shows ♡'
+    };
+
+    modal(labels[kind] || 'Shelfie ♡',
+      friendMediaList(list));
+  };
+
+  window.shelfieFriendFollowFromList = async function(id) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    await toggleFollow(id);
+    await shelfieFriendSection('friends');
+  };
+
+  render = function() {
+    previousRender();
+
+    if (tab === 'Friend') {
+      document.getElementById('screen').innerHTML =
+        friendHeader();
+    }
+  };
+
+  go = function(page) {
+    if (tab === 'Friend') friendPageVersion++;
+    previousGo(page);
+  };
+
+  // The existing Friends button already calls shelfieViewFriend.
+})();
+</script>
+
 </body></html>
