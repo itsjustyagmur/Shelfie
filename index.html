@@ -208,5 +208,36 @@ refreshCloud();
   white-space: pre-wrap;
 }
 </style>
+ 
+<script>
+(function () {
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+
+    if (!cloudUser || !cloud) return;
+
+    const { data, error } = await cloud
+      .from('profiles')
+      .select('bio,status')
+      .eq('id', cloudUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Profile loading error:', error);
+      return;
+    }
+
+    if (cloudProfile && data) {
+      cloudProfile.bio = data.bio || '';
+      cloudProfile.status = data.status || '';
+    }
+
+    if (tab === 'Profile') render();
+  };
+})();
+</script>
+
 
 </body></html>
