@@ -536,4 +536,305 @@ if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|
 </script>
 
  
+<style>
+/* Shelfie book detail design */
+.shelfie-book-detail {
+  background: #3C2241;
+  border: 1px solid #754B73;
+  border-radius: 20px;
+  padding: 15px;
+  color: #FFE5F5;
+}
+
+.shelfie-book-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.shelfie-book-top img {
+  width: 112px;
+  height: 168px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.shelfie-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shelfie-book-info h3 {
+  margin: 0 0 8px;
+  color: #FFE5F5;
+  font-size: 19px;
+}
+
+.shelfie-book-info p {
+  margin: 5px 0;
+  color: #FFE5F5;
+  font-size: 13px;
+}
+
+.shelfie-book-info small {
+  color: #D7BBD3;
+}
+
+.shelfie-pink-stars {
+  display: flex;
+  gap: 2px;
+  margin: 12px 0;
+}
+
+.shelfie-pink-stars button {
+  background: transparent;
+  border: 0;
+  color: #F5A4DF;
+  font-size: 27px;
+  padding: 0 2px;
+}
+
+.shelfie-book-button {
+  background: #51304D;
+  border: 1px solid #A76B99;
+  border-radius: 11px;
+  color: #FFE5F5;
+  padding: 12px 8px;
+  font-weight: 650;
+  width: 100%;
+}
+
+.shelfie-book-button:focus-visible {
+  outline: 2px solid #F5A4DF;
+}
+
+.shelfie-book-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.shelfie-book-wide {
+  grid-column: 1 / -1;
+}
+
+.shelfie-about-text {
+  background: #301B36;
+  border: 1px solid #80517C;
+  border-radius: 13px;
+  padding: 14px;
+  margin-top: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+  color: #FFE5F5;
+}
+
+.shelfie-book-modal .modalhead {
+  margin-bottom: 12px;
+}
+</style>
+
+<script>
+(function () {
+  const previousOpenDetail = openDetail;
+
+  const bookStatuses = JSON.parse(
+    localStorage.getItem('shelfie-book-statuses') || '{}'
+  );
+
+  function saveBookStatuses() {
+    localStorage.setItem(
+      'shelfie-book-statuses',
+      JSON.stringify(bookStatuses)
+    );
+  }
+
+  function getStatus(id) {
+    if (bookStatuses[id]) return bookStatuses[id];
+    if (state.reviews.some(r => r.id === id)) return 'read';
+    if (state.saved.includes(id)) return 'tbr';
+    return 'none';
+  }
+
+  function setBookStatus(id, status) {
+    bookStatuses[id] = status;
+    saveBookStatuses();
+
+    state.saved = state.saved.filter(x => x !== id);
+    if (status === 'tbr') state.saved.push(id);
+
+    save();
+    openDetail(id);
+    toast(status === 'read'
+      ? 'Added to your Read list ♡'
+      : status === 'tbr'
+        ? 'Added to your TBR ♡'
+        : 'Removed from list');
+  }
+
+  window.shelfieBookStatus = function (id, status) {
+    setBookStatus(id, getStatus(id) === status ? 'none' : status);
+  };
+
+  window.shelfieBookAbout = async function (id) {
+    const book = item(id);
+    const output = document.getElementById('shelfieBookAbout');
+    if (!book || !output) return;
+
+    if (!output.hidden) {
+      output.hidden = true;
+      return;
+    }
+
+    output.hidden = false;
+
+    if (!book.description && book.workKey) {
+      output.textContent = 'Loading description... ♡';
+
+      try {
+        const response = await fetch(
+          'https://openlibrary.org' + book.workKey + '.json'
+        );
+
+        if (!response.ok) throw new Error('Unavailable');
+
+        const data = await response.json();
+
+        book.description =
+          typeof data.description === 'string'
+            ? data.description
+            : data.description?.value || '';
+      } catch (error) {
+        output.textContent =
+          'Could not load the description. Please try again.';
+        return;
+      }
+    }
+
+    output.textContent = book.description ||
+      'A description is not available for this book yet.';
+  };
+
+  window.shelfieBookRate = function (id, stars) {
+    const existing = state.reviews.find(r => r.id === id);
+    starValue = stars;
+
+    if (existing) {
+      existing.stars = stars;
+      existing.date = 'Just now';
+      save();
+      setBookStatus(id, 'read');
+      toast('Rating updated ♡');
+    } else {
+      openReview(id);
+    }
+  };
+
+  window.shelfieBookRecommend = function (id) {
+    const book = item(id);
+    if (!book) return;
+
+    modal('Recommend this book ♡', `
+      <p class="muted">
+        Share ${esc(book.title)} with someone you love!
+      </p>
+
+      <button class="shelfie-book-button"
+        onclick="shareText('I recommend ${esc(book.title)} on Shelfie! ♡')">
+        ↗ Share with a friend
+      </button>
+
+      <p class="cloudhint">
+        Direct recommendations to Shelfie friends and groups
+        will be added when we connect messaging.
+      </p>
+
+      <button class="secondary full"
+        onclick="openDetail('${id}')">
+        ← Back to book
+      </button>
+    `);
+  };
+
+  openDetail = function (id) {
+    const book = item(id);
+
+    if (!book || book.type !== 'Book') {
+      previousOpenDetail(id);
+      return;
+    }
+
+    selected = id;
+
+    const review = state.reviews.find(r => r.id === id);
+    const rating = review?.stars || 0;
+    const status = getStatus(id);
+
+    const stars = [1, 2, 3, 4, 5].map(n => `
+      <button
+        aria-label="Rate ${n} stars"
+        onclick="shelfieBookRate('${id}', ${n})">
+        ${n <= rating ? '★' : '☆'}
+      </button>
+    `).join('');
+
+    modal('Book details ♡', `
+      <div class="shelfie-book-detail">
+
+        <div class="shelfie-book-top">
+          ${imageTag(book, '')}
+
+          <div class="shelfie-book-info">
+            <h3>${esc(book.title)}</h3>
+            <p>${esc(book.author || 'Author unavailable')}</p>
+            <small>
+              ${esc(book.year)} · ${esc(book.genre)}
+            </small>
+
+            <div class="shelfie-pink-stars">
+              ${stars}
+            </div>
+
+            <button class="shelfie-book-button"
+              onclick="shelfieBookAbout('${id}')">
+              ⓘ About
+            </button>
+          </div>
+        </div>
+
+        <div id="shelfieBookAbout"
+          class="shelfie-about-text" hidden></div>
+
+        <div class="shelfie-book-actions">
+
+          <button class="shelfie-book-button"
+            onclick="shelfieBookStatus('${id}', 'read')">
+            ${status === 'read' ? '✓ Read' : '✓ Mark as Read'}
+          </button>
+
+          <button class="shelfie-book-button"
+            onclick="shelfieBookStatus('${id}', 'tbr')">
+            ${status === 'tbr' ? '♥ In TBR' : '♡ Add to TBR'}
+          </button>
+
+          <button class="shelfie-book-button shelfie-book-wide"
+            onclick="openReview('${id}')">
+            ✎ ${review ? 'Edit My Review' : 'Write a Review'}
+          </button>
+
+          <button class="shelfie-book-button shelfie-book-wide"
+            onclick="shelfieBookRecommend('${id}')">
+            ♡ Recommend to a Friend or Group
+          </button>
+
+        </div>
+      </div>
+    `);
+  };
+})();
+</script>
+
 </body></html>
