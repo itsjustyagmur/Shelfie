@@ -1617,4 +1617,81 @@ function saveBookStatuses() {
   overflow-y: auto !important;
 }
 </style>
+
+ <script>
+window.shelfieViewFriend = async function(id) {
+  if (!cloud || !id) return;
+
+  modal('Friend’s Shelfie ♡',
+    '<p class="muted">Loading profile... ♡</p>');
+
+  const { data, error } = await cloud
+    .from('profiles')
+    .select('id,username,display_name,bio,status')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error || !data) {
+    modal('Friend’s Shelfie ♡',
+      '<p class="muted">Could not load this profile.</p>');
+    return;
+  }
+
+  modal('Friend’s Shelfie ♡', `
+    <div class="profiletop">
+      <div class="avatar">
+        ${esc((data.display_name || data.username || 'S')[0])}
+      </div>
+
+      <h2>${esc(data.display_name || data.username)}</h2>
+      <p class="muted">@${esc(data.username)}</p>
+
+      ${data.bio
+        ? `<p class="shelfie-bio">${esc(data.bio)}</p>`
+        : ''}
+
+      ${data.status
+        ? `<div class="shelfie-status">
+             <div class="eyebrow">✦ MY STATUS</div>
+             <p>${esc(data.status)}</p>
+           </div>`
+        : ''}
+    </div>
+  `);
+};
+
+const shelfiePreviousSearchFriends = searchFriends;
+
+searchFriends = async function() {
+  await shelfiePreviousSearchFriends();
+
+  const results = document.getElementById('friendResults');
+  if (!results) return;
+
+  results.querySelectorAll('.socialresult').forEach(row => {
+    const followButton = row.querySelector('button');
+    const match = followButton?.getAttribute('onclick')
+      ?.match(/toggleFollow\('([^']+)'\)/);
+
+    if (!match) return;
+
+    const friendId = match[1];
+    const name = row.querySelector('b');
+
+    if (name) {
+      name.style.cursor = 'pointer';
+      name.style.color = 'var(--pink)';
+      name.setAttribute('role', 'button');
+      name.setAttribute('tabindex', '0');
+      name.onclick = () => shelfieViewFriend(friendId);
+      name.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          shelfieViewFriend(friendId);
+        }
+      };
+    }
+  });
+};
+</script>
 </body></html>
