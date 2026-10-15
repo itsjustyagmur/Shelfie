@@ -41,4 +41,78 @@ submitReview=async function(id){const text=document.getElementById('reviewText')
 openInvite=function(){originalInvite();const p=document.querySelector('.modal .subtle');if(p)p.textContent='Share the Shelfie website with friends. They can create accounts and follow each other. Group chats and comments are currently device-only.'};
 initCloud();
 </script>
+ 
+<script>
+const shelfieOriginalAccount = openAccount;
+const shelfieOriginalRefresh = refreshCloud;
+
+refreshCloud = async function() {
+  await shelfieOriginalRefresh();
+
+  if (cloudUser) {
+    const { data, error } = await cloud
+      .from('profiles')
+      .select('id,username,display_name,bio,status')
+      .eq('id', cloudUser.id)
+      .maybeSingle();
+
+    if (!error && data) {
+      cloudProfile = data;
+      render();
+    }
+  }
+};
+
+openAccount = function() {
+  shelfieOriginalAccount();
+
+  if (!cloudUser) return;
+
+  const form = document.querySelector('#cloudName')?.closest('form');
+  if (!form) return;
+
+  const button = form.querySelector('button[type="submit"]');
+  if (!button) return;
+
+  const bioField = document.createElement('div');
+  bioField.className = 'field';
+  bioField.innerHTML =
+    '<label>About me</label>' +
+    '<textarea id="cloudBio" maxlength="500" placeholder="Tell everyone about yourself..."></textarea>';
+
+  const statusField = document.createElement('div');
+  statusField.className = 'field';
+  statusField.innerHTML =
+    '<label>My status (200 characters max)</label>' +
+    '<textarea id="cloudStatus" maxlength="200" placeholder="Currently reading or watching..."></textarea>';
+
+  form.insertBefore(bioField, button);
+  form.insertBefore(statusField, button);
+
+  document.getElementById('cloudBio').value = cloudProfile?.bio || '';
+  document.getElementById('cloudStatus').value = cloudProfile?.status || '';
+};
+
+const shelfieOriginalProfileSave = updateCloudProfile;
+
+updateCloudProfile = async function(e) {
+  e.preventDefault();
+
+  const bio = document.getElementById('cloudBio')?.value.trim() || '';
+  const status = document.getElementById('cloudStatus')?.value.trim() || '';
+
+  const { error } = await cloud
+    .from('profiles')
+    .update({ bio, status })
+    .eq('id', cloudUser.id);
+
+  if (error) {
+    toast(error.message);
+    return;
+  }
+
+  await shelfieOriginalProfileSave(e);
+};
+</script>
+ 
 </body></html>
