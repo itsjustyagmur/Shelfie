@@ -2925,5 +2925,41 @@ function shelfieUsernameFromEmail(email) {
   showShelfieBubbles();
 })();
 </script>
+<style>
+/* Compact, natural-sized chat bubbles */
+.shelfie-bubble-list {
+  height: 280px !important;
+  max-height: 40dvh !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
 
+.shelfie-bubble-row {
+  width: fit-content !important;
+  max-width: 82% !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row.mine {
+  margin-left: auto !important;
+}
+
+.shelfie-bubble {
+  display: inline-block !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 9px 13px !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-size: 14px !important;
+  flex: none !important;
+}
+
+.shelfie-chat-compose {
+  padding-bottom: 25px !important;
+}
+</style>
+
+ 
 </body></html>
