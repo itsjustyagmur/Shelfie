@@ -3949,5 +3949,22 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
- 
+ <style>
+/* Remove pink bubbles from shared group chats */
+.shelfie-group-page .shelfie-bubble,
+.shelfie-group-page .shelfie-message-bubble,
+.shelfie-group-page .chat-message,
+.shelfie-group-page .message-bubble,
+.shelfie-group-page [class*="bubble"]:not(button) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  color: #F5B8E5 !important;
+}
+</style>
 </body></html>
