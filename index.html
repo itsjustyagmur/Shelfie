@@ -5170,4 +5170,80 @@ window.shelfieDiscoverGroups = async function() {
 
 
  
+
+<!-- Shelfie: keep ratings synchronized across account, profile and book detail -->
+<script>
+(function () {
+  let syncing = null;
+  let syncedUser = null;
+  const previousRefresh = refreshCloud;
+  const previousBookRate = window.shelfieBookRate;
+  const previousSubmit = submitReview;
+
+  async function syncMyRatings() {
+    if (!cloud || !cloudUser) return;
+    const userId = cloudUser.id;
+    if (syncing && syncedUser === userId) return syncing;
+    syncedUser = userId;
+    syncing = (async function () {
+      const {data, error} = await cloud.from('ratings')
+        .select('title_id,title_name,stars,review,created_at')
+        .eq('user_id', userId);
+      if (error) { console.warn('Shelfie rating sync:', error); return; }
+      if (cloudUser?.id !== userId) return;
+      let changed = false;
+      for (const r of data || []) {
+        if (!r.title_id) continue;
+        const old = state.reviews.find(x => x.id === r.title_id);
+        if (!old || old.stars !== r.stars || old.text !== (r.review || '')) {
+          state.reviews = state.reviews.filter(x => x.id !== r.title_id);
+          state.reviews.push({id:r.title_id, stars:r.stars,
+            text:r.review || '', date:'Recently'});
+          changed = true;
+        }
+      }
+      if (changed) { save(); if (tab === 'Profile') render(); }
+    })();
+    try { await syncing; } finally { syncing = null; }
+  }
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    await syncMyRatings();
+  };
+
+  window.shelfieBookRate = async function (id, stars) {
+    const book = item(id);
+    if (!book) { toast('Book not loaded yet. Search for it again.'); return; }
+    if (!cloudUser) { previousBookRate(id, stars); return; }
+
+    const existing = state.reviews.find(r => r.id === id);
+    const reviewText = existing?.text || '';
+    const {error} = await cloud.from('ratings').upsert({
+      user_id:cloudUser.id, title_id:id, title_name:book.title,
+      media_type:'book', stars, review:reviewText
+    }, {onConflict:'user_id,title_id'});
+    if (error) { toast('Rating not saved: ' + error.message); return; }
+
+    state.reviews = state.reviews.filter(r => r.id !== id);
+    state.reviews.push({id, stars, text:reviewText, date:'Just now'});
+    save();
+    openDetail(id);
+    toast('Your ' + stars + '-star rating was saved ♡');
+    await refreshCloud();
+  };
+
+  submitReview = async function (id) {
+    await previousSubmit(id);
+    await syncMyRatings();
+  };
+
+  // Restore account ratings on page load and whenever sign-in changes.
+  setTimeout(() => syncMyRatings(), 600);
+  if (cloud?.auth) cloud.auth.onAuthStateChange(() => {
+    setTimeout(() => syncMyRatings(), 700);
+  });
+})();
+</script>
+
 </body></html>
