@@ -3606,6 +3606,31 @@ function shelfieUsernameFromEmail(email) {
   color: #F5A4DF;
 }
 </style>
- 
+ <style>
+/* Match Create Group popup to Groups page */
+
+/* Soft white form labels */
+.modal:has(#newGroupName) label {
+  color: #FFF0FA !important;
+  font-weight: 600 !important;
+}
+
+/* Match main Create a group button */
+.modal:has(#newGroupName) button:not(.iconbtn) {
+  background: linear-gradient(
+    110deg,
+    #F5B1DF,
+    #E58BC7
+  ) !important;
+  color: #321A35 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 15px 20px !important;
+  min-height: 52px !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  width: 100% !important;
+}
+</style>
  
 </body></html>
