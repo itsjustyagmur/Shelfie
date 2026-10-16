@@ -4829,5 +4829,21 @@ window.shelfieDiscoverGroups = async function() {
   tidyProfile();
 })();
 </script>
- 
+ <style>
+/* Compact profile stats */
+#screen:has(#shelfie-profile-pencil) [class*="stat"] {
+  gap: 7px !important;
+}
+
+#screen:has(#shelfie-profile-pencil) [class*="stat"] > div,
+#screen:has(#shelfie-profile-pencil) [class*="stat"] > button {
+  min-height: 0 !important;
+  padding: 8px 4px !important;
+  border-radius: 12px !important;
+}
+
+#screen:has(#shelfie-profile-pencil) [class*="stat"] strong {
+  font-size: 19px !important;
+}
+</style>
 </body></html>
