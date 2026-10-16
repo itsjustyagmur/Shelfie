@@ -3264,5 +3264,82 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
+<style>
+/* SHELFIE — FINAL CHAT BUBBLE FIX */
+
+/* The conversation area */
+#shelfieBubbleList {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+
+/* Each message row */
+#shelfieBubbleList .shelfie-bubble-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  align-self: flex-start !important;
+
+  width: fit-content !important;
+  max-width: 80% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* Your own messages go right */
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+/* Actual message bubble */
+#shelfieBubbleList .shelfie-bubble {
+  display: block !important;
+
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  padding: 8px 12px !important;
+  margin: 0 !important;
+
+  flex: 0 0 auto !important;
+
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  border-radius: 17px 17px 17px 5px !important;
+}
+
+/* Your pink bubbles */
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  background: #e99bd1 !important;
+  color: #291427 !important;
+  border-radius: 17px 17px 5px 17px !important;
+}
+
+/* Other members' bubbles */
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  background: #392b43 !important;
+  color: #ffe5f5 !important;
+}
+
+/* Name sits just above the bubble */
+#shelfieBubbleList .shelfie-bubble-name {
+  margin: 0 7px 4px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+</style>
+
  
 </body></html>
