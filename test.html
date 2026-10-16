@@ -6140,4 +6140,200 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<!-- Shelfie Goodreads import: resumable saving -->
+<script>
+(function () {
+  const originalPreview = window.shelfiePreviewGoodreads;
+  let importRows = [];
+
+  // Capture the CSV again so a stopped import can be resumed.
+  window.shelfiePreviewGoodreads = async function (file) {
+    await originalPreview(file);
+    importRows = [];
+
+    if (!file || !document.getElementById('shelfieImportConfirm')) return;
+
+    const text = await file.text();
+    const rows = [];
+    let row = [], field = '', quoted = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+
+      if (c === '"') {
+        if (quoted && text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (c === ',' && !quoted) {
+        row.push(field);
+        field = '';
+      } else if ((c === '\n' || c === '\r') && !quoted) {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field);
+        if (row.some(x => x.trim())) rows.push(row);
+        row = [];
+        field = '';
+      } else {
+        field += c;
+      }
+    }
+
+    row.push(field);
+    if (row.some(x => x.trim())) rows.push(row);
+
+    const headers = rows.shift().map(x => x.trim());
+    const get = (r, name) => String(r[headers.indexOf(name)] || '').trim();
+
+    importRows = rows.map(r => {
+      const isbn = (
+        get(r, 'ISBN13') || get(r, 'ISBN')
+      ).replace(/[^0-9X]/gi, '');
+
+      const shelf = get(r, 'Exclusive Shelf').toLowerCase();
+      const rating = Number(get(r, 'My Rating'));
+
+      return {
+        id: isbn
+          ? 'goodreads_isbn_' + isbn
+          : 'goodreads_' + get(r, 'Book Id'),
+        title: get(r, 'Title'),
+        author: get(r, 'Author'),
+        status: shelf === 'read' ? 'read'
+          : shelf === 'to-read' ? 'tbr' : null,
+        rating: Number.isInteger(rating) &&
+          rating >= 1 && rating <= 5 ? rating : null,
+        review: get(r, 'My Review')
+      };
+    }).filter(r => r.title && (r.status || r.rating));
+
+    const button = document.getElementById('shelfieImportConfirm');
+    if (button) button.textContent = 'Import into my Shelfie account';
+  };
+
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function saveWithRetry(table, data, conflict) {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { error } = await cloud.from(table).upsert(data, {
+        onConflict: conflict,
+        ignoreDuplicates: true
+      });
+
+      if (!error) return;
+
+      // Don't retry database permission or schema errors.
+      if (!String(error.code || '').startsWith('5') &&
+          !/network|fetch|timeout|rate limit/i.test(error.message)) {
+        throw error;
+      }
+
+      if (attempt === 3) throw error;
+      await sleep(1000 * (attempt + 1));
+    }
+  }
+
+  window.shelfieCommitGoodreads = async function () {
+    if (!cloudUser || !cloud) {
+      toast('Please sign in first');
+      return;
+    }
+
+    if (!importRows.length) {
+      toast('Choose your Goodreads CSV again');
+      return;
+    }
+
+    const uid = cloudUser.id;
+    const button = document.getElementById('shelfieImportConfirm');
+    if (button) button.disabled = true;
+
+    const progress = document.createElement('div');
+    progress.style.cssText = 'margin-top:16px;color:#f5a4df';
+    button.after(progress);
+
+    let completed = 0;
+
+    try {
+      // Smaller batches reduce requests and allow safe re-imports.
+      for (let i = 0; i < importRows.length; i += 20) {
+        if (cloudUser?.id !== uid) {
+          throw new Error('Account changed during import');
+        }
+
+        const batch = importRows.slice(i, i + 20);
+
+        const library = batch.filter(r => r.status).map(r => ({
+          user_id: uid,
+          media_type: 'book',
+          title_id: r.id,
+          title_name: r.title,
+          status: r.status,
+          metadata: { author: r.author }
+        }));
+
+        const ratings = batch.filter(r => r.rating).map(r => ({
+          user_id: uid,
+          title_id: r.id,
+          title_name: r.title,
+          media_type: 'book',
+          stars: r.rating,
+          review: r.review
+        }));
+
+        if (library.length) {
+          await saveWithRetry(
+            'shelfie_library',
+            library,
+            'user_id,media_type,title_id'
+          );
+        }
+
+        if (ratings.length) {
+          await saveWithRetry(
+            'ratings',
+            ratings,
+            'user_id,title_id'
+          );
+        }
+
+        completed += batch.length;
+        progress.textContent =
+          'Saving to Shelfie: ' + completed +
+          ' / ' + importRows.length + ' ♡';
+
+        await sleep(150);
+      }
+
+      const total = importRows.length;
+      importRows = [];
+
+      modal('Goodreads import complete ♡',
+        '<p>Processed ' + total + ' books!</p>' +
+        '<p class="muted">Your existing entries were preserved. ' +
+        'New records were saved to Supabase.</p>' +
+        '<button class="primary full" ' +
+        'onclick="closeModal();go(\'Profile\')">' +
+        'View my Shelfie ♡</button>'
+      );
+
+      if (typeof refreshCloud === 'function') refreshCloud();
+
+    } catch (error) {
+      progress.textContent =
+        'Import paused after ' + completed +
+        ' books. Your saved records are safe. ' +
+        'Choose the same CSV and import again to resume.';
+      toast(error.message || 'Import paused');
+      if (button) button.disabled = false;
+    }
+  };
+})();
+</script>
+
+
+
+  
 </body></html>
