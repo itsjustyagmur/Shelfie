@@ -3476,28 +3476,7 @@ function shelfieUsernameFromEmail(email) {
   justify-content: flex-start !important;
 }
 </style>
-<script>
-window.shelfieTestGroups = async function () {
-  if (!cloud || !cloudUser) {
-    alert('Please sign in to Shelfie first ♡');
-    return;
-  }
 
-  const { data, error } = await cloud
-    .from('shelfie_groups')
-    .select('id,name,visibility')
-    .limit(5);
-
-  if (error) {
-    alert('Group connection error: ' + error.message);
-  } else {
-    alert('Shelfie groups connected! ♡');
-    console.log('Shelfie groups:', data);
-  }
-};
-
-window.shelfieTestGroups();
-</script>
  
  
 </body></html>
