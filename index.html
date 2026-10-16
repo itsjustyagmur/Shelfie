@@ -2960,6 +2960,64 @@ function shelfieUsernameFromEmail(email) {
   padding-bottom: 25px !important;
 }
 </style>
+<style>
+/* Shelfie: true text-sized message bubbles */
 
+.shelfie-bubble-list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.shelfie-bubble-row,
+.shelfie-bubble-row.mine {
+  display: flex !important;
+  flex-direction: column !important;
+  width: max-content !important;
+  max-width: 85% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+.shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+.shelfie-bubble-row .shelfie-bubble {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 17px 17px 5px 17px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  border-radius: 17px 17px 17px 5px !important;
+}
+
+.shelfie-bubble-name {
+  margin: 0 8px 4px !important;
+  font-size: 11px !important;
+}
+</style>
  
 </body></html>
