@@ -4584,5 +4584,97 @@ window.shelfieChooseGroup = async function(groupId, visibility) {
   addDiscoverButton();
 })();
 </script>
+<script>
+window.shelfieSearchGroups = async function() {
+  const input = document.getElementById('shelfie-group-search');
+  const results = document.getElementById('shelfie-group-results');
+  if (!input || !results || !cloud) return;
+
+  const search = input.value.trim();
+
+  // Show nothing until someone types.
+  if (!search) {
+    results.innerHTML = '';
+    return;
+  }
+
+  // Prevent older searches from overwriting newer results.
+  const searchId = (window.shelfieSearchId || 0) + 1;
+  window.shelfieSearchId = searchId;
+
+  const { data, error } = await cloud
+    .from('shelfie_groups')
+    .select('id,name,description,visibility')
+    .ilike('name', search.replace(/[%_\\]/g, '') + '%')
+    .order('name')
+    .limit(30);
+
+  if (searchId !== window.shelfieSearchId ||
+      !document.getElementById('shelfie-group-results')) return;
+
+  if (error) {
+    results.textContent = 'Could not search groups ♡';
+    return;
+  }
+
+  results.innerHTML = (data || []).map(g => `
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:13px 2px;
+      border-bottom:1px solid #553459;
+    ">
+      <div style="flex:1;min-width:0">
+        <div style="color:#F9E9F6;font-weight:600">
+          ${esc(g.name)}
+        </div>
+        <div style="
+          color:#C69FC5;
+          font-size:12px;
+          margin-top:4px;
+        ">
+          ${g.visibility === 'private' ? 'Private' : 'Public'}
+          ${g.description ? ' · ' + esc(g.description) : ''}
+        </div>
+      </div>
+
+      <button
+        onclick="shelfieChooseGroup('${g.id}','${g.visibility}')"
+        style="
+          flex-shrink:0;
+          background:#E99AD2;
+          color:#261329;
+          border:0;
+          border-radius:10px;
+          padding:9px 12px;
+          font-size:12px;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        ${g.visibility === 'private' ? 'Request ♡' : 'Join ♡'}
+      </button>
+    </div>
+  `).join('') || `
+    <p style="color:#C69FC5;text-align:center;padding:20px">
+      No matching groups ♡
+    </p>
+  `;
+};
+
+// Keep the results empty when Discover Groups first opens.
+const shelfieOriginalDiscoverGroups = window.shelfieDiscoverGroups;
+
+window.shelfieDiscoverGroups = async function() {
+  await shelfieOriginalDiscoverGroups();
+
+  const results = document.getElementById('shelfie-group-results');
+  if (results) results.innerHTML = '';
+};
+</script>
+
+
  
 </body></html>
