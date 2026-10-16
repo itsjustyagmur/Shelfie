@@ -3019,5 +3019,31 @@ function shelfieUsernameFromEmail(email) {
   font-size: 11px !important;
 }
 </style>
+
+
+<script>
+(function () {
+  const previousProfilePage = profilePage;
+
+  profilePage = function () {
+    const html = previousProfilePage();
+
+    // Only show public activity.
+    // Group chat messages remain inside their groups.
+    const publicActivity = (state.activity || [])
+      .filter(a => a.kind !== 'group');
+
+    const oldActivity = state.activity;
+
+    try {
+      state.activity = publicActivity;
+      return previousProfilePage();
+    } finally {
+      state.activity = oldActivity;
+    }
+  };
+})();
+</script>
+
  
 </body></html>
