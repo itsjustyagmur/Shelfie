@@ -4693,7 +4693,62 @@ window.shelfieDiscoverGroups = async function() {
   if (results) results.innerHTML = '';
 };
 </script>
+<script>
+(function () {
+  function updateGroupCount() {
+    if (typeof tab === 'undefined' || tab !== 'Groups') return;
 
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    const heading = [...screen.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        el.textContent.trim() === "Groups you're in"
+      );
+
+    if (!heading) return;
+
+    const row = heading.parentElement;
+    if (!row) return;
+
+    const counter = [...row.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        /^\d+\s+groups?$/.test(el.textContent.trim())
+      );
+
+    if (!counter) return;
+
+    const localCount = Array.isArray(state?.groups)
+      ? state.groups.length
+      : 0;
+
+    const sharedCount = screen.querySelectorAll(
+      '.shelfie-profile-section button.shelfie-book-button'
+    ).length;
+
+    const total = localCount + sharedCount;
+
+    const label = `${total} ${total === 1 ? 'group' : 'groups'}`;
+
+    if (counter.textContent !== label) {
+      counter.textContent = label;
+    }
+  }
+
+  const screen = document.getElementById('screen');
+
+  if (screen) {
+    new MutationObserver(updateGroupCount).observe(screen, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  updateGroupCount();
+})();
+</script>
 
  
 </body></html>
