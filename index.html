@@ -4047,6 +4047,54 @@ window.shelfieJoinGroup = async function(groupId) {
   };
 })();
 </script>
+<script>
+window.shelfieOpenNotifications = async function() {
+  if (!cloud || !cloudUser) {
+    modal('Notifications ♡', '<p>Please sign in to see your notifications ♡</p>');
+    return;
+  }
 
+  modal('Notifications ♡',
+    '<p style="color:#E99AD2">Loading notifications... ♡</p>'
+  );
+
+  const { data, error } = await cloud
+    .from('shelfie_notifications')
+    .select('id,type,message,group_id,is_read,created_at')
+    .eq('user_id', cloudUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    modal('Notifications ♡',
+      '<p>Could not load notifications ♡</p>');
+    return;
+  }
+
+  const notifications = data || [];
+
+  const content = notifications.length
+    ? notifications.map(n => `
+        <div style="
+          background:${n.is_read ? '#241429' : '#39203F'};
+          border:1px solid #68436C;
+          border-radius:15px;
+          padding:15px;
+          margin-bottom:10px;
+          color:#F9E9F6;
+        ">
+          <div style="color:#E99AD2;font-size:13px">
+            ${n.is_read ? '♡' : '● New'}
+          </div>
+          <p style="margin:8px 0">
+            ${esc(n.message || 'New notification ♡')}
+          </p>
+        </div>
+      `).join('')
+    : '<p style="text-align:center;color:#E99AD2;padding:25px">No notifications yet ♡</p>';
+
+  modal('Notifications ♡', content);
+};
+</script>
  
 </body></html>
