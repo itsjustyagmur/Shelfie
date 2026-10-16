@@ -6046,4 +6046,98 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<!-- Shelfie · External imports (staging) -->
+<script>
+(function(){
+  'use strict';
+  // Remove the old browser-migration action; imports now refer only to external services.
+  const settings=document.getElementById('shelfieSettings');
+  if(!settings)return;
+  const prior=settings.onclick;
+  settings.onclick=function(e){
+    prior?.call(this,e);
+    const panel=document.querySelector('.modal');if(!panel)return;
+    [...panel.querySelectorAll('button')].filter(b=>/Import browser library to Supabase/i.test(b.textContent)).forEach(b=>b.remove());
+    if(panel.querySelector('#shelfieExternalImport'))return;
+    const btn=document.createElement('button');btn.id='shelfieExternalImport';btn.className='secondary full';btn.style.marginTop='12px';
+    btn.textContent='⇩ Import Data →';btn.onclick=window.shelfieOpenImports;
+    panel.appendChild(btn);
+  };
+  const clean=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  window.shelfieOpenImports=function(){
+    if(!cloudUser){openAccount();return;}
+    modal('Import Data ♡',`<p class="muted">Bring your ratings and lists into your Shelfie account. Imports save to Supabase, not this device.</p>
+      <button class="secondary full" onclick="shelfieGoodreadsImport()">📚 Goodreads · Import CSV →</button>
+      <p class="cloudhint">Download your library CSV from Goodreads, then select it here. Review the import before saving.</p>
+      <button class="secondary full" disabled style="opacity:.55;margin-top:8px">🎬 Letterboxd · Coming soon</button>
+      <button class="secondary full" disabled style="opacity:.55;margin-top:8px">📺 Trakt · Coming soon</button>
+      <button class="secondary full" disabled style="opacity:.55;margin-top:8px">★ IMDb · Coming soon</button>`);
+  };
+  function parseCSV(src){
+    src=src.replace(/^\uFEFF/,'');const rows=[];let row=[],field='',quoted=false;
+    for(let i=0;i<src.length;i++){
+      const c=src[i];
+      if(c==='"'){if(quoted&&src[i+1]==='"'){field+='"';i++;}else quoted=!quoted;}
+      else if(c===','&&!quoted){row.push(field);field='';}
+      else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&src[i+1]==='\n')i++;row.push(field);if(row.some(v=>v.trim()))rows.push(row);row=[];field='';}
+      else field+=c;
+    }
+    if(quoted)throw Error('CSV has an unclosed quoted field');
+    row.push(field);if(row.some(v=>v.trim()))rows.push(row);
+    if(!rows.length)return [];
+    const headers=rows.shift().map(s=>s.trim());
+    return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])));
+  }
+  const get=(r,k)=>String(r[k]||'').trim();
+  const goodreadsId=r=>{const isbn=get(r,'ISBN13').replace(/[^0-9X]/gi,'')||get(r,'ISBN').replace(/[^0-9X]/gi,'');return isbn?'goodreads_isbn_'+isbn:'goodreads_'+get(r,'Book Id');};
+  let pending=[];
+  window.shelfieGoodreadsImport=function(){
+    modal('Import Goodreads ♡',`<p class="muted">Choose the <b>library export CSV</b> from your Goodreads account.</p>
+      <input id="shelfieGoodreadsCSV" type="file" accept=".csv,text/csv" onchange="shelfiePreviewGoodreads(this.files[0])">
+      <div id="shelfieImportPreview" class="cloudhint">Nothing will be saved until you confirm.</div>`);
+  };
+  window.shelfiePreviewGoodreads=async function(file){
+    const target=document.getElementById('shelfieImportPreview');if(!file||!target)return;
+    try{
+      if(file.size>8*1024*1024)throw Error('Please choose a CSV under 8 MB.');
+      const rows=parseCSV(await file.text());
+      if(!rows.length||!('Title' in rows[0])||!('Book Id' in rows[0]))throw Error('This does not look like a Goodreads library export.');
+      pending=rows.filter(r=>get(r,'Title')&&get(r,'Book Id')).map(r=>{
+        const shelf=get(r,'Exclusive Shelf').toLowerCase();
+        const status=shelf==='read'?'read':shelf==='to-read'?'tbr':null;
+        const stars=Number(get(r,'My Rating'));
+        const rating=Number.isInteger(stars)&&stars>=1&&stars<=5?stars:null;
+        return {id:goodreadsId(r),title:get(r,'Title'),author:get(r,'Author'),status,rating,review:get(r,'My Review'),date:get(r,'Date Read')||get(r,'Date Added')};
+      });
+      const ratings=pending.filter(r=>r.rating).length,lists=pending.filter(r=>r.status).length;
+      target.innerHTML=`<p><b>${pending.length} books found</b><br>${ratings} star ratings · ${lists} Read / To-read statuses</p>
+        <p class="muted tiny">Books on other shelves without a Read or To-read status are skipped. Existing Shelfie records are not overwritten. Goodreads dates are not imported yet.</p>
+        <button id="shelfieImportConfirm" class="primary full" onclick="shelfieCommitGoodreads()">Import into my Supabase account</button>`;
+    }catch(e){pending=[];target.textContent=e.message||'Could not read CSV';}
+  };
+  window.shelfieCommitGoodreads=async function(){
+    if(!cloudUser||!cloud){toast('Sign in first');return;}
+    const btn=document.getElementById('shelfieImportConfirm');if(btn)btn.disabled=true;
+    const uid=cloudUser.id;let saved=0,skipped=0;
+    try{
+      for(const r of pending){
+        if(cloudUser?.id!==uid)throw Error('Account changed; import stopped');
+        if(!r.status&&!r.rating){skipped++;continue;}
+        if(r.status){
+          const {error}=await cloud.from('shelfie_library').upsert({user_id:uid,media_type:'book',title_id:r.id,title_name:r.title,status:r.status,metadata:{author:r.author}},{onConflict:'user_id,media_type,title_id',ignoreDuplicates:true});
+          if(error)throw error;
+        }
+        if(r.rating){
+          const {error}=await cloud.from('ratings').upsert({user_id:uid,title_id:r.id,title_name:r.title,media_type:'book',stars:r.rating,review:r.review},{onConflict:'user_id,title_id',ignoreDuplicates:true});
+          if(error)throw error;
+        }
+        saved++;
+      }
+      pending=[];modal('Goodreads import complete ♡',`<p>${saved} books processed; ${skipped} skipped.</p><p class="muted">Saved to Supabase. Existing entries were not overwritten.</p><button class="primary full" onclick="closeModal();go('Profile')">View my profile ♡</button>`);
+      if(typeof refreshCloud==='function')refreshCloud();
+    }catch(e){toast('Import stopped: '+(e.message||'Unknown error'));if(btn)btn.disabled=false;}
+  };
+})();
+</script>
+
 </body></html>
