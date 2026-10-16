@@ -2485,5 +2485,47 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+<style>
+/* Shelfie group chat: compact layout */
+.shelfie-group-panel {
+  padding: 16px !important;
+  margin-top: 16px !important;
+}
+
+/* Keep the main heading, but smaller */
+.shelfie-group-panel > h2 {
+  font-size: 21px !important;
+  margin: 0 0 12px !important;
+}
+
+/* Hide the duplicated heading from the old pop-up */
+#shelfie-group-chat-content h2 {
+  display: none !important;
+}
+
+/* Smaller message input */
+#shelfie-group-chat-content textarea {
+  min-height: 65px !important;
+  height: 65px !important;
+  max-height: 110px !important;
+  padding: 12px !important;
+  font-size: 14px !important;
+  resize: vertical;
+}
+
+/* Less empty space between chat elements */
+#shelfie-group-chat-content {
+  font-size: 14px;
+}
+
+#shelfie-group-chat-content p {
+  margin: 8px 0;
+}
+
+#shelfie-group-chat-content button {
+  padding: 12px !important;
+}
+</style>
+
 
 </body></html>
