@@ -5613,6 +5613,14 @@ window.shelfieDiscoverGroups = async function() {
   color: #b7a5b9;
   font-size: 10px;
 }
+.shelfie-activity-link {
+  display:block; width:100%; text-align:left; color:inherit;
+  font:inherit; cursor:pointer; appearance:none;
+  transition:border-color .15s, transform .15s;
+}
+.shelfie-activity-link:active { transform:scale(.99); }
+.shelfie-activity-link:focus-visible {outline:2px solid #f5a4df;outline-offset:2px;}
+.shelfie-activity-link:hover {border-color:#d889c8;}
 </style>
 
 <script>
@@ -5622,6 +5630,7 @@ window.shelfieDiscoverGroups = async function() {
   let activity = [];
   let activityUser = null;
   let activityVersion = 0;
+  const activityTargets = new Map();
 
   function dateLabel(value) {
     if (!value) return 'Date unavailable';
@@ -5648,16 +5657,20 @@ window.shelfieDiscoverGroups = async function() {
       return '<div class="empty">Your activity will appear here ♡</div>';
     }
 
-    return activity.map(a => `
-      <div class="shelfie-activity-entry">
+    activityTargets.clear();
+    return activity.map((a, index) => {
+      activityTargets.set(index, a);
+      return `
+      <button type="button" class="shelfie-activity-entry shelfie-activity-link" onclick="shelfieNavigateActivity(${index})" aria-label="Open ${esc(a.title)}">
         <div class="eyebrow">${esc(a.label)}</div>
         <p>
           <strong>${esc(a.title)}</strong>
           ${a.details ? `<span> — ${esc(a.details)}</span>` : ''}
         </p>
         <div class="subtle">${dateLabel(a.date)}</div>
-      </div>
-    `).join('');
+      </button>
+    `;
+    }).join('');
   }
 
   function replaceActivitySection(html) {
@@ -5746,7 +5759,10 @@ window.shelfieDiscoverGroups = async function() {
         })[e.event_type] || '✦ Shelfie activity',
         title: e.title || 'Shelfie',
         details: e.details || '',
-        date: e.created_at
+        date: e.created_at,
+        targetType: e.target_type || (e.event_type?.startsWith('group_') ? 'group' : e.event_type === 'status' ? 'profile' : 'title'),
+        targetId: e.target_id || null,
+        metadata: e.metadata || {}
       });
     }
 
@@ -5758,7 +5774,8 @@ window.shelfieDiscoverGroups = async function() {
         title: r.title_name || 'Untitled',
         details: '★'.repeat(Math.min(5, Math.max(0, r.stars || 0))) +
           (r.review ? ' · ' + r.review : ''),
-        date: r.updated_at || r.created_at
+        date: r.updated_at || r.created_at,
+        targetType: 'title', targetId: r.title_id, mediaType: r.media_type
       });
     }
 
@@ -5790,7 +5807,8 @@ window.shelfieDiscoverGroups = async function() {
         label: '♧ Created a group',
         title: g.name,
         details: '',
-        date: g.created_at
+        date: g.created_at,
+        targetType: 'group', targetId: g.id
       });
     }
 
@@ -5802,7 +5820,8 @@ window.shelfieDiscoverGroups = async function() {
         label: '♧ Joined a group',
         title: groupNames.get(String(m.group_id)) || 'Shelfie group',
         details: '',
-        date: m.created_at
+        date: m.created_at,
+        targetType: 'group', targetId: m.group_id
       });
     }
 
@@ -5820,7 +5839,8 @@ window.shelfieDiscoverGroups = async function() {
         label,
         title: r.title_name,
         details: '',
-        date: r.updated_at || r.created_at
+        date: r.updated_at || r.created_at,
+        targetType: 'title', targetId: r.title_id, mediaType: r.media_type
       });
     }
 
@@ -5853,6 +5873,53 @@ window.shelfieDiscoverGroups = async function() {
       }
     }
   }
+
+
+  window.shelfieNavigateActivity = async function(index) {
+    const entry = activityTargets.get(index);
+    if (!entry) return;
+    const kind = String(entry.targetType || '').toLowerCase();
+    const id = String(entry.targetId || '');
+    if (kind.includes('status') || kind === 'profile') {
+      go('Profile'); window.scrollTo({top:0,behavior:'smooth'}); return;
+    }
+    if (kind.includes('group') || entry.label.includes('group')) {
+      let groupId = id;
+      if (!groupId && cloud) {
+        const {data} = await cloud.from('shelfie_groups').select('id,name')
+          .eq('name', entry.title).limit(1);
+        groupId = data?.[0]?.id || '';
+      }
+      if (groupId && typeof window.shelfieOpenSharedGroup === 'function') {
+        await window.shelfieOpenSharedGroup(groupId);
+      } else { go('Groups'); toast('Find this group in your groups ♡'); }
+      return;
+    }
+    if (kind.includes('title') || kind.includes('book') || kind.includes('movie') ||
+        kind.includes('show') || entry.label.includes('Rated') ||
+        entry.label.includes('reading') || entry.label.includes('watch')) {
+      let titleId = id;
+      let book = titleId ? item(titleId) : null;
+      if (!book && entry.title) {
+        book = catalog.find(x => x.title.toLowerCase() === entry.title.toLowerCase());
+        if (book) titleId = book.id;
+      }
+      if (book) { openDetail(titleId); return; }
+      if (typeof window.shelfieOpenRatedBook === 'function' &&
+          (entry.mediaType === 'book' || titleId.startsWith('openlibrary_'))) {
+        window.shelfieOpenRatedBook(titleId, entry.title); return;
+      }
+      if (titleId && typeof window.shelfieOpenRatedBook === 'function') {
+        window.shelfieOpenRatedBook(titleId, entry.title); return;
+      }
+      go('Search'); search = entry.title.replace(/^Rated\s+/i,'');
+      const input = document.getElementById('searchInput');
+      if (input) {input.value = search; updateResults();}
+      toast('Search for this title ♡');
+      return;
+    }
+    go('Profile'); window.scrollTo({top:0,behavior:'smooth'});
+  };
 
   window.shelfieRefreshActivity = loadActivity;
 
