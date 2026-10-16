@@ -3571,5 +3571,41 @@ function shelfieUsernameFromEmail(email) {
   };
 })();
 </script> 
+<style>
+/* Shelfie pink Create Group popup */
+#newGroupName,
+#newGroupDescription,
+#newGroupVisibility {
+  color: #F5A4DF !important;
+  background: #2B2033 !important;
+  border: 1px solid #754B73 !important;
+}
+
+#newGroupName::placeholder,
+#newGroupDescription::placeholder {
+  color: #C995BC !important;
+}
+
+.modal:has(#newGroupName) label {
+  color: #F5A4DF !important;
+}
+
+.modal:has(#newGroupName) h2 {
+  color: #F5A4DF !important;
+}
+
+.modal:has(#newGroupName) button:not(.iconbtn) {
+  background: #E99AD1 !important;
+  color: #321A35 !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+
+#newGroupVisibility option {
+  background: #2B2033;
+  color: #F5A4DF;
+}
+</style>
+ 
  
 </body></html>
