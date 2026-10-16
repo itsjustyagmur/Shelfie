@@ -6781,6 +6781,480 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<!-- SHELFIE · TBR & WATCHLIST PAGE -->
+<style>
+.shelfie-list-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 19px 17px;
+  margin: 16px 0;
+  background: linear-gradient(135deg,#302136,#1c1725);
+  border: 1px solid #80517c;
+  border-radius: 18px;
+  color: #ffe5f5;
+  text-align: left;
+}
+
+.shelfie-list-heart {
+  color: #f5a4df;
+  font-size: 26px;
+}
+
+.shelfie-list-label {
+  flex: 1;
+  font-family: Georgia,serif;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.shelfie-list-number {
+  color: #f5a4df;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.shelfie-list-arrow {
+  color: #f5a4df;
+  font-size: 23px;
+}
+
+.shelfie-list-page {
+  padding-top: 20px;
+}
+
+.shelfie-list-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.shelfie-list-heading h1 {
+  margin: 0;
+  color: #ffe5f5;
+  font-family: Georgia,serif;
+  font-size: 24px;
+}
+
+.shelfie-list-back {
+  background: transparent;
+  border: 0;
+  color: #f5a4df;
+  font-size: 27px;
+  padding: 4px;
+}
+
+.shelfie-list-search {
+  width: 100%;
+  margin-bottom: 16px;
+  background: #302136;
+  border: 1px solid #80517c;
+  border-radius: 14px;
+  color: #ffe5f5;
+  padding: 15px;
+}
+
+.shelfie-list-filters {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+  margin-bottom: 23px;
+}
+
+.shelfie-list-filter {
+  padding: 10px 3px;
+  background: #211925;
+  border: 1px solid #80517c;
+  border-radius: 25px;
+  color: #f5c9e8;
+  font-size: 12px;
+}
+
+.shelfie-list-filter.active {
+  background: #f5a4df;
+  border-color: #f5a4df;
+  color: #291427;
+  font-weight: 800;
+}
+
+.shelfie-list-count {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0 0 20px;
+}
+
+.shelfie-list-count strong {
+  color: #f5a4df;
+  font-family: Georgia,serif;
+  font-size: 36px;
+}
+
+.shelfie-list-count span {
+  color: #d4b9c7;
+  font-size: 13px;
+}
+
+.shelfie-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 16px 11px;
+}
+
+.shelfie-list-cover {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #ffe5f5;
+  text-align: left;
+}
+
+.shelfie-list-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  background: #38243e;
+  border: 1px solid #66446a;
+  border-radius: 12px;
+}
+
+.shelfie-list-cover span {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.shelfie-list-empty {
+  grid-column: 1/-1;
+  padding: 35px 12px;
+  text-align: center;
+  color: #d4b9c7;
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  let savedRows = [];
+  let currentFilter = 'All';
+  let currentSearch = '';
+  let loadVersion = 0;
+
+  const fallback =
+    'https://placehold.co/240x360/38213f/f8b5e4?text=Shelfie';
+
+  function category(row) {
+    const type = String(row.media_type || '').toLowerCase();
+
+    if (type === 'book') return 'Books';
+    if (type === 'movie') return 'Movies';
+    if (type === 'show' || type === 'tv' ||
+        type === 'tv show') return 'Shows';
+
+    return 'Other';
+  }
+
+  function validSaved(row) {
+    return ['tbr','watchlist'].includes(
+      String(row.status || '').toLowerCase()
+    );
+  }
+
+  function ensureCatalogItem(row) {
+    let x = item(row.title_id);
+    const meta = row.metadata || {};
+
+    if (!x) {
+      x = {
+        id: row.title_id,
+        title: row.title_name || 'Untitled',
+        type: category(row) === 'Books'
+          ? 'Book'
+          : category(row) === 'Movies'
+            ? 'Movie'
+            : 'Show',
+        author: meta.author || '',
+        cover: meta.cover || '',
+        fallback,
+        year: meta.year || '',
+        genre: meta.genre || '',
+        description: meta.description || '',
+        workKey: meta.workKey || ''
+      };
+
+      catalog.push(x);
+    }
+
+    if (!x.cover && meta.cover) x.cover = meta.cover;
+
+    if (!x.cover &&
+        String(row.title_id).startsWith('goodreads_isbn_')) {
+      const isbn = row.title_id.replace('goodreads_isbn_','');
+      x.cover = 'https://covers.openlibrary.org/b/isbn/' +
+        encodeURIComponent(isbn) + '-M.jpg';
+    }
+
+    x.cover ||= fallback;
+    x.fallback ||= fallback;
+
+    return x;
+  }
+
+  function profileShortcut() {
+    return `
+      <button class="shelfie-list-link"
+        onclick="shelfieOpenSavedPage()">
+        <span class="shelfie-list-heart">♡</span>
+        <span class="shelfie-list-label">
+          My TBR & Watchlist
+        </span>
+        <span class="shelfie-list-number">
+          ${state.saved?.length || 0}
+        </span>
+        <span class="shelfie-list-arrow">›</span>
+      </button>
+    `;
+  }
+
+  // Replace only the oversized TBR section.
+  const oldProfilePage = profilePage;
+
+  profilePage = function () {
+    const html = oldProfilePage();
+
+    return html.replace(
+      /<section class="shelfie-profile-section">\s*<h2>♡ My TBR & Watchlist<\/h2>[\s\S]*?<\/section>/,
+      profileShortcut()
+    );
+  };
+
+  function savedPage() {
+    return `
+      <section class="shelfie-list-page">
+        <div class="shelfie-list-heading">
+          <button class="shelfie-list-back"
+            onclick="go('Profile')"
+            aria-label="Back to profile">‹</button>
+          <h1>♡ My TBR & Watchlist</h1>
+        </div>
+
+        <input
+          id="shelfieSavedSearch"
+          class="shelfie-list-search"
+          type="search"
+          placeholder="⌕ Search your saved titles..."
+          value="${esc(currentSearch)}"
+          oninput="shelfieSearchSaved(this.value)">
+
+        <div id="shelfieSavedFilters"
+          class="shelfie-list-filters"></div>
+
+        <div id="shelfieSavedCount"
+          class="shelfie-list-count"></div>
+
+        <div id="shelfieSavedGrid"
+          class="shelfie-list-grid">
+          <div class="shelfie-list-empty">
+            Loading your Shelfie ♡
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  const oldRender = render;
+
+  render = function () {
+    if (tab === 'SavedLibrary') {
+      nav();
+      document.getElementById('screen').innerHTML = savedPage();
+      drawSavedResults();
+      return;
+    }
+
+    oldRender();
+  };
+
+  function drawSavedResults() {
+    if (tab !== 'SavedLibrary') return;
+
+    const filters = document.getElementById(
+      'shelfieSavedFilters'
+    );
+    const count = document.getElementById(
+      'shelfieSavedCount'
+    );
+    const grid = document.getElementById(
+      'shelfieSavedGrid'
+    );
+
+    if (!filters || !count || !grid) return;
+
+    filters.innerHTML =
+      ['All','Books','Movies','Shows'].map(f => `
+        <button
+          class="shelfie-list-filter
+            ${currentFilter === f ? 'active' : ''}"
+          onclick="shelfieFilterSaved('${f}')">
+          ${f}
+        </button>
+      `).join('');
+
+    const filtered = savedRows.filter(row =>
+      currentFilter === 'All' ||
+      category(row) === currentFilter
+    );
+
+    const q = currentSearch.trim().toLowerCase();
+
+    const matching = filtered.filter(row =>
+      String(row.title_name || '')
+        .toLowerCase()
+        .includes(q)
+    );
+
+    const description =
+      currentFilter === 'All' ? 'titles saved' :
+      currentFilter === 'Books' ? 'books saved' :
+      currentFilter === 'Movies' ? 'movies saved' :
+      'shows saved';
+
+    count.innerHTML = `
+      <strong>${filtered.length}</strong>
+      <span>${description}
+        ${q ? ' · ' + matching.length + ' matching' : ''}
+      </span>
+    `;
+
+    grid.innerHTML = matching.map(row => {
+      const x = ensureCatalogItem(row);
+
+      return `
+        <button class="shelfie-list-cover"
+          data-shelfie-id="${esc(x.id)}"
+          aria-label="Open ${esc(x.title)}">
+          <img
+            src="${esc(x.cover)}"
+            alt="${esc(x.title)} cover"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='${fallback}'">
+          <span>${esc(x.title)}</span>
+        </button>
+      `;
+    }).join('') || `
+      <div class="shelfie-list-empty">
+        No matching saved titles ♡
+      </div>
+    `;
+
+    // Open the existing Shelfie detail screen.
+    grid.querySelectorAll('[data-shelfie-id]')
+      .forEach(button => {
+        button.addEventListener('click',() => {
+          openDetail(button.dataset.shelfieId);
+        });
+      });
+  }
+
+  window.shelfieSearchSaved = function (value) {
+    currentSearch = value;
+    drawSavedResults();
+  };
+
+  window.shelfieFilterSaved = function (value) {
+    currentFilter = value;
+    drawSavedResults();
+  };
+
+  window.shelfieOpenSavedPage = async function () {
+    if (!cloudUser || !cloud) {
+      openAccount();
+      return;
+    }
+
+    const userId = cloudUser.id;
+    const version = ++loadVersion;
+
+    currentFilter = 'All';
+    currentSearch = '';
+    savedRows = [];
+
+    tab = 'SavedLibrary';
+    render();
+    window.scrollTo(0,0);
+
+    try {
+      const all = [];
+
+      // Fetch every page, not just the first 1,000 titles.
+      for (let offset = 0; ; offset += 500) {
+        const {data,error} = await cloud
+          .from('shelfie_library')
+          .select(
+            'title_id,title_name,media_type,status,metadata'
+          )
+          .eq('user_id',userId)
+          .in('status',['tbr','watchlist'])
+          .order('title_name',{ascending:true})
+          .range(offset,offset + 499);
+
+        if (error) throw error;
+
+        all.push(...(data || []));
+
+        if (!data || data.length < 500) break;
+      }
+
+      if (version !== loadVersion ||
+          cloudUser?.id !== userId) return;
+
+      savedRows = all.filter(validSaved);
+
+      // Remove accidental duplicates.
+      const unique = new Map();
+
+      savedRows.forEach(row => {
+        unique.set(
+          category(row) + ':' + row.title_id,
+          row
+        );
+      });
+
+      savedRows = [...unique.values()];
+
+      savedRows.forEach(ensureCatalogItem);
+
+      drawSavedResults();
+
+    } catch (error) {
+      if (version !== loadVersion) return;
+
+      const grid = document.getElementById(
+        'shelfieSavedGrid'
+      );
+
+      if (grid) {
+        grid.innerHTML = `
+          <div class="shelfie-list-empty">
+            Couldn't load your saved titles.
+            Please try again ♡
+          </div>
+        `;
+      }
+
+      toast(error.message || 'Could not load watchlist');
+    }
+  };
+})();
+</script>
+
 
 
   
