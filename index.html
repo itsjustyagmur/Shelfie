@@ -3389,5 +3389,64 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
+<style>
+/* SHELFIE — MINIMAL GROUP CHAT */
+
+/* Remove all message bubble backgrounds */
+#shelfieBubbleList .shelfie-bubble,
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble,
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+
+  padding: 2px 0 !important;
+  margin: 0 !important;
+
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+}
+
+/* Your messages: light pink, aligned right */
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  color: #f5b8e5 !important;
+}
+
+/* Other people's messages: soft white, aligned left */
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  color: #f5edf5 !important;
+}
+
+/* Smaller usernames */
+#shelfieBubbleList .shelfie-bubble-name {
+  color: #bba5bd !important;
+  font-size: 11px !important;
+  margin: 0 0 3px !important;
+}
+
+/* Comfortable spacing between messages */
+#shelfieBubbleList {
+  gap: 17px !important;
+}
+</style>
+
  
 </body></html>
