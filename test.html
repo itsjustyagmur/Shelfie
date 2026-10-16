@@ -6333,6 +6333,454 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<!-- SHELFIE · Profile libraries and TBR buttons -->
+<style>
+.shelfie-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  margin: 9px 0;
+  border: 1px solid #62415f;
+  border-radius: 16px;
+  background: linear-gradient(135deg,#302136,#1c1725);
+}
+
+.shelfie-rating-cover {
+  width: 49px;
+  height: 73px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 9px;
+  background: #39243d;
+  cursor: pointer;
+}
+
+.shelfie-rating-info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.shelfie-rating-title {
+  color: #ffe5f5;
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.shelfie-rating-author {
+  color: #d2b5cd;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.shelfie-rating-stars {
+  color: #f5a4df;
+  font-size: 16px;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+.shelfie-tbr-toggle {
+  flex-shrink: 0;
+  min-width: 69px;
+  padding: 9px 10px;
+  border: 1px solid #d789bc;
+  border-radius: 12px;
+  background: transparent;
+  color: #f5a4df;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.shelfie-tbr-toggle.saved {
+  background: #59304f;
+  border-color: #f5a4df;
+  color: #ffe5f5;
+}
+
+.shelfie-tbr-toggle:disabled {
+  opacity: .5;
+}
+
+.shelfie-read-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 13px;
+  margin-top: 14px;
+}
+
+.shelfie-read-book {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #ffe5f5;
+  text-align: left;
+}
+
+.shelfie-read-book img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #66446a;
+}
+
+.shelfie-read-book span {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  const fallback =
+    'https://placehold.co/180x270/38213f/f8b5e4?text=Shelfie';
+
+  const safe = value => esc(String(value ?? ''));
+
+  const mediaType = value =>
+    String(value || '').toLowerCase();
+
+  const isBook = r =>
+    mediaType(r.media_type) === 'book' ||
+    String(r.title_id || '').startsWith('goodreads_') ||
+    String(r.title_id || '').startsWith('openlibrary_') ||
+    item(r.title_id)?.type === 'Book';
+
+  function ensureBook(r, libraryRow) {
+    const id = String(r.title_id);
+    let book = item(id);
+
+    const metadata = libraryRow?.metadata || {};
+
+    if (!book) {
+      book = {
+        id,
+        title: r.title_name || 'Untitled',
+        type: 'Book',
+        author: metadata.author || '',
+        cover: metadata.cover || '',
+        fallback,
+        genre: 'Book',
+        year: '',
+        description: ''
+      };
+
+      catalog.push(book);
+    }
+
+    if (metadata.author && !book.author)
+      book.author = metadata.author;
+
+    if (metadata.cover && !book.cover)
+      book.cover = metadata.cover;
+
+    if (!book.cover) {
+      const isbn = id.startsWith('goodreads_isbn_')
+        ? id.replace('goodreads_isbn_', '')
+        : '';
+
+      if (isbn)
+        book.cover =
+          'https://covers.openlibrary.org/b/isbn/' +
+          encodeURIComponent(isbn) + '-M.jpg';
+      else
+        book.cover = fallback;
+    }
+
+    book.fallback ||= fallback;
+
+    return book;
+  }
+
+  function coverGrid(rows) {
+    if (!rows.length)
+      return '<div class="empty">No books marked Read yet ♡</div>';
+
+    return `
+      <div class="shelfie-read-grid">
+        ${rows.map(r => {
+          const book = ensureBook(r, r);
+
+          return `
+            <button class="shelfie-read-book"
+              onclick="openDetail('${safe(book.id)}')">
+              <img
+                src="${safe(book.cover)}"
+                alt="${safe(book.title)}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='${fallback}'">
+              <span>${safe(book.title)}</span>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  async function getMyLibrary() {
+    if (!cloudUser) throw Error('Please sign in first');
+
+    const rows = [];
+    for (let offset = 0; ; offset += 500) {
+      const {data,error} = await cloud
+        .from('shelfie_library')
+        .select('title_id,title_name,media_type,status,metadata')
+        .eq('user_id',cloudUser.id)
+        .range(offset,offset + 499);
+
+      if (error) throw error;
+      rows.push(...(data || []));
+      if (!data || data.length < 500) break;
+    }
+    return rows;
+  }
+
+  async function getMyRatings() {
+    if (!cloudUser) throw Error('Please sign in first');
+
+    const rows = [];
+    for (let offset = 0; ; offset += 500) {
+      const {data,error} = await cloud
+        .from('ratings')
+        .select('title_id,title_name,media_type,stars,review')
+        .eq('user_id',cloudUser.id)
+        .order('created_at',{ascending:false})
+        .range(offset,offset + 499);
+
+      if (error) throw error;
+      rows.push(...(data || []));
+      if (!data || data.length < 500) break;
+    }
+    return rows;
+  }
+
+  function ratingList(ratings, library) {
+    if (!ratings.length)
+      return '<div class="empty">No ratings yet ♡</div>';
+
+    const statuses = new Map(
+      library.map(r => [String(r.title_id),r.status])
+    );
+
+    const libraryById = new Map(
+      library.map(r => [String(r.title_id),r])
+    );
+
+    return ratings.map(r => {
+      const book = isBook(r);
+      const x = book
+        ? ensureBook(r,libraryById.get(String(r.title_id)))
+        : item(r.title_id) || {
+            id:r.title_id,
+            title:r.title_name,
+            cover:fallback,
+            author:'',
+            type:r.media_type
+          };
+
+      const status = statuses.get(String(r.title_id));
+      const stars = Math.max(0,Math.min(5,Number(r.stars)||0));
+      const showTBR = book && status !== 'read';
+
+      return `
+        <div class="shelfie-rating-row">
+          <img class="shelfie-rating-cover"
+            src="${safe(x.cover || fallback)}"
+            alt="${safe(x.title)}"
+            onerror="this.onerror=null;this.src='${fallback}'"
+            onclick="openDetail('${safe(x.id)}')">
+
+          <div class="shelfie-rating-info"
+            onclick="openDetail('${safe(x.id)}')">
+            <div class="shelfie-rating-title">
+              ${safe(x.title)}
+            </div>
+            <div class="shelfie-rating-author">
+              ${safe(x.author || '')}
+            </div>
+            <div class="shelfie-rating-stars">
+              ${'★'.repeat(stars)}${'☆'.repeat(5-stars)}
+            </div>
+          </div>
+
+          ${showTBR ? `
+            <button
+              class="shelfie-tbr-toggle ${status==='tbr'?'saved':''}"
+              data-shelfie-tbr="${safe(x.id)}"
+              onclick="shelfieToggleProfileTBR(this)">
+              ${status==='tbr'?'✓ TBR':'+ TBR'}
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.shelfieToggleProfileTBR = async function(button) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    const id = button.dataset.shelfieTbr;
+    const x = item(id);
+
+    if (!x || x.type !== 'Book') {
+      toast('Book not found. Please search for it again.');
+      return;
+    }
+
+    const uid = cloudUser.id;
+    button.disabled = true;
+
+    try {
+      const {data:existing,error:readError} = await cloud
+        .from('shelfie_library')
+        .select('status')
+        .eq('user_id',uid)
+        .eq('media_type','book')
+        .eq('title_id',id)
+        .maybeSingle();
+
+      if (readError) throw readError;
+
+      if (existing?.status === 'read') {
+        button.remove();
+        toast('Already on your Read list ♡');
+        return;
+      }
+
+      const removing = existing?.status === 'tbr';
+
+      let result;
+
+      if (removing) {
+        result = await cloud
+          .from('shelfie_library')
+          .delete()
+          .eq('user_id',uid)
+          .eq('media_type','book')
+          .eq('title_id',id);
+      } else {
+        result = await cloud
+          .from('shelfie_library')
+          .upsert({
+            user_id:uid,
+            media_type:'book',
+            title_id:id,
+            title_name:x.title,
+            status:'tbr',
+            metadata:{
+              author:x.author || '',
+              cover:x.cover || '',
+              fallback:x.fallback || ''
+            }
+          },{
+            onConflict:'user_id,media_type,title_id'
+          });
+      }
+
+      if (result.error) throw result.error;
+
+      if (cloudUser?.id !== uid) return;
+
+      button.textContent = removing ? '+ TBR' : '✓ TBR';
+      button.classList.toggle('saved',!removing);
+
+      toast(removing
+        ? 'Removed from your TBR ♡'
+        : 'Added to your TBR ♡');
+
+    } catch(error) {
+      toast('Could not update TBR: ' + error.message);
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  // Replace only the Ratings and Books Read popup behavior.
+  const previousStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = async function(kind) {
+    if (kind !== 'ratings' && kind !== 'books')
+      return previousStat(kind);
+
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    modal(kind === 'ratings'
+      ? 'My Ratings ♡'
+      : 'Books Read ♡',
+      '<div class="empty">Loading from Shelfie ♡</div>');
+
+    const uid = cloudUser.id;
+
+    try {
+      const library = await getMyLibrary();
+
+      if (cloudUser?.id !== uid) return;
+
+      if (kind === 'books') {
+        const read = library.filter(r =>
+          r.media_type === 'book' && r.status === 'read'
+        );
+
+        modal('Books Read ♡',coverGrid(read));
+      } else {
+        const ratings = await getMyRatings();
+
+        if (cloudUser?.id !== uid) return;
+
+        modal('My Ratings ♡',ratingList(ratings,library));
+      }
+    } catch(error) {
+      modal('Shelfie ♡',
+        '<p class="muted">Could not load your library.</p>');
+      toast(error.message);
+    }
+  };
+
+  // Friend-profile TBR buttons must update the VIEWER's account.
+  window.shelfieFriendTBR = async function(id) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    const button = [...document.querySelectorAll(
+      '.modal button,.shelfie-friend-list button'
+    )].find(b =>
+      b.getAttribute('onclick')?.includes(
+        "shelfieFriendTBR('" + id + "')"
+      )
+    );
+
+    const x = item(id);
+    if (!x || x.type !== 'Book') return;
+
+    const temporary = button || document.createElement('button');
+    temporary.dataset.shelfieTbr = id;
+
+    await window.shelfieToggleProfileTBR(temporary);
+
+    if (button) {
+      button.textContent = temporary.textContent;
+      button.classList.toggle('saved',
+        temporary.classList.contains('saved'));
+    }
+  };
+})();
+</script>
+
 
 
   
