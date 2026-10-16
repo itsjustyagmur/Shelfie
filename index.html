@@ -4533,6 +4533,56 @@ window.shelfieChooseGroup = async function(groupId, visibility) {
   alert('Request sent to the group owner ♡');
 };
 </script>
+<script>
+(function () {
+  function addDiscoverButton() {
+    const screen = document.getElementById('screen');
+    if (!screen) return;
 
+    const heading = [...screen.querySelectorAll('h1,h2,h3,h4')]
+      .find(el => /Your groups/i.test(el.textContent));
+
+    if (!heading) return;
+
+    if (document.getElementById('shelfie-discover-btn')) return;
+
+    const button = document.createElement('button');
+    button.id = 'shelfie-discover-btn';
+    button.textContent = '⌕ Discover Groups ♡';
+    button.onclick = () => shelfieDiscoverGroups();
+
+    button.style.cssText = `
+      display:block;
+      width:100%;
+      margin:14px 0 22px;
+      padding:15px;
+      background:#39203F;
+      color:#E99AD2;
+      border:1px solid #E99AD2;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+    `;
+
+    const createButton = [...screen.querySelectorAll('button')]
+      .find(el => /Create a group/i.test(el.textContent));
+
+    if (createButton) {
+      createButton.insertAdjacentElement('afterend', button);
+    } else {
+      heading.insertAdjacentElement('afterend', button);
+    }
+  }
+
+  const observer = new MutationObserver(addDiscoverButton);
+  observer.observe(document.getElementById('screen'), {
+    childList: true,
+    subtree: true
+  });
+
+  addDiscoverButton();
+})();
+</script>
  
 </body></html>
