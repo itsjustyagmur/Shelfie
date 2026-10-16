@@ -2292,5 +2292,58 @@ function shelfieUsernameFromEmail(email) {
   };
 })();
 </script>
+ 
+<script>
+(function () {
+  const KEY = 'shelfie-viewing-friend';
+
+  const originalViewFriend = window.shelfieViewFriend;
+
+  window.shelfieViewFriend = async function(id) {
+    if (id && id !== cloudUser?.id) {
+      sessionStorage.setItem(KEY, id);
+    }
+    return originalViewFriend(id);
+  };
+
+  const originalFriendBack = window.shelfieFriendBack;
+
+  window.shelfieFriendBack = function() {
+    sessionStorage.removeItem(KEY);
+    return originalFriendBack();
+  };
+
+  const originalGo = go;
+
+  go = function(page) {
+    sessionStorage.removeItem(KEY);
+    return originalGo(page);
+  };
+
+  // Restore the same friend's profile after refreshing.
+  async function restoreFriendProfile() {
+    const id = sessionStorage.getItem(KEY);
+    if (!id) return;
+
+    // Wait for Supabase to restore the signed-in session.
+    for (let attempt = 0; attempt < 40; attempt++) {
+      if (cloud && cloudUser) {
+        if (cloudUser.id === id) {
+          sessionStorage.removeItem(KEY);
+          return;
+        }
+
+        await window.shelfieViewFriend(id);
+        return;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+  }
+
+  restoreFriendProfile();
+})();
+</script>
+
 
 </body></html>
