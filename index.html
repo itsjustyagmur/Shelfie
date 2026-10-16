@@ -2223,4 +2223,74 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+<script>
+(function () {
+  const originalFriendSection = window.shelfieFriendSection;
+
+  function updateMovieButtons() {
+    document.querySelectorAll('.shelfie-friend-list').forEach(row => {
+      const info = row.querySelector('.shelfie-friend-list-info');
+      if (!info) return;
+
+      const onclick = info.getAttribute('onclick') || '';
+      const match = onclick.match(/shelfieFriendItem\('([^']+)'\)/);
+      if (!match) return;
+
+      const id = match[1];
+      const movie = item(id);
+      if (!movie || movie.type !== 'Movie') return;
+
+      let button = row.querySelector('.shelfie-friend-list-action');
+
+      if (!button) {
+        button = document.createElement('button');
+        button.className = 'shelfie-friend-list-action';
+        row.appendChild(button);
+      }
+
+      const saved = state.saved.includes(id);
+
+      button.textContent = saved ? '✓ In Watchlist' : '＋ Watchlist';
+      button.classList.toggle('saved', saved);
+
+      button.onclick = function(event) {
+        event.stopPropagation();
+
+        const alreadySaved = state.saved.includes(id);
+
+        state.saved = alreadySaved
+          ? state.saved.filter(savedId => savedId !== id)
+          : [...state.saved, id];
+
+        save();
+
+        updateMovieButtons();
+
+        toast(alreadySaved
+          ? 'Removed from your Watchlist ♡'
+          : 'Added to your Watchlist ♡');
+      };
+    });
+  }
+
+  window.shelfieFriendSection = async function(kind) {
+    await originalFriendSection(kind);
+
+    if (kind === 'movies' || kind === 'ratings') {
+      updateMovieButtons();
+    }
+  };
+
+  const originalRender = render;
+
+  render = function() {
+    originalRender();
+
+    if (tab === 'Friend') {
+      updateMovieButtons();
+    }
+  };
+})();
+</script>
+
 </body></html>
