@@ -3448,5 +3448,34 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
+<style>
+/* Shelfie — bring usernames and messages closer */
+
+#shelfieBubbleList .shelfie-bubble-row {
+  gap: 0 !important;
+  justify-content: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-name {
+  margin: 0 0 2px !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+
+#shelfieBubbleList .shelfie-bubble {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Remove extra height from each message */
+#shelfieBubbleList .shelfie-bubble-row,
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  min-height: 0 !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+}
+</style>
+
  
 </body></html>
