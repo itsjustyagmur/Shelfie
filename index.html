@@ -4995,6 +4995,178 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<script>
+(function () {
+  const originalOpen = openDetail;
+  const bookCache = new Map();
+
+  async function loadBookDetails(book) {
+    if (bookCache.has(book.id)) {
+      return bookCache.get(book.id);
+    }
+
+    const task = (async () => {
+      const olId = String(book.id)
+        .replace(/^openlibrary_/, '');
+
+      let result = null;
+
+      try {
+        if (/^OL\d+W$/i.test(olId)) {
+          const response = await fetch(
+            'https://openlibrary.org/works/' + olId + '.json'
+          );
+          if (response.ok) result = await response.json();
+        }
+
+        if (!result) {
+          const response = await fetch(
+            'https://openlibrary.org/search.json?' +
+            new URLSearchParams({
+              title: book.title,
+              limit: '5',
+              fields: 'key,title,author_name,first_publish_year,cover_i'
+            })
+          );
+
+          if (response.ok) {
+            const search = await response.json();
+            const match = (search.docs || []).find(d =>
+              d.title?.toLowerCase() === book.title.toLowerCase()
+            ) || search.docs?.[0];
+
+            if (match) {
+              book.author = book.author ||
+                match.author_name?.join(', ') || '';
+              book.year = book.year ||
+                match.first_publish_year || '';
+              if (match.cover_i &&
+                  (!book.cover || book.cover.includes('placehold.co'))) {
+                book.cover =
+                  'https://covers.openlibrary.org/b/id/' +
+                  match.cover_i + '-M.jpg';
+              }
+
+              const workResponse = await fetch(
+                'https://openlibrary.org' + match.key + '.json'
+              );
+              if (workResponse.ok) {
+                result = await workResponse.json();
+              }
+            }
+          }
+        }
+
+        if (result) {
+          const description = result.description;
+          book.description = book.description ||
+            (typeof description === 'string'
+              ? description
+              : description?.value || '');
+
+          if (result.covers?.[0] &&
+              (!book.cover || book.cover.includes('placehold.co'))) {
+            book.cover =
+              'https://covers.openlibrary.org/b/id/' +
+              result.covers[0] + '-M.jpg';
+          }
+
+          if (!book.author && result.authors?.length) {
+            const authors = await Promise.all(
+              result.authors.slice(0, 3).map(async a => {
+                const key = a.author?.key || a.key;
+                if (!/^\/authors\/OL\d+A$/.test(key || '')) {
+                  return '';
+                }
+                const response = await fetch(
+                  'https://openlibrary.org' + key + '.json'
+                );
+                if (!response.ok) return '';
+                const data = await response.json();
+                return data.name || '';
+              })
+            );
+            book.author = authors.filter(Boolean).join(', ');
+          }
+        }
+      } catch (error) {
+        console.warn('Book details unavailable:', error);
+      }
+
+      return book;
+    })();
+
+    bookCache.set(book.id, task);
+    return task;
+  }
+
+  window.shelfieOpenRatedBook = async function(id, title) {
+    let book = item(id);
+
+    if (!book) {
+      book = {
+        id,
+        title,
+        type: 'Book',
+        author: '',
+        year: '',
+        genre: '',
+        description: '',
+        cover: 'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'
+      };
+      catalog.push(book);
+    }
+
+    originalOpen(id);
+
+    await loadBookDetails(book);
+
+    // Refresh only if the same book is still open.
+    const popup = document.querySelector('#overlay .modal');
+    if (popup && popup.textContent.includes(book.title)) {
+      originalOpen(id);
+    }
+  };
+
+  // Enrich any book opened normally, too.
+  openDetail = function(id) {
+    const book = item(id);
+    if (!book || book.type !== 'Book') {
+      return originalOpen(id);
+    }
+
+    return shelfieOpenRatedBook(id, book.title);
+  };
+
+  // Handle rated-book cards even when the book is missing
+  // from the local catalog.
+  document.addEventListener('click', function(event) {
+    const button = event.target.closest(
+      '.shelfie-book-button'
+    );
+    if (!button || !button.closest('#overlay')) return;
+
+    const action = button.getAttribute('onclick') || '';
+    const match = action.match(
+      /^openDetail\('([^']+)'\)$/
+    );
+    if (!match) return;
+
+    const id = match[1];
+    if (item(id)) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const title = button.textContent
+      .replace(/[📖★☆]/g, '')
+      .trim().split('\n')[0].trim();
+
+    shelfieOpenRatedBook(id, title);
+  }, true);
+})();
+</script>
+
 
 
  
