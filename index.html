@@ -4872,6 +4872,129 @@ window.shelfieDiscoverGroups = async function() {
 }
 </style>
 
+<script>
+(function () {
+  let myGroupIds = [];
+  let myBookRatings = [];
+
+  async function syncProfileStats() {
+    if (!cloud || !cloudUser || tab !== 'Profile') return;
+
+    const userId = cloudUser.id;
+
+    const [groups, ratings] = await Promise.all([
+      cloud.from('shelfie_group_members')
+        .select('group_id')
+        .eq('user_id', userId),
+
+      cloud.from('ratings')
+        .select('title_id,title_name,stars,review')
+        .eq('user_id', userId)
+    ]);
+
+    if (cloudUser?.id !== userId) return;
+
+    if (groups.error) {
+      console.error('Group count error:', groups.error);
+    } else {
+      myGroupIds = [...new Set(
+        (groups.data || []).map(g => g.group_id)
+      )];
+    }
+
+    if (ratings.error) {
+      console.error('Book count error:', ratings.error);
+    } else {
+      myBookRatings = (ratings.data || []).filter(r => {
+        const x = item(r.title_id);
+        return x?.type === 'Book' ||
+          String(r.title_id).startsWith('openlibrary_');
+      });
+    }
+
+    const cards = document.querySelectorAll(
+      '#screen .shelfie-profile-stats .shelfie-profile-stat'
+    );
+
+    if (tab !== 'Profile' || cards.length !== 6) return;
+
+    if (!groups.error) {
+      cards[2].querySelector('strong').textContent =
+        myGroupIds.length;
+    }
+
+    if (!ratings.error) {
+      cards[3].querySelector('strong').textContent =
+        myBookRatings.length;
+    }
+  }
+
+  const oldRender = render;
+
+  render = function () {
+    oldRender();
+    if (tab === 'Profile') syncProfileStats();
+  };
+
+  const oldOpenStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = async function(kind) {
+    if (kind !== 'groups' && kind !== 'books') {
+      return oldOpenStat(kind);
+    }
+
+    await syncProfileStats();
+
+    if (kind === 'groups') {
+      const {data, error} = await cloud
+        .from('shelfie_groups')
+        .select('id,name')
+        .in('id', myGroupIds.length
+          ? myGroupIds
+          : ['00000000-0000-0000-0000-000000000000']);
+
+      if (error) {
+        toast('Could not load groups ♡');
+        return;
+      }
+
+      modal('My Groups ♡',
+        (data || []).map(g => `
+          <button class="shelfie-book-button"
+            style="margin-bottom:10px;text-align:left"
+            onclick="shelfieOpenSharedGroup('${g.id}')">
+            ♧ ${esc(g.name)} →
+          </button>
+        `).join('') ||
+        '<div class="empty">No groups yet ♡</div>'
+      );
+      return;
+    }
+
+    if (kind === 'books') {
+      modal('Books Read ♡',
+        myBookRatings.map(r => `
+          <button class="shelfie-book-button"
+            style="margin-bottom:10px;text-align:left"
+            onclick="openDetail('${esc(r.title_id)}')">
+            📖 ${esc(r.title_name || 'Untitled')}
+            <div style="color:#F5A4DF;margin-top:5px">
+              ${'★'.repeat(Math.min(5,Math.max(0,r.stars || 0)))}
+            </div>
+            <div class="muted">
+              ${esc(r.review || '')}
+            </div>
+          </button>
+        `).join('') ||
+        '<div class="empty">No rated books yet ♡</div>'
+      );
+    }
+  };
+
+  syncProfileStats();
+})();
+</script>
+
 
 
  
