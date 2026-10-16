@@ -3220,5 +3220,49 @@ function shelfieUsernameFromEmail(email) {
 </script>
 
  
+<style>
+/* Shelfie group header: compact side-by-side layout */
+
+.shelfie-group-page {
+  position: relative;
+  padding-top: 0 !important;
+}
+
+.shelfie-group-back {
+  display: block;
+  max-width: 55%;
+  padding: 14px 0 !important;
+  margin: 0 !important;
+  font-size: 15px !important;
+}
+
+/* Move group title to the right */
+.shelfie-group-page > h1 {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  max-width: 48%;
+  margin: 0 !important;
+  font-size: 23px !important;
+  line-height: 1.3;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* Hide the extra heading above the title */
+.shelfie-group-page > .eyebrow {
+  display: none !important;
+}
+
+/* Bring member count and chat closer to the top */
+.shelfie-group-page > .muted {
+  margin-top: 5px !important;
+}
+
+.shelfie-group-panel {
+  margin-top: 12px !important;
+}
+</style>
+
  
 </body></html>
