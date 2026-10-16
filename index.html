@@ -2527,5 +2527,73 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
+<style>
+/* Hide the duplicate chat heading inside the reused group content */
+#shelfie-group-chat-content h1,
+#shelfie-group-chat-content h2,
+#shelfie-group-chat-content h3 {
+  display: none !important;
+}
+
+/* Make the heading we're keeping smaller */
+.shelfie-group-panel > h2 {
+  font-size: 19px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Make the message box more compact */
+#shelfie-group-chat-content textarea {
+  height: 55px !important;
+  min-height: 55px !important;
+  max-height: 80px !important;
+  padding: 10px 12px !important;
+}
+
+/* Tighten spacing above the conversation */
+.shelfie-group-panel {
+  padding: 14px !important;
+}
+</style>
+
+<script>
+(function () {
+  function fixGroupLayout() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+
+    if (!content) return;
+
+    // The old popup sometimes uses a styled div,
+    // rather than a heading tag.
+    content.querySelectorAll('div, p, strong, b').forEach(el => {
+      if (
+        el.children.length === 0 &&
+        el.textContent.trim() === 'Group chat 💬'
+      ) {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  // Apply whenever the group page is rendered.
+  const previousRender = render;
+
+  render = function() {
+    previousRender();
+    fixGroupLayout();
+  };
+
+  const previousOpenGroup = openGroup;
+
+  openGroup = function(id) {
+    previousOpenGroup(id);
+    fixGroupLayout();
+  };
+
+  fixGroupLayout();
+})();
+</script>
+
 
 </body></html>
