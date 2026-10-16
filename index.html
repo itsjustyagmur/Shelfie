@@ -3477,6 +3477,99 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
- 
+<script>
+(function () {
+  window.shelfieCreateCloudGroup = function () {
+    if (!cloud || !cloudUser) {
+      alert('Please sign in first ♡');
+      return;
+    }
+
+    modal('Create a Group ♡', `
+      <div style="display:grid;gap:14px">
+        <label>
+          Group name
+          <input id="newGroupName"
+            maxlength="80"
+            placeholder="My Book Club ♡">
+        </label>
+
+        <label>
+          Description
+          <textarea id="newGroupDescription"
+            placeholder="What is your group about?"></textarea>
+        </label>
+
+        <label>
+          Who can join?
+          <select id="newGroupVisibility">
+            <option value="public">
+              Public — anyone can join
+            </option>
+            <option value="private">
+              Private — invitation only
+            </option>
+          </select>
+        </label>
+
+        <button onclick="shelfieSaveCloudGroup()">
+          Create Group ♡
+        </button>
+      </div>
+    `);
+  };
+
+  window.shelfieSaveCloudGroup = async function () {
+    const name = document
+      .getElementById('newGroupName')
+      .value.trim();
+
+    const description = document
+      .getElementById('newGroupDescription')
+      .value.trim();
+
+    const visibility = document
+      .getElementById('newGroupVisibility')
+      .value;
+
+    if (!name) {
+      alert('Please enter a group name ♡');
+      return;
+    }
+
+    const { data, error } = await cloud
+      .from('shelfie_groups')
+      .insert({
+        name,
+        description,
+        visibility,
+        creator_id: cloudUser.id
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert('Could not create group: ' + error.message);
+      return;
+    }
+
+    closeModal();
+    toast('Your group was created! ♡');
+    console.log('New shared group:', data);
+  };
+
+  // Connect the existing Create a Group button.
+  const oldGroupsPage = groupsPage;
+
+  groupsPage = function () {
+    const html = oldGroupsPage();
+
+    return html.replace(
+      /onclick=["'](?:createGroup|newGroup|openCreateGroup)\(\)["']/,
+      'onclick="shelfieCreateCloudGroup()"'
+    );
+  };
+})();
+</script> 
  
 </body></html>
