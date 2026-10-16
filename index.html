@@ -3925,4 +3925,29 @@ function shelfieUsernameFromEmail(email) {
   };
 })();
 </script>
+<style>
+/* Remove pink chat bubbles */
+#screen .message-bubble,
+#screen .chat-bubble,
+#screen .msg-bubble,
+#screen .message-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: #E9A6D6 !important;
+}
+
+/* Keep group messages light pink */
+#screen .message-bubble *,
+#screen .chat-bubble *,
+#screen .msg-bubble *,
+#screen .message-content * {
+  color: #E9A6D6 !important;
+}
+</style>
+
+ 
 </body></html>
