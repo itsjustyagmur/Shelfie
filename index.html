@@ -2212,4 +2212,15 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+<script>
+(function () {
+  const originalViewFriend = window.shelfieViewFriend;
+
+  window.shelfieViewFriend = async function(id) {
+    closeModal();
+    await originalViewFriend(id);
+  };
+})();
+</script>
+
 </body></html>
