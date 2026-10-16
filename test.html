@@ -1,0 +1,5590 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shelfie — rate • review • together</title>
+<!-- SHELFIE STYLES · 01 -->
+<style>
+:root{--bg:#09090f;--surface:#171620;--surface2:#24212e;--pink:#f5a4df;--pink2:#d76bb8;--text:#faf3fa;--muted:#aaa3b4;--line:#35303f}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--pink)}.app{max-width:560px;margin:auto;min-height:100dvh;padding:0 17px 105px;background:radial-gradient(ellipse at 50% -20%,#2b1632,transparent 65%)}header{position:sticky;top:0;z-index:5;background:#0b0a11e8;backdrop-filter:blur(18px);margin:0 -17px;padding:17px 20px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff0e}.brand{font-family:Georgia,serif;color:#f9b8eb;font-size:33px;letter-spacing:-2px}.brand span{font-family:inherit;font-size:18px}.header-right{display:flex;gap:9px}.iconbtn{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:13px;padding:10px 12px}.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--pink);font-weight:800}.hero{padding:25px 0 20px}.hero h1{font-size:30px;letter-spacing:-1.1px;margin:6px 0 7px}.muted{color:var(--muted)}p{line-height:1.45}.tabs,.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 0 12px}.chip{white-space:nowrap;border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:9px 15px;border-radius:30px}.chip.active{background:linear-gradient(135deg,#f9c3e9,#dd84c5);color:#241222;border-color:transparent;font-weight:750}.sectionhead{display:flex;justify-content:space-between;align-items:center;margin:18px 0 13px}.sectionhead h2{font-size:18px;margin:0}.tiny{font-size:12px}.coverrail{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}.coveritem{min-width:116px;width:116px;cursor:pointer}.cover{width:100%;aspect-ratio:2/3;object-fit:cover;background:#33283b;border-radius:13px;border:1px solid #ffffff22;box-shadow:0 8px 22px #0007}.coveritem b{display:block;font-size:12px;margin:8px 0 3px;line-height:1.25}.coveritem small{color:var(--muted)}.stars{color:#f8a0d6;letter-spacing:1px}.feedcard,.panel{background:linear-gradient(155deg,#211b2a,#15141d);border:1px solid var(--line);border-radius:20px;padding:15px;margin-bottom:12px}.feedtop{display:flex;align-items:center;gap:10px}.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f4a9e1,#8b4e9d);display:grid;place-items:center;color:#2b1330;font-weight:850;flex-shrink:0}.feedbody{display:flex;gap:13px;margin-top:14px}.feedbody img{width:76px;height:112px;object-fit:cover;border-radius:9px}.feedbody h3{margin:0 0 4px;font-size:17px}.feedbody p{margin:8px 0;font-size:13px}.subtle{font-size:12px;color:var(--muted)}.actions{display:flex;gap:12px;margin-top:14px}.linkbtn{background:transparent;border:0;color:var(--pink);padding:4px 0;font-weight:650}.primary{background:linear-gradient(135deg,#f9bde5,#e88ac9);border:0;color:#291427;border-radius:13px;padding:12px 17px;font-weight:800}.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--line);border-radius:13px;padding:12px 15px}.full{width:100%}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:560px;width:100%;display:flex;justify-content:space-around;background:#15121df5;backdrop-filter:blur(16px);border-top:1px solid #46334c;padding:11px 4px calc(12px + env(safe-area-inset-bottom));z-index:10}.nav button{background:none;border:0;color:#b8aabd;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:10px;min-width:58px}.nav button span{font-size:22px}.nav button.active{color:var(--pink)}.nav .plus span{border-radius:50%;background:var(--pink);color:#231121;width:43px;height:43px;display:grid;place-items:center;font-size:27px;margin-top:-22px;box-shadow:0 5px 22px #f5a4df55}.searchbox, input,textarea,select{width:100%;background:#25212f;border:1px solid #43394c;color:var(--text);border-radius:13px;padding:13px;outline:none}.searchbox{margin:15px 0}textarea{min-height:100px;resize:vertical}.gridcovers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.gridcovers .coveritem{width:auto;min-width:0}.groupcard{padding:17px;background:linear-gradient(120deg,#322037,#1b1924);border:1px solid #57415a;border-radius:19px;margin:12px 0;cursor:pointer}.groupcard h3{margin:0 0 5px}.groupcard .badge{display:inline-block;background:#f0a5d91c;border:1px solid #a9639560;color:#f6b6e5;border-radius:20px;padding:5px 10px;font-size:11px;margin-top:9px}.profiletop{text-align:center;padding:30px 0 17px}.profiletop .avatar{width:82px;height:82px;font-size:32px;margin:0 auto 12px}.stats{display:flex;justify-content:space-around;margin:17px 0}.stats b{font-size:20px;display:block}.stats small{color:var(--muted)}.modalwrap{position:fixed;inset:0;background:#000b;z-index:20;display:flex;align-items:flex-end;justify-content:center}.modal{background:#1b1723;border:1px solid #66466a;border-radius:24px 24px 0 0;padding:22px;max-width:560px;width:100%;max-height:91dvh;overflow:auto;box-shadow:0 -20px 80px #0009}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modalhead h2{margin:0;font-size:21px}.field{margin:13px 0}.field label{display:block;margin-bottom:7px;color:#d9c8d9;font-size:13px}.rateStars{display:flex;gap:8px;margin:14px 0}.rateStars button{background:none;border:0;color:#655569;font-size:37px;padding:0}.rateStars button.on{color:#f7a5d9}.detail{display:flex;gap:15px}.detail img{width:116px;height:174px;object-fit:cover;border-radius:12px}.detail h2{margin:3px 0 5px}.comment{padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.comment b{color:var(--pink)}.empty{text-align:center;padding:35px 10px;color:var(--muted)}.hide{display:none!important}.notice{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);background:#f5b1df;color:#291427;border-radius:15px;padding:12px 20px;z-index:40;font-weight:700;box-shadow:0 12px 35px #0009}.row{display:flex;gap:9px;align-items:center}.row>*{min-width:0}.spaced{justify-content:space-between}.divider{border:0;border-top:1px solid var(--line);margin:16px 0}a{color:var(--pink)}@media(min-width:700px){body{background:radial-gradient(ellipse at top,#321c37,#08070d 60%)}.app{border-left:1px solid #34263c;border-right:1px solid #34263c}}
+</style>
+<!-- Prevent the temporary guest profile from flashing during account restoration. -->
+<style>
+html.shelfie-profile-boot #screen { visibility:hidden !important; }
+html.shelfie-profile-boot .app::after {
+  content:"Loading your Shelfie ♡";
+  position:fixed; z-index:9; left:50%; top:43%; transform:translate(-50%,-50%);
+  color:#f5a4df; font-weight:700; letter-spacing:.3px;
+  background:#1b1723; border:1px solid #66466a;
+  border-radius:18px; padding:20px 26px; white-space:nowrap;
+}
+</style>
+<script>
+try {
+  if (sessionStorage.getItem('shelfie-current-page') === 'Profile') {
+    document.documentElement.classList.add('shelfie-profile-boot');
+  }
+} catch (_) {}
+</script>
+</head><body><div class="app"><header><div class="brand">shelfie<span> ✦</span></div><div class="header-right"><button class="iconbtn" onclick="openSearch()" aria-label="Search">⌕</button><button class="iconbtn" onclick="openInvite()" aria-label="Share">↗</button></div></header><main id="screen"><section class="hero"><div class="eyebrow">SHELFIE ✦</div><h1>Good stories. Better company.</h1><p>Welcome to Shelfie! If this message stays visible, your file viewer is blocking JavaScript. Open Shelfie in a full web browser or host it on a website.</p></section></main></div><nav class="nav" id="nav"></nav><div id="overlay"></div>
+<!-- ============================================================
+     SHELFIE · 01 · Core app: catalog, navigation, reviews and local state
+     ============================================================ -->
+<script>
+const catalog=[
+{id:'b1',title:'Fourth Wing',type:'Book',year:'2023',genre:'Fantasy romance',cover:'https://covers.openlibrary.org/b/isbn/9781649374042-L.jpg',fallback:'https://placehold.co/300x450/38213f/f8b5e4?text=Fourth+Wing'},
+{id:'b2',title:'The Housemaid',type:'Book',year:'2022',genre:'Thriller',cover:'https://covers.openlibrary.org/b/isbn/9781538742570-L.jpg',fallback:'https://placehold.co/300x450/25374b/f8b5e4?text=The+Housemaid'},
+{id:'b3',title:'A Court of Thorns and Roses',type:'Book',year:'2015',genre:'Fantasy',cover:'https://covers.openlibrary.org/b/isbn/9781635575569-L.jpg',fallback:'https://placehold.co/300x450/4a2338/f8b5e4?text=ACOTAR'},
+{id:'b4',title:'The Silent Patient',type:'Book',year:'2019',genre:'Mystery',cover:'https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg',fallback:'https://placehold.co/300x450/3b293b/f8b5e4?text=Silent+Patient'},
+{id:'m1',title:'Barbie',type:'Movie',year:'2023',genre:'Comedy',cover:'https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg',fallback:'https://placehold.co/300x450/b94389/ffffff?text=Barbie'},
+{id:'m2',title:'Dune: Part Two',type:'Movie',year:'2024',genre:'Sci-fi',cover:'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',fallback:'https://placehold.co/300x450/614b36/ffffff?text=Dune+Part+Two'},
+{id:'m3',title:'Interstellar',type:'Movie',year:'2014',genre:'Sci-fi',cover:'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',fallback:'https://placehold.co/300x450/24314a/ffffff?text=Interstellar'},
+{id:'s1',title:'The Last of Us',type:'Show',year:'2023',genre:'Drama',cover:'https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg',fallback:'https://placehold.co/300x450/26382f/ffffff?text=The+Last+of+Us'},
+{id:'s2',title:'Stranger Things',type:'Show',year:'2016',genre:'Sci-fi',cover:'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',fallback:'https://placehold.co/300x450/4b202e/ffffff?text=Stranger+Things'},
+{id:'s3',title:'Wednesday',type:'Show',year:'2022',genre:'Mystery',cover:'https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg',fallback:'https://placehold.co/300x450/2b283a/ffffff?text=Wednesday'}];
+const key='shelfie-prototype-v1';const defaults={name:'Yagmur',handle:'@yagmurreads',reviews:[{id:'b1',stars:5,text:'Dragons, drama, and a romance I cannot stop thinking about.',date:'Today'},{id:'s1',stars:5,text:'The performances and the storytelling? Incredible.',date:'Yesterday'}],comments:{b1:[{name:'Emma',text:'Team Xaden forever! 💗'}],s1:[{name:'Lily',text:'I need the next season immediately.'}]},groups:[{id:'g1',name:'Spicy Book Club 🔥',description:'Fantasy romance, dragons, and all the plot twists.',members:['Yagmur','Emma','Lily'],posts:[{name:'Emma',text:'What are we reading next? 📚'}]},{id:'g2',name:'Movie Night 🎬',description:'Our next favorite Friday-night watch.',members:['Yagmur','Shane'],posts:[{name:'Shane',text:'Dune rewatch this weekend?'}]}],saved:['b3','m2'],likes:[]};
+let state;try{state={...JSON.parse(JSON.stringify(defaults)),...JSON.parse(localStorage.getItem(key)||'{}')}}catch{state=JSON.parse(JSON.stringify(defaults))};
+ let tab=sessionStorage.getItem('shelfie-current-page')||'Home',filter='All',search='',selected=null,groupSelected=null,starValue=5;function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){toast('Browser storage unavailable; changes last until refresh')}}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function item(id){return catalog.find(x=>x.id===id)}function imageTag(x,cls='cover'){return `<img class="${cls}" src="${x.cover}" alt="${esc(x.title)} cover" loading="lazy" onerror="if(this.src!=='${x.fallback}')this.src='${x.fallback}'">`}function toast(s){document.querySelector('.notice')?.remove();let d=document.createElement('div');d.className='notice';d.textContent=s;document.body.append(d);setTimeout(()=>d.remove(),2300)}function avg(id){let r=state.reviews.filter(x=>x.id===id);return r.length?(r.reduce((a,b)=>a+b.stars,0)/r.length).toFixed(1):'—'}function coverCard(x){return `<div class="coveritem" onclick="openDetail('${x.id}')">${imageTag(x)}<b>${esc(x.title)}</b><small>${x.type} · <span class="stars">★</span> ${avg(x.id)}</small></div>`}function nav(){document.getElementById('nav').innerHTML=[['Home','⌂'],['Search','⌕'],['Add','+'],['Groups','♧'],['Profile','♙']].map(([n,ic])=>`<button class="${tab===n?'active':''} ${n==='Add'?'plus':''}" onclick="${n==='Add'?'openAdd()':`go('${n}')`}"><span>${ic}</span>${n==='Add'?'':n}</button>`).join('')} function go(t){
+  tab=t;
+  sessionStorage.setItem('shelfie-current-page',t);
+  filter='All';
+  search='';
+  render();
+  window.scrollTo(0,0);
+} function render(){nav();let el=document.getElementById('screen');if(tab==='Home')el.innerHTML=home();if(tab==='Search')el.innerHTML=searchPage();if(tab==='Groups')el.innerHTML=groupsPage();if(tab==='Profile')el.innerHTML=profilePage();if(tab==='Add')el.innerHTML=home()}function home(){return `<section class="hero"><div class="eyebrow">Your little corner of culture ✦</div><h1>Good stories. Better company.</h1><div class="muted">Your next obsession starts here.</div></section><div class="tabs">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';render()">${f}</button>`).join('')}</div><div class="sectionhead"><h2>✦ Discover something good</h2><button class="linkbtn" onclick="go('Search')">See all →</button></div><div class="coverrail">${catalog.filter(x=>filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).map(coverCard).join('')}</div><div class="sectionhead"><h2>💗 Your circle</h2><span class="subtle">Recent reviews</span></div>${state.reviews.filter(r=>filter==='All'||item(r.id)?.type===(filter==='Shows'?'TV Show':filter.slice(0,-1))).slice().reverse().map(r=>feedCard(r)).join('')||'<div class="empty">No reviews yet. Be the first to rate something!</div>'}<div class="sectionhead"><h2>✨ Your groups</h2><button class="linkbtn" onclick="go('Groups')">View groups →</button></div>${state.groups.slice(0,2).map(groupCard).join('')}`}function feedCard(r){let x=item(r.id);if(!x)return '';return `<div class="feedcard"><div class="feedtop"><div class="avatar">${esc(state.name[0]||'Y')}</div><div><b>${esc(state.name)}</b> <span class="subtle">rated a ${x.type.toLowerCase()}</span><div class="subtle">${esc(r.date||'Recently')}</div></div></div><div class="feedbody" onclick="openDetail('${x.id}')" style="cursor:pointer">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><p>${esc(r.text)}</p><span class="subtle">${x.type} · ${x.year}</span></div></div><div class="actions"><button class="linkbtn" onclick="toggleLike('${x.id}')">${state.likes.includes(x.id)?'♥ Liked':'♡ Like'}</button><button class="linkbtn" onclick="openDetail('${x.id}')">💬 ${state.comments[x.id]?.length||0} comments</button></div></div>`}function searchPage(){let list=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase()));return `<div class="hero"><div class="eyebrow">Find your next favorite</div><h1>Explore</h1></div><input class="searchbox" id="searchInput" placeholder="Search books, movies, shows..." value="${esc(search)}" oninput="search=this.value;updateResults()"><div class="chips">${['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('')}</div><div id="results" class="gridcovers">${list.map(coverCard).join('')}</div>`}function updateResults(){document.querySelector('.chips').innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');document.getElementById('results').innerHTML=catalog.filter(x=>(filter==='All'||x.type===(filter==='Shows'?'TV Show':filter.slice(0,-1)))&&(`${x.title} ${x.genre} ${x.type}`).toLowerCase().includes(search.toLowerCase())).map(coverCard).join('')||'<p class="muted">No titles found.</p>'}function groupCard(g){return `<div class="groupcard" onclick="openGroup('${g.id}')"><div class="row spaced"><h3>${esc(g.name)}</h3><span style="color:var(--pink)">↗</span></div><div class="muted tiny">${esc(g.description)}</div><span class="badge">♧ ${g.members.length} members</span> <span class="badge">💬 ${g.posts.length} posts</span></div>`}function groupsPage(){return `<div class="hero"><div class="eyebrow">The best part is sharing</div><h1>Your groups ♡</h1><div class="muted">Your people, your stories, your opinions.</div></div><button class="primary full" onclick="openCreateGroup()">＋ Create a group</button><div class="sectionhead"><h2>Groups you're in</h2><span class="subtle">${state.groups.length} groups</span></div>${state.groups.map(groupCard).join('')}`}function profilePage(){return `<div class="profiletop"><div class="avatar">${esc(state.name[0]||'Y')}</div><h2 style="margin:0">${esc(state.name)}</h2><div class="muted">${esc(state.handle)}</div><button class="secondary" style="margin-top:13px" onclick="editProfile()">Edit profile ✎</button><div class="stats"><div><b>${state.reviews.length}</b><small>Ratings</small></div><div><b>${Object.values(state.comments).flat().filter(c=>c.name===state.name).length}</b><small>Comments</small></div><div><b>${state.groups.length}</b><small>Groups</small></div></div></div><div class="sectionhead"><h2>♡ My watchlist & TBR</h2></div><div class="coverrail">${state.saved.map(id=>item(id)).filter(Boolean).map(coverCard).join('')||'<div class="muted">Your saved titles will appear here.</div>'}</div><div class="sectionhead"><h2>★ My reviews</h2></div>${state.reviews.slice().reverse().map(feedCard).join('')||'<div class="empty">Your ratings will appear here.</div>'}<button class="secondary full" onclick="openInvite()">↗ Share my profile</button>`}function modal(title,body){document.getElementById('overlay').innerHTML=`<div class="modalwrap" onclick="closeModal(event)"><div class="modal" onclick="event.stopPropagation()"><div class="modalhead"><h2>${title}</h2><button class="iconbtn" onclick="closeModal()">✕</button></div>${body}</div></div>`}function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('overlay').innerHTML=''}function openDetail(id){selected=id;let x=item(id),comments=state.comments[id]||[],my=state.reviews.find(r=>r.id===id);modal('Details ✦',`<div class="detail">${imageTag(x,'')}<div><div class="eyebrow">${x.type} · ${x.year}</div><h2>${esc(x.title)}</h2><div class="muted">${esc(x.genre)}</div><p class="stars">★ ${avg(id)} <span class="subtle">(${state.reviews.filter(r=>r.id===id).length} ratings)</span></p><button class="primary" onclick="openReview('${id}')">${my?'Edit rating':'★ Rate & review'}</button></div></div><div class="row" style="margin-top:15px"><button class="secondary full" onclick="toggleSave('${id}')">${state.saved.includes(id)?'✓ Saved to list':'＋ Add to watchlist / TBR'}</button></div><hr class="divider"><h3>Community discussion</h3><div id="commentList">${comments.map(c=>`<div class="comment"><b>${esc(c.name)}</b><p>${esc(c.text)}</p></div>`).join('')||'<p class="muted">Start the conversation!</p>'}</div><form onsubmit="addComment(event,'${id}')"><div class="field"><input id="commentText" required maxlength="500" placeholder="Add a comment..."></div><button class="primary full" type="submit">Post comment</button></form>`)}function openReview(id){selected=id;let x=item(id),r=state.reviews.find(r=>r.id===id);starValue=r?.stars||5;modal('Rate & review',`<div class="row">${imageTag(x,'')}<div><h3>${esc(x.title)}</h3><div class="muted">${x.type} · ${x.year}</div></div></div><div class="field"><label>Your rating</label><div class="rateStars" id="rateStars">${starButtons()}</div></div><div class="field"><label>Your thoughts</label><textarea id="reviewText" placeholder="What did you think?">${esc(r?.text||'')}</textarea></div><button class="primary full" onclick="submitReview('${id}')">Save my review ♡</button>`)}function starButtons(){return [1,2,3,4,5].map(n=>`<button class="${n<=starValue?'on':''}" onclick="starValue=${n};document.getElementById('rateStars').innerHTML=starButtons()">★</button>`).join('')}function submitReview(id){let text=document.getElementById('reviewText').value.trim();state.reviews=state.reviews.filter(r=>r.id!==id);state.reviews.push({id,stars:starValue,text,date:'Just now'});save();closeModal();render();toast('Review saved ✨')}function addComment(e,id){e.preventDefault();let text=document.getElementById('commentText').value.trim();if(!text)return;(state.comments[id]??=[]).push({name:state.name,text});save();openDetail(id);toast('Comment posted 💗')}function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];save();openDetail(id);toast(state.saved.includes(id)?'Added to your list':'Removed from your list')}function toggleLike(id){state.likes=state.likes.includes(id)?state.likes.filter(x=>x!==id):[...state.likes,id];save();render()}function openAdd(){modal('What did you finish? ✨',`<p class="muted">Choose a book, movie, or show to rate.</p><input class="searchbox" placeholder="Filter titles..." oninput="document.querySelectorAll('.picktitle').forEach(el=>el.style.display=el.textContent.toLowerCase().includes(this.value.toLowerCase())?'flex':'none')">${catalog.map(x=>`<div class="row picktitle" style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openReview('${x.id}')">${imageTag(x,'')}<div><b>${esc(x.title)}</b><div class="subtle">${x.type}</div></div><span style="margin-left:auto;color:var(--pink)">→</span></div>`).join('')}`);document.querySelectorAll('.picktitle img').forEach(img=>{img.style.width='42px';img.style.height='62px';img.style.objectFit='cover';img.style.borderRadius='6px'})}function openCreateGroup(){modal('Create your group ♡',`<form onsubmit="createGroup(event)"><div class="field"><label>Group name</label><input id="groupName" required maxlength="50" placeholder="e.g. Fantasy Girls ✨"></div><div class="field"><label>What's your group about?</label><textarea id="groupDesc" maxlength="240" placeholder="Books, movies, shows, or all three!"></textarea></div><button class="primary full" type="submit">Create group</button></form>`)}function createGroup(e){e.preventDefault();let name=document.getElementById('groupName').value.trim(),description=document.getElementById('groupDesc').value.trim();if(!name)return;let id='g'+Date.now();state.groups.push({id,name,description,members:[state.name],posts:[]});save();closeModal();go('Groups');openGroup(id);toast('Your group is live! ✨')}function openGroup(id){groupSelected=id;let g=state.groups.find(x=>x.id===id);if(!g)return;modal(esc(g.name),`<p class="muted">${esc(g.description)}</p><div class="row spaced"><span class="subtle">♧ ${g.members.length} members · ${esc(g.members.join(', '))}</span><button class="linkbtn" onclick="shareGroup('${id}')">Invite ↗</button></div><hr class="divider"><h3>Group chat 💬</h3>${g.posts.map(p=>`<div class="comment"><b>${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('')||'<div class="empty">Say hello to your group!</div>'}<form onsubmit="postGroup(event,'${id}')"><div class="field"><textarea id="groupPost" required maxlength="1000" placeholder="Share your latest thoughts..."></textarea></div><button class="primary full" type="submit">Post to group</button></form>`)}function postGroup(e,id){e.preventDefault();let text=document.getElementById('groupPost').value.trim();if(!text)return;state.groups.find(x=>x.id===id).posts.push({name:state.name,text});save();openGroup(id);toast('Posted to group 💗')}function editProfile(){modal('Edit profile',`<form onsubmit="saveProfile(event)"><div class="field"><label>Display name</label><input id="profileName" required maxlength="40" value="${esc(state.name)}"></div><div class="field"><label>Username</label><input id="profileHandle" required maxlength="40" value="${esc(state.handle)}"></div><button class="primary full" type="submit">Save profile</button></form>`)}function saveProfile(e){e.preventDefault();state.name=document.getElementById('profileName').value.trim();state.handle=document.getElementById('profileHandle').value.trim();save();closeModal();render();toast('Profile updated ✨')}function shareGroup(id){shareText(`Join my Shelfie group: ${state.groups.find(g=>g.id===id).name}!`)}function openInvite(){modal('Share Shelfie with friends ↗',`<p class="muted">Share your love of books, movies, and TV with your favorite people.</p><button class="primary full" onclick="shareText('Check out Shelfie — let’s rate books, movies and shows together!')">↗ Share Shelfie</button><p class="subtle">This is a local HTML prototype. Friends can open their own copy, but accounts and group messages are not synced across devices yet.</p>`)}async function shareText(text){try{if(navigator.share)await navigator.share({title:'Shelfie',text,url:location.protocol==='file:'?undefined:location.href});else if(navigator.clipboard){await navigator.clipboard.writeText(text+' '+(location.protocol==='file:'?'':location.href));toast('Copied to clipboard!')}else toast('Sharing not supported in this browser')}catch(e){if(e.name!=='AbortError')toast('Unable to share')}}function openSearch(){go('Search');setTimeout(()=>document.getElementById('searchInput')?.focus(),50)}render();
+</script>
+
+<!-- SHELFIE STYLES · 02 -->
+<style>
+.cloudbar{background:#261e2b;border:1px solid #72405d;border-radius:14px;margin:12px 16px;padding:12px;color:#ffb8d9;font-size:13px}.cloudbar button{margin:5px 5px 0 0}.socialresult{border-bottom:1px solid #473647;padding:12px 0}.cloudhint{color:#d4b9c7;font-size:12px;margin:10px 0}
+</style>
+
+<!-- ============================================================
+     SHELFIE · 02 · Supabase SDK
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- ============================================================
+     SHELFIE · 03 · Accounts, authentication and cloud ratings
+     ============================================================ -->
+<script>
+const SHELFIE_URL='https://bezupbelgduhbsgysffc.supabase.co';
+const SHELFIE_KEY='sb_publishable_E5cyx5FVATWckauBfN6QZQ_uk4Mjfur';
+let cloud=null,cloudUser=null,cloudProfile=null,cloudRatings=[],cloudFollowing=[],cloudReady=false;
+try{cloud=window.supabase.createClient(SHELFIE_URL,SHELFIE_KEY)}catch(e){console.warn('Cloud unavailable',e)}
+const originalHome=home,originalProfile=profilePage,originalSubmit=submitReview,originalSaveProfile=saveProfile,originalInvite=openInvite;
+function accountBar(){return `<div class="cloudbar">${cloudUser?`☁️ Signed in as <b>${esc(cloudProfile?.display_name||cloudUser.email?.split('@')[0]||'Member')}</b><br><button class="secondary" onclick="openAccount()">My account / Friends</button><button class="secondary" onclick="signOutShelfie()">Sign out</button>`:`☁️ <b>Connect with friends on Shelfie</b><br>Sign in to publish reviews and follow other readers.<br><button class="primary" onclick="openAccount()">Log in / Sign up</button>`}</div>`}
+function cloudFeed(){if(!cloudRatings.length)return '<p class="muted" style="padding:0 16px">No shared reviews yet. Sign in and publish your first one!</p>';return cloudRatings.slice(0,16).map(r=>{let x=item(r.title_id);return `<div class="feedcard"><div class="feedtop"><div class="avatar">${esc((r.profiles?.display_name||'S')[0])}</div><div><b>${esc(r.profiles?.display_name||r.profiles?.username||'Shelfie member')}</b><div class="subtle">@${esc(r.profiles?.username||'member')}</div></div></div><div class="feedbody" ${x?`onclick="openDetail('${x.id}')"`:''} style="cursor:pointer">${x?imageTag(x):''}<div><h3>${esc(r.title_name)}</h3><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><p>${esc(r.review)}</p></div></div></div>`}).join('')}
+home=function(){return accountBar()+originalHome()+`<div class="sectionhead"><h2>🌎 Community reviews</h2></div>${cloudFeed()}`};
+profilePage=function(){return accountBar()+originalProfile()+`<div class="sectionhead"><h2>Friends & social</h2></div><button class="primary full" onclick="openAccount()">${cloudUser?'Find friends / Account':'Sign up to connect'}</button><p class="cloudhint">Your original groups and comments are still saved on this device; sharing them across accounts is coming later.</p>`};
+async function initCloud(){if(!cloud)return;try{const {data:{session}}=await cloud.auth.getSession();cloudUser=session?.user||null;await refreshCloud();cloud.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;setTimeout(()=>refreshCloud(),0)})}catch(e){console.warn(e)}render()}
+async function refreshCloud(){if(!cloud)return;try{if(cloudUser){const {data:p}=await cloud.from('profiles').select('id,username,display_name,bio').eq('id',cloudUser.id).maybeSingle();cloudProfile=p;const {data:f}=await cloud.from('follows').select('following_id').eq('follower_id',cloudUser.id);cloudFollowing=(f||[]).map(x=>x.following_id)}else{cloudProfile=null;cloudFollowing=[]}const {data:r,error}=await cloud.from('ratings').select('id,user_id,title_id,title_name,stars,review,created_at,profiles(username,display_name)').order('created_at',{ascending:false}).limit(30);if(error)throw error;cloudRatings=r||[];cloudReady=true}catch(e){console.warn('Cloud read error',e);toast('Could not load shared reviews')}render()}
+function openAccount(){if(!cloud){toast('Connection unavailable. Check internet.');return}if(!cloudUser){modal('Welcome to Shelfie ♡',`<p class="muted">Sign in or create your account to share ratings with friends.</p><form onsubmit="accountSubmit(event)"><div class="field"><label>Email</label><input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com"></div><div class="field"><label>Password (6+ characters)</label><input id="authPassword" type="password" required minlength="6" autocomplete="current-password"></div><div class="row" style="gap:8px"><button class="primary full" type="submit" data-mode="signup">Sign up</button><button class="secondary full" type="button" onclick="accountSubmit(event,'login')">Log in</button></div><p class="cloudhint">Email confirmation may be required. Check your inbox after signing up.</p></form>`);return}modal('Your Shelfie account',`<p class="muted">${esc(cloudUser.email||'')}</p><p class="muted">Your public username: <b>@${esc(cloudProfile?.username||'loading')}</b></p><form onsubmit="updateCloudProfile(event)"><div class="field"><label>Display name</label><input id="cloudName" maxlength="40" required value="${esc(cloudProfile?.display_name||'')}"></div><div class="field"><label>Username (3–40 lowercase letters, numbers, underscores)</label><input id="cloudHandle" minlength="3" maxlength="40" required pattern="[a-z0-9_]{3,40}" value="${esc(cloudProfile?.username||'')}"></div><button class="primary full" type="submit">Save public profile</button></form><hr class="divider"><h3>Find friends</h3><input class="searchbox" id="friendQuery" placeholder="Search by username" oninput="searchFriends()"><div id="friendResults" class="cloudhint">Type at least 2 characters.</div><button class="secondary full" onclick="signOutShelfie()">Sign out</button>`)}
+async function accountSubmit(e,mode='signup'){e.preventDefault();const email=document.getElementById('authEmail')?.value.trim(),password=document.getElementById('authPassword')?.value;if(!email||!password)return;const b=e.submitter;b&&(b.disabled=true);try{const {data,error}=mode==='login'?await cloud.auth.signInWithPassword({email,password}):await cloud.auth.signUp({email,password,options:{
+  emailRedirectTo:'https://shelfiesocial.com/',
+  data:{
+    username:shelfieUsernameFromEmail(email)
+  }
+}});if(error)throw error;closeModal();toast(mode==='signup'&&!data.session?'Check your email to confirm your account 💌':'You are signed in 💗');await refreshCloud()}catch(err){toast(err.message||'Account error')}finally{b&&(b.disabled=false)}}
+async function signOutShelfie(){if(!cloud)return;const {error}=await cloud.auth.signOut();if(error){toast(error.message);return}cloudUser=null;cloudProfile=null;closeModal();render();toast('Signed out')}
+async function updateCloudProfile(e){e.preventDefault();const display_name=document.getElementById('cloudName').value.trim(),username=document.getElementById('cloudHandle').value.trim().toLowerCase();const {error}=await cloud.from('profiles').update({display_name,username}).eq('id',cloudUser.id);if(error){toast(error.message);return}await refreshCloud();openAccount();toast('Profile saved 💗')}
+async function searchFriends(){const q=document.getElementById('friendQuery')?.value.trim().toLowerCase(),out=document.getElementById('friendResults');if(!out)return;if(!q||q.length<2){out.textContent='Type at least 2 characters.';return}const {data,error}=await cloud.from('profiles').select('id,username,display_name').ilike('username','%'+q.replace(/[%_]/g,'')+'%').limit(15);if(error){out.textContent=error.message;return}out.innerHTML=(data||[]).filter(p=>p.id!==cloudUser.id).map(p=>`<div class="socialresult"><b>${esc(p.display_name||p.username)}</b><div class="muted">@${esc(p.username)}</div><button class="secondary" onclick="toggleFollow('${p.id}')">${cloudFollowing.includes(p.id)?'Following ✓ · Unfollow':'＋ Follow'}</button></div>`).join('')||'No matching members yet.'}
+async function toggleFollow(id){const following=cloudFollowing.includes(id);const req=following?cloud.from('follows').delete().eq('follower_id',cloudUser.id).eq('following_id',id):cloud.from('follows').insert({follower_id:cloudUser.id,following_id:id});const {error}=await req;if(error){toast(error.message);return}await refreshCloud();await searchFriends();toast(following?'Unfollowed':'Following! 💗')}
+submitReview=async function(id){const text=document.getElementById('reviewText').value.trim(),x=item(id),stars=starValue;if(!cloudUser){originalSubmit(id);toast('Saved on this device. Sign in to share publicly.');return}const {error}=await cloud.from('ratings').upsert({user_id:cloudUser.id,title_id:id,title_name:x.title,media_type:x.type==='TV Show'?'show':x.type.toLowerCase(),stars,review:text},{onConflict:'user_id,title_id'});if(error){toast('Could not publish: '+error.message);return}originalSubmit(id);await refreshCloud();toast('Review shared with Shelfie! 💗')};
+openInvite=function(){originalInvite();const p=document.querySelector('.modal .subtle');if(p)p.textContent='Share the Shelfie website with friends. They can create accounts and follow each other. Group chats and comments are currently device-only.'};
+initCloud();
+</script>
+ 
+
+<!-- ============================================================
+     SHELFIE · 04 · Account biography and status fields
+     ============================================================ -->
+<script>
+const shelfieOriginalAccount = openAccount;
+const shelfieOriginalRefresh = refreshCloud;
+
+refreshCloud = async function() {
+  await shelfieOriginalRefresh();
+
+  if (cloudUser) {
+    const { data, error } = await cloud
+      .from('profiles')
+      .select('id,username,display_name,bio,status')
+      .eq('id', cloudUser.id)
+      .maybeSingle();
+
+    if (!error && data) {
+      cloudProfile = data;
+      render();
+    }
+  }
+};
+
+openAccount = function() {
+  shelfieOriginalAccount();
+
+  if (!cloudUser) return;
+
+  const form = document.querySelector('#cloudName')?.closest('form');
+  if (!form) return;
+
+  const button = form.querySelector('button[type="submit"]');
+  if (!button) return;
+
+  const bioField = document.createElement('div');
+  bioField.className = 'field';
+  bioField.innerHTML =
+    '<label>About me</label>' +
+    '<textarea id="cloudBio" maxlength="500" placeholder="Tell everyone about yourself..."></textarea>';
+
+  const statusField = document.createElement('div');
+  statusField.className = 'field';
+  statusField.innerHTML =
+    '<label>My status (200 characters max)</label>' +
+    '<textarea id="cloudStatus" maxlength="200" placeholder="Currently reading or watching..."></textarea>';
+
+  form.insertBefore(bioField, button);
+  form.insertBefore(statusField, button);
+
+  document.getElementById('cloudBio').value = cloudProfile?.bio || '';
+  document.getElementById('cloudStatus').value = cloudProfile?.status || '';
+};
+
+const shelfieOriginalProfileSave = updateCloudProfile;
+
+updateCloudProfile = async function(e) {
+  e.preventDefault();
+
+  const bio = document.getElementById('cloudBio')?.value.trim() || '';
+  const status = document.getElementById('cloudStatus')?.value.trim() || '';
+
+  const { error } = await cloud
+    .from('profiles')
+    .update({ bio, status })
+    .eq('id', cloudUser.id);
+
+  if (error) {
+    toast(error.message);
+    return;
+  }
+
+  await shelfieOriginalProfileSave(e);
+};
+</script>
+ 
+
+<!-- ============================================================
+     SHELFIE · 05 · Profile biography and status display
+     ============================================================ -->
+<script>
+const shelfieProfileOriginal = profilePage;
+
+profilePage = function() {
+  const html = shelfieProfileOriginal();
+
+  if (!cloudUser || !cloudProfile) return html;
+
+  const bio = (cloudProfile.bio || '').trim();
+  const status = (cloudProfile.status || '').trim();
+
+  if (!bio && !status) return html;
+
+  const extra = `
+    ${bio ? `<p class="shelfie-bio">${esc(bio)}</p>` : ''}
+    ${status ? `
+      <div class="shelfie-status">
+        <div class="eyebrow">✦ MY STATUS</div>
+        <p>${esc(status)}</p>
+      </div>
+    ` : ''}
+  `;
+
+  return html.replace(
+    '<button class="secondary" style="margin-top:13px"',
+    extra + '<button class="secondary" style="margin-top:13px"'
+  );
+};
+
+const shelfieRefreshOriginal = refreshCloud;
+
+refreshCloud = async function() {
+  await shelfieRefreshOriginal();
+
+  if (!cloudUser) return;
+
+  const { data, error } = await cloud
+    .from('profiles')
+    .select('bio,status')
+    .eq('id', cloudUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('Profile details:', error);
+    return;
+  }
+
+  if (cloudProfile && data) {
+    cloudProfile.bio = data.bio || '';
+    cloudProfile.status = data.status || '';
+  }
+
+  if (tab === 'Profile') render();
+};
+
+refreshCloud();
+</script>
+
+
+<!-- SHELFIE STYLES · 03 -->
+<style>
+.shelfie-bio {
+  max-width: 340px;
+  margin: 16px auto 10px;
+  color: #d8c9d5;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.shelfie-status {
+  max-width: 360px;
+  margin: 14px auto 6px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #302533, #211b2a);
+  border: 1px solid #594151;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.shelfie-status .eyebrow {
+  color: #dda7bc;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+
+.shelfie-status p {
+  margin: 9px 0 0;
+  color: #f7edf2;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+</style>
+ 
+
+<!-- ============================================================
+     SHELFIE · 06 · Cloud profile refresh
+     ============================================================ -->
+<script>
+(function () {
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+
+    if (!cloudUser || !cloud) return;
+
+    const { data, error } = await cloud
+      .from('profiles')
+      .select('bio,status')
+      .eq('id', cloudUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Profile loading error:', error);
+      return;
+    }
+
+    if (cloudProfile && data) {
+      cloudProfile.bio = data.bio || '';
+      cloudProfile.status = data.status || '';
+    }
+
+    if (tab === 'Profile') render();
+  };
+})();
+</script>
+
+
+
+<!-- ============================================================
+     SHELFIE · 07 · Edit-profile form and save
+     ============================================================ -->
+<script>
+(function () {
+  editProfile = function () {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    modal('Edit your Shelfie ♡', `
+      <form onsubmit="saveShelfieEdit(event)">
+        <div class="field">
+          <label>Display name</label>
+          <input id="editName" maxlength="40"
+            required value="${esc(cloudProfile?.display_name || state.name)}">
+        </div>
+
+        <div class="field">
+          <label>Username</label>
+          <input id="editHandle" maxlength="40"
+            minlength="3" required
+            pattern="[a-z0-9_]{3,40}"
+            value="${esc(cloudProfile?.username || state.handle.replace('@',''))}">
+        </div>
+
+        <div class="field">
+          <label>About me</label>
+          <textarea id="editBio" maxlength="500"
+            placeholder="Tell people a little about yourself...">${esc(cloudProfile?.bio || '')}</textarea>
+        </div>
+
+        <div class="field">
+          <label>My status</label>
+          <textarea id="editStatus" maxlength="200"
+            placeholder="Currently reading, watching, or feeling...">${esc(cloudProfile?.status || '')}</textarea>
+        </div>
+
+        <button class="primary full" type="submit">
+          Save my profile ♡
+        </button>
+      </form>
+    `);
+  };
+
+  window.saveShelfieEdit = async function (e) {
+    e.preventDefault();
+
+    const button = e.submitter;
+    if (button) button.disabled = true;
+
+    const display_name = document.getElementById('editName').value.trim();
+    const username = document.getElementById('editHandle').value.trim().toLowerCase();
+    const bio = document.getElementById('editBio').value.trim();
+    const status = document.getElementById('editStatus').value.trim();
+
+    try {
+      const { error } = await cloud
+        .from('profiles')
+        .update({ display_name, username, bio, status })
+        .eq('id', cloudUser.id);
+
+      if (error) throw error;
+
+      state.name = display_name;
+      state.handle = '@' + username;
+      save();
+
+      if (cloudProfile) {
+        Object.assign(cloudProfile, {
+          display_name, username, bio, status
+        });
+      }
+
+      closeModal();
+      render();
+      toast('Your Shelfie is updated! 💗');
+    } catch (err) {
+      toast(err.message || 'Could not save profile');
+    } finally {
+      if (button) button.disabled = false;
+    }
+  };
+})();
+</script>
+
+
+<!-- SHELFIE STYLES · 04 -->
+<style>
+
+/* Hide the account banner on Home and Profile */
+.cloudbar {
+  display: none !important;
+}
+
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 08 · Header settings and account-banner layout
+     ============================================================ -->
+<script>
+(function () {
+
+  // Remove the account banner from Home and Profile.
+  home = (function (oldHome) {
+    return function () {
+      return oldHome().replace(accountBar(), '');
+    };
+  })(home);
+
+  profilePage = (function (oldProfile) {
+    return function () {
+      return oldProfile().replace(accountBar(), '');
+    };
+  })(profilePage);
+
+
+
+  // Add a settings button to the header.
+  const headerButtons = document.querySelector('.header-right');
+
+  if (headerButtons && !document.getElementById('shelfieSettings')) {
+    const button = document.createElement('button');
+    button.id = 'shelfieSettings';
+    button.className = 'iconbtn';
+    button.setAttribute('aria-label', 'Account settings');
+    button.innerHTML = '⚙';
+    button.onclick = function () {
+      modal('Account settings ♡', `
+        <p class="muted">
+          ${cloudUser
+            ? 'Signed in as ' + esc(cloudProfile?.display_name || 'Shelfie member')
+            : 'Welcome to Shelfie'}
+        </p>
+
+  <button class="secondary full" onclick="closeModal();openAccount()">
+  My account / Find friends
+</button>
+
+        ${cloudUser ? `
+          <button class="secondary full" style="margin-top:12px"
+            onclick="signOutShelfie()">
+            Sign out ↗
+          </button>
+        ` : ''}
+      `);
+    };
+    headerButtons.appendChild(button);
+  }
+})();
+</script>
+
+<!-- ============================================================
+     SHELFIE · 09 · Profile social-section cleanup
+     ============================================================ -->
+<script>
+(function () {
+  const previousProfilePage = profilePage;
+
+  profilePage = function () {
+    const html = previousProfilePage();
+
+   return html.replace(
+  /<div class="sectionhead">\s*<h2>Friends & social<\/h2>\s*<\/div>[\s\S]*?<p class="cloudhint">[\s\S]*?<\/p>/,
+  ''
+);
+  };
+})();
+</script>
+
+
+<!-- ============================================================
+     SHELFIE · 10 · Open Library book search
+     ============================================================ -->
+<script>
+(function () {
+  let searchTimer;
+  let searchVersion = 0;
+
+  const oldUpdateResults = updateResults;
+
+  updateResults = function () {
+    clearTimeout(searchTimer);
+    const version = ++searchVersion;
+
+    if (filter !== 'Books' || !search.trim()) {
+      oldUpdateResults();
+      return;
+    }
+
+    document.querySelector('.chips').innerHTML =
+      ['All', 'Books', 'Movies', 'Shows'].map(f =>
+        `<button class="chip ${filter === f ? 'active' : ''}"
+          onclick="filter='${f}';updateResults()">${f}</button>`
+      ).join('');
+
+    const results = document.getElementById('results');
+    if (!results) return;
+
+    results.innerHTML = '<p class="muted">Searching books... ♡</p>';
+
+    searchTimer = setTimeout(async function () {
+      try {
+        
+const url = 'https://openlibrary.org/search.json?q='
+  + encodeURIComponent(search.trim())
+  + '&fields=key,title,author_name,cover_i,first_publish_year'
+  + '&limit=18';
+
+const response = await fetch(url);
+if (!response.ok) throw new Error('Book search unavailable');
+
+const data = await response.json();
+if (version !== searchVersion || tab !== 'Search') return;
+
+
+const queryWords = search.trim().toLowerCase().split(/\s+/);
+
+const seenTitles = new Set();
+
+
+const books = (data.docs || []).filter(book => book.cover_i)
+
+  .filter(book => {
+    const title = (book.title || '').trim().toLowerCase();
+    const normalized = title.replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+    
+if (!normalized || seenTitles.has(normalized)) return false;
+if (!queryWords.every(word => normalized.split(' ').includes(word))) return false;
+if (normalized !== queryWords.join(' ') && /collection|box set|boxed set|bundle|edition|set of|books set/i.test(title)) return false;
+
+    // Exclude collection sets and bundles.
+    if (/\b(box set|boxed set|collection set|bundle)\b/i.test(title)) {
+      return false;
+    }
+
+    seenTitles.add(normalized);
+    return true;
+  })
+  .sort((a, b) => {
+    const q = search.trim().toLowerCase();
+    const score = book => {
+      const title = (book.title || '').toLowerCase();
+      if (title === q) return 0;
+      if (title.startsWith(q)) return 1;
+      if (queryWords.every(word => title.includes(word))) return 2;
+      return 3;
+    };
+    return score(a) - score(b);
+  })
+  .map(book => {
+
+  const id = 'openlibrary_' + book.key.split('/').pop();
+  const existing = catalog.find(x => x.id === id);
+
+  const details = {
+    id,
+    title: book.title || 'Untitled',
+    type: 'Book',
+    year: String(book.first_publish_year || ''),
+    genre: 'Book',
+    author: (book.author_name || []).join(', '),
+    description: '',
+    workKey: book.key,
+    cover: book.cover_i
+      ? 'https://covers.openlibrary.org/b/id/' + book.cover_i + '-M.jpg'
+      : 'https://placehold.co/300x450/38213f/f8b5e4?text=Book',
+    fallback: 'https://placehold.co/300x450/38213f/f8b5e4?text=Book'
+  };
+
+  if (existing) Object.assign(existing, details);
+  else catalog.push(details);
+
+  return details;
+});
+
+
+        results.innerHTML = books.map(coverCard).join('')
+          || '<p class="muted">No books found. Try another title ♡</p>';
+
+    
+} catch (error) {
+  console.error('Shelfie book search error:', error);
+
+  if (version === searchVersion) {
+    results.innerHTML =
+      '<p class="muted">Book search error: '
+      + esc(error.message || String(error))
+      + '</p>';
+  }
+}
+
+    }, 350);
+  };
+
+  const oldSearchPage = searchPage;
+
+  searchPage = function () {
+    const html = oldSearchPage();
+    setTimeout(() => {
+      if (tab === 'Search' && search.trim() && filter === 'Books') {
+        updateResults();
+      }
+    }, 0);
+    return html;
+  };
+})();
+</script>
+
+ 
+
+<!-- SHELFIE STYLES · 05 -->
+<style>
+/* Shelfie book detail design */
+.shelfie-book-detail {
+  background: #3C2241;
+  border: 1px solid #754B73;
+  border-radius: 20px;
+  padding: 15px;
+  color: #FFE5F5;
+}
+
+.shelfie-book-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.shelfie-book-top img {
+  width: 112px;
+  height: 168px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.shelfie-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shelfie-book-info h3 {
+  margin: 0 0 8px;
+  color: #FFE5F5;
+  font-size: 19px;
+}
+
+.shelfie-book-info p {
+  margin: 5px 0;
+  color: #FFE5F5;
+  font-size: 13px;
+}
+
+.shelfie-book-info small {
+  color: #D7BBD3;
+}
+
+.shelfie-pink-stars {
+  display: flex;
+  gap: 2px;
+  margin: 12px 0;
+}
+
+.shelfie-pink-stars button {
+  background: transparent;
+  border: 0;
+  color: #F5A4DF;
+  font-size: 27px;
+  padding: 0 2px;
+}
+
+.shelfie-book-button {
+  background: #51304D;
+  border: 1px solid #A76B99;
+  border-radius: 11px;
+  color: #FFE5F5;
+  padding: 12px 8px;
+  font-weight: 650;
+  width: 100%;
+}
+
+.shelfie-book-button:focus-visible {
+  outline: 2px solid #F5A4DF;
+}
+
+.shelfie-book-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.shelfie-book-wide {
+  grid-column: 1 / -1;
+}
+
+.shelfie-about-text {
+  background: #301B36;
+  border: 1px solid #80517C;
+  border-radius: 13px;
+  padding: 14px;
+  margin-top: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+  color: #FFE5F5;
+}
+
+.shelfie-book-modal .modalhead {
+  margin-bottom: 12px;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 11 · Book detail, reading status and star controls
+     ============================================================ -->
+<script>
+(function () {
+  const previousOpenDetail = openDetail;
+
+  
+const bookStatuses = {};
+
+function bookStatusKey() {
+  return 'shelfie-book-statuses-' +
+    (cloudUser?.id || 'guest');
+}
+
+function loadBookStatuses() {
+  let saved = {};
+
+  try {
+    saved = JSON.parse(
+      localStorage.getItem(bookStatusKey()) || '{}'
+    );
+  } catch {
+    saved = {};
+  }
+
+  Object.keys(bookStatuses).forEach(
+    id => delete bookStatuses[id]
+  );
+
+  Object.assign(bookStatuses, saved);
+}
+
+function saveBookStatuses() {
+  localStorage.setItem(
+    bookStatusKey(),
+    JSON.stringify(bookStatuses)
+  );
+}
+
+
+  function getStatus(id) {
+    if (bookStatuses[id]) return bookStatuses[id];
+    if (state.reviews.some(r => r.id === id)) return 'read';
+    if (state.saved.includes(id)) return 'tbr';
+    return 'none';
+  }
+
+  function setBookStatus(id, status) {
+    bookStatuses[id] = status;
+    saveBookStatuses();
+
+    state.saved = state.saved.filter(x => x !== id);
+    if (status === 'tbr') state.saved.push(id);
+
+    save();
+    openDetail(id);
+    toast(status === 'read'
+      ? 'Added to your Read list ♡'
+      : status === 'tbr'
+        ? 'Added to your TBR ♡'
+        : 'Removed from list');
+  }
+
+  window.shelfieBookStatus = function (id, status) {
+    setBookStatus(id, getStatus(id) === status ? 'none' : status);
+  };
+
+  window.shelfieBookAbout = async function (id) {
+    const book = item(id);
+    const output = document.getElementById('shelfieBookAbout');
+    if (!book || !output) return;
+
+    if (!output.hidden) {
+      output.hidden = true;
+      return;
+    }
+
+    output.hidden = false;
+
+    if (!book.description && book.workKey) {
+      output.textContent = 'Loading description... ♡';
+
+      try {
+        const response = await fetch(
+          'https://openlibrary.org' + book.workKey + '.json'
+        );
+
+        if (!response.ok) throw new Error('Unavailable');
+
+        const data = await response.json();
+
+        book.description =
+          typeof data.description === 'string'
+            ? data.description
+            : data.description?.value || '';
+      } catch (error) {
+        output.textContent =
+          'Could not load the description. Please try again.';
+        return;
+      }
+    }
+
+    output.textContent = book.description ||
+      'A description is not available for this book yet.';
+  };
+
+  window.shelfieBookRate = function (id, stars) {
+    const existing = state.reviews.find(r => r.id === id);
+    starValue = stars;
+
+    if (existing) {
+      existing.stars = stars;
+      existing.date = 'Just now';
+      save();
+      setBookStatus(id, 'read');
+      toast('Rating updated ♡');
+    } else {
+      openReview(id);
+    }
+  };
+
+  window.shelfieBookRecommend = function (id) {
+    const book = item(id);
+    if (!book) return;
+
+    modal('Recommend this book ♡', `
+      <p class="muted">
+        Share ${esc(book.title)} with someone you love!
+      </p>
+
+      <button class="shelfie-book-button"
+        onclick="shareText('I recommend ${esc(book.title)} on Shelfie! ♡')">
+        ↗ Share with a friend
+      </button>
+
+      <p class="cloudhint">
+        Direct recommendations to Shelfie friends and groups
+        will be added when we connect messaging.
+      </p>
+
+      <button class="secondary full"
+        onclick="openDetail('${id}')">
+        ← Back to book
+      </button>
+    `);
+  };
+
+  openDetail = function (id) {
+    const book = item(id);
+
+    if (!book || book.type !== 'Book') {
+      previousOpenDetail(id);
+      return;
+    }
+
+    selected = id;
+
+    const review = state.reviews.find(r => r.id === id);
+    const rating = review?.stars || 0;
+    const status = getStatus(id);
+
+    const stars = [1, 2, 3, 4, 5].map(n => `
+      <button
+        aria-label="Rate ${n} stars"
+        onclick="shelfieBookRate('${id}', ${n})">
+        ${n <= rating ? '★' : '☆'}
+      </button>
+    `).join('');
+
+    modal('Book details ♡', `
+      <div class="shelfie-book-detail">
+
+        <div class="shelfie-book-top">
+          ${imageTag(book, '')}
+
+          <div class="shelfie-book-info">
+            <h3>${esc(book.title)}</h3>
+            <p>${esc(book.author || 'Author unavailable')}</p>
+            <small>
+              ${esc(book.year)} · ${esc(book.genre)}
+            </small>
+
+            <div class="shelfie-pink-stars">
+              ${stars}
+            </div>
+
+            <button class="shelfie-book-button"
+              onclick="shelfieBookAbout('${id}')">
+              ⓘ About
+            </button>
+          </div>
+        </div>
+
+        <div id="shelfieBookAbout"
+          class="shelfie-about-text" hidden></div>
+
+        <div class="shelfie-book-actions">
+
+          <button class="shelfie-book-button"
+            onclick="shelfieBookStatus('${id}', 'read')">
+            ${status === 'read' ? '✓ Read' : '✓ Mark as Read'}
+          </button>
+
+          <button class="shelfie-book-button"
+            onclick="shelfieBookStatus('${id}', 'tbr')">
+            ${status === 'tbr' ? '♥ In TBR' : '♡ Add to TBR'}
+          </button>
+
+          <button class="shelfie-book-button shelfie-book-wide"
+            onclick="openReview('${id}')">
+            ✎ ${review ? 'Edit My Review' : 'Write a Review'}
+          </button>
+
+          <button class="shelfie-book-button shelfie-book-wide"
+            onclick="shelfieBookRecommend('${id}')">
+            ♡ Recommend to a Friend or Group
+          </button>
+
+        </div>
+      </div>
+    `);
+  };
+})();
+</script>
+
+
+<!-- ============================================================
+     SHELFIE · 12 · Book recommendation actions
+     ============================================================ -->
+<script>
+(function () {
+  window.shelfieBookRecommend = async function (id) {
+    const book = item(id);
+    if (!book) return;
+
+    if (!cloudUser || !cloud) {
+      toast('Sign in to recommend books ♡');
+      openAccount();
+      return;
+    }
+
+    modal('Recommend a book ♡', `
+      <div class="shelfie-book-detail">
+        <div class="row" style="align-items:flex-start">
+          ${imageTag(book, '')}
+          <div>
+            <h3>${esc(book.title)}</h3>
+            <p class="muted">Send this to a Shelfie friend ♡</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Choose a friend</label>
+          <select id="recommendFriend">
+            <option value="">Loading friends...</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Your message ♡</label>
+          <textarea id="recommendMessage"
+            maxlength="1000"
+            placeholder="You HAVE to read this! ♡"></textarea>
+        </div>
+
+        <button class="shelfie-book-button"
+          onclick="shelfieSendRecommendation('${id}')">
+          ♡ Send Recommendation
+        </button>
+
+        <button class="shelfie-book-button"
+          style="margin-top:10px"
+          onclick="openDetail('${id}')">
+          ← Back to Book
+        </button>
+      </div>
+    `);
+
+    const select = document.getElementById('recommendFriend');
+
+    const { data: follows, error } = await cloud
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', cloudUser.id);
+
+    if (!select) return;
+
+    if (error) {
+      select.innerHTML = '<option value="">Could not load friends</option>';
+      toast(error.message);
+      return;
+    }
+
+    const ids = (follows || []).map(f => f.following_id);
+
+    if (!ids.length) {
+      select.innerHTML = '<option value="">Follow friends first ♡</option>';
+      return;
+    }
+
+    const { data: friends, error: profileError } = await cloud
+      .from('profiles')
+      .select('id,username,display_name')
+      .in('id', ids);
+
+    if (profileError) {
+      select.innerHTML = '<option value="">Could not load friends</option>';
+      toast(profileError.message);
+      return;
+    }
+
+    select.innerHTML = '<option value="">Choose a friend ♡</option>' +
+      (friends || []).map(friend =>
+        `<option value="${friend.id}">
+          ${esc(friend.display_name || friend.username)}
+          (@${esc(friend.username)})
+        </option>`
+      ).join('');
+  };
+
+  window.shelfieSendRecommendation = async function (id) {
+    const book = item(id);
+    const recipient_id = document.getElementById('recommendFriend')?.value;
+    const message = document.getElementById('recommendMessage')?.value.trim() || '';
+
+    if (!book || !recipient_id) {
+      toast('Choose a friend first ♡');
+      return;
+    }
+
+    const { error } = await cloud
+      .from('book_recommendations')
+      .insert({
+        sender_id: cloudUser.id,
+        recipient_id,
+        book_id: id,
+        book_title: book.title,
+        book_cover: book.cover || null,
+        book_author: book.author || null,
+        book_year: book.year || null,
+        book_work_key: book.workKey || null,
+        message,
+        status: 'pending'
+      });
+
+    if (error) {
+      toast('Could not send: ' + error.message);
+      return;
+    }
+
+    closeModal();
+    toast('Recommendation sent! ♡');
+  };
+})();
+</script>
+
+
+
+
+<!-- ============================================================
+     SHELFIE · 13 · Signed-in account identity
+     ============================================================ -->
+<script>
+(function () {
+  // Keep the displayed identity tied to the signed-in account.
+  function syncShelfieIdentity() {
+    if (!cloudUser) {
+      state.name = 'Shelfie Member';
+      state.handle = '@guest';
+      return;
+    }
+
+    const name = cloudProfile?.display_name ||
+      cloudProfile?.username ||
+      cloudUser.email?.split('@')[0] ||
+      'Shelfie Member';
+
+    const username = cloudProfile?.username || '';
+
+    state.name = name;
+    state.handle = username ? '@' + username : '@member';
+  }
+
+  const previousRender = render;
+
+  render = function () {
+    syncShelfieIdentity();
+    previousRender();
+  };
+
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    syncShelfieIdentity();
+    render();
+  };
+
+  const previousComment = addComment;
+
+  addComment = function (event, id) {
+    syncShelfieIdentity();
+    return previousComment(event, id);
+  };
+
+  const previousGroupPost = postGroup;
+
+  postGroup = function (event, id) {
+    syncShelfieIdentity();
+    return previousGroupPost(event, id);
+  };
+
+  syncShelfieIdentity();
+  render();
+})();
+</script>
+
+
+
+<!-- SHELFIE STYLES · 06 -->
+<style>
+/* Shelfie Profile Dashboard */
+.shelfie-profile-stats {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin:20px 0;
+}
+.shelfie-profile-stat {
+  background:#3C2241;
+  color:#FFE5F5;
+  border:1px solid #754B73;
+  border-radius:15px;
+  padding:14px 5px;
+  text-align:center;
+  min-width:0;
+}
+.shelfie-profile-stat:active {
+  background:#51304D;
+}
+.shelfie-profile-stat .symbol {
+  display:block;
+  color:#F5A4DF;
+  font-size:21px;
+}
+.shelfie-profile-stat strong {
+  display:block;
+  color:#FFE5F5;
+  font-size:23px;
+  margin:5px 0;
+}
+.shelfie-profile-stat small {
+  color:#FFE5F5;
+  font-size:11px;
+  line-height:1.3;
+}
+.shelfie-profile-section {
+  margin:23px 0;
+}
+.shelfie-profile-section h2 {
+  font-size:18px;
+  color:#FFE5F5;
+}
+.shelfie-profile-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.shelfie-profile-tile {
+  background:none;
+  border:0;
+  color:#FFE5F5;
+  padding:0;
+  text-align:left;
+  min-width:0;
+}
+.shelfie-profile-tile img {
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  border-radius:11px;
+}
+.shelfie-profile-tile span {
+  display:block;
+  font-size:12px;
+  margin-top:6px;
+}
+.shelfie-activity-entry {
+  background:#3C2241;
+  border:1px solid #754B73;
+  border-radius:13px;
+  padding:13px;
+  margin:9px 0;
+  color:#FFE5F5;
+}
+.shelfie-activity-entry button {
+  margin-top:8px;
+}
+.shelfie-profile-stat:focus-visible,
+.shelfie-profile-tile:focus-visible {
+  outline:2px solid #F5A4DF;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 14 · Account-specific storage and profile stats
+     ============================================================ -->
+<script>
+(function () {
+  const legacyKey = 'shelfie-prototype-v1';
+  const personalPrefix = 'shelfie-account-v2-';
+  const originalRender = render;
+  const originalRefresh = refreshCloud;
+  const originalSave = save;
+  const originalSubmitReview = submitReview;
+  const originalAddComment = addComment;
+  const originalPostGroup = postGroup;
+  const originalCreateGroup = createGroup;
+  const originalBookStatus = window.shelfieBookStatus;
+  const originalOpenDetail = openDetail;
+
+  let activeAccount = null;
+  let ready = false;
+
+  function emptyData() {
+    return {
+      reviews:[],
+      comments:{},
+      groups:[],
+      saved:[],
+      likes:[],
+      completed:[],
+      activity:[]
+    };
+  }
+
+  function storageKey(id) {
+    return personalPrefix + id;
+  }
+
+  function safeRead(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  function loadAccount() {
+    const id = cloudUser?.id || 'guest';
+
+    if (ready && activeAccount === id) return;
+
+    // Save the previous account's changes before switching.
+  
+
+    let data = safeRead(storageKey(id));
+
+    // Preserve the original owner's demo-era data.
+    // Other users always begin with empty collections.
+    if (!data && cloudUser &&
+        cloudProfile?.username === 'yagmurreads') {
+      const old = safeRead(legacyKey);
+      if (old) {
+        data = Object.assign(emptyData(), old);
+      }
+    }
+
+    state = Object.assign(emptyData(), data || {});
+    state.comments ||= {};
+    state.activity ||= [];
+    state.completed ||= [];
+
+    activeAccount = id;
+    ready = true;
+  }
+
+  save = function () {
+    loadAccount();
+    try {
+      localStorage.setItem(
+        storageKey(activeAccount),
+        JSON.stringify(state)
+      );
+    } catch {
+      toast('Could not save on this device');
+    }
+  };
+
+  function isFinished(id) {
+    return state.completed.includes(id);
+  }
+
+  function finishedItems(type) {
+    return state.completed
+      .map(id => item(id))
+      .filter(x => x && x.type === type);
+  }
+
+  function mediaCards(items) {
+    if (!items.length) {
+      return '<div class="empty">Nothing here yet ♡</div>';
+    }
+
+    return `
+      <div class="shelfie-profile-grid">
+        ${items.map(x => `
+          <button class="shelfie-profile-tile"
+            onclick="openDetail('${x.id}')">
+            ${imageTag(x)}
+            <span>${esc(x.title)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function stat(symbol, count, label, kind) {
+    return `
+      <button class="shelfie-profile-stat"
+        onclick="shelfieOpenStat('${kind}')">
+        <span class="symbol">${symbol}</span>
+        <strong>${count}</strong>
+        <small>${label}</small>
+      </button>
+    `;
+  }
+
+  profilePage = function () {
+    loadAccount();
+
+    const name = cloudProfile?.display_name ||
+      state.name || 'Shelfie Member';
+
+    const username = cloudProfile?.username ||
+      state.handle?.replace(/^@/, '') || 'member';
+
+    const bio = cloudProfile?.bio || '';
+    const status = cloudProfile?.status || '';
+
+    const recent = (state.activity || []).slice().reverse();
+
+    return `
+      <div class="profiletop">
+        <div class="avatar">${esc(name[0] || 'S')}</div>
+        <h2 style="margin:0;color:#FFE5F5">
+          ${esc(name)}
+        </h2>
+        <div class="muted">@${esc(username)}</div>
+
+        ${bio ? `
+          <p class="shelfie-bio">${esc(bio)}</p>
+        ` : ''}
+
+        ${status ? `
+          <div class="shelfie-status">
+            <div class="eyebrow">✦ MY STATUS</div>
+            <p>${esc(status)}</p>
+          </div>
+        ` : ''}
+
+        <button class="secondary"
+          style="margin-top:13px"
+          onclick="editProfile()">
+          Edit profile ✎
+        </button>
+      </div>
+
+      <div class="shelfie-profile-stats">
+        ${stat('♡', cloudFollowing.length,
+          'Friends','friends')}
+
+        ${stat('★', state.reviews.length,
+          'Ratings','ratings')}
+
+        ${stat('♧', state.groups.length,
+          'Groups','groups')}
+
+        ${stat('📖', finishedItems('Book').length,
+          'Books Read','books')}
+
+        ${stat('🎬', finishedItems('Movie').length,
+          'Movies Watched','movies')}
+
+        ${stat('📺', finishedItems('Show').length,
+          'Shows Watched','shows')}
+      </div>
+
+      <section class="shelfie-profile-section">
+        <h2>♡ My TBR & Watchlist</h2>
+        ${mediaCards(
+          state.saved.map(id => item(id)).filter(Boolean)
+        )}
+      </section>
+
+      <section class="shelfie-profile-section">
+        <h2>✦ My Activity</h2>
+
+        ${recent.length ? recent.map(a => `
+          <div class="shelfie-activity-entry">
+            <div class="eyebrow">
+              ${a.kind === 'comment'
+                ? '💬 Commented'
+                : '♧ Group post'}
+            </div>
+            <p>${esc(a.text)}</p>
+            <div class="subtle">
+              ${esc(a.title || '')}
+              · ${esc(a.date || '')}
+            </div>
+            <button class="linkbtn"
+              onclick="shelfieOpenActivity(
+                '${a.kind}',
+                '${a.target}'
+              )">
+              View conversation →
+            </button>
+          </div>
+        `).join('') :
+          '<div class="empty">Your activity will appear here ♡</div>'
+        }
+      </section>
+
+      <button class="secondary full"
+        onclick="openInvite()">
+        ↗ Share my profile
+      </button>
+    `;
+  };
+
+  window.shelfieOpenActivity = function (kind, target) {
+    if (kind === 'group') openGroup(target);
+    else openDetail(target);
+  };
+
+  window.shelfieOpenStat = async function (kind) {
+    loadAccount();
+
+    if (kind === 'ratings') {
+      modal('My Ratings ♡',
+        mediaCards(
+          state.reviews.map(r => item(r.id)).filter(Boolean)
+        )
+      );
+      return;
+    }
+
+    if (kind === 'books') {
+      modal('Books Read ♡',
+        mediaCards(finishedItems('Book')));
+      return;
+    }
+
+    if (kind === 'movies') {
+      modal('Movies Watched ♡',
+        mediaCards(finishedItems('Movie')));
+      return;
+    }
+
+    if (kind === 'shows') {
+      modal('Shows Watched ♡',
+        mediaCards(finishedItems('Show')));
+      return;
+    }
+
+    if (kind === 'groups') {
+      modal('My Groups ♡',
+        state.groups.length
+          ? state.groups.map(g => `
+            <button class="shelfie-book-button"
+              style="margin-bottom:9px"
+              onclick="openGroup('${g.id}')">
+              ♧ ${esc(g.name)}
+            </button>
+          `).join('')
+          : '<div class="empty">No groups joined yet ♡</div>'
+      );
+      return;
+    }
+
+    if (kind === 'friends') {
+      if (!cloudUser) {
+        openAccount();
+        return;
+      }
+
+      modal('My Friends ♡',
+        '<p class="muted">Loading friends...</p>');
+
+      const { data, error } = await cloud
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', cloudUser.id);
+
+      if (error) {
+        toast(error.message);
+        return;
+      }
+
+      const ids = (data || []).map(f => f.following_id);
+
+      if (!ids.length) {
+        modal('My Friends ♡',
+          '<div class="empty">No friends followed yet ♡</div>');
+        return;
+      }
+
+      const result = await cloud
+        .from('profiles')
+        .select('id,username,display_name')
+        .in('id', ids);
+
+      if (result.error) {
+        toast(result.error.message);
+        return;
+      }
+
+      modal('My Friends ♡',
+        (result.data || []).map(p => `
+          <div class="socialresult">
+            <b>${esc(p.display_name || p.username)}</b>
+            <div class="muted">@${esc(p.username)}</div>
+          </div>
+        `).join('')
+      );
+    }
+  };
+
+  window.shelfieMarkFinished = function (id) {
+    loadAccount();
+
+    const finished = isFinished(id);
+
+    state.completed = finished
+      ? state.completed.filter(x => x !== id)
+      : [...state.completed, id];
+
+    if (!finished) {
+      state.saved = state.saved.filter(x => x !== id);
+    }
+
+    save();
+    openDetail(id);
+    toast(finished
+      ? 'Removed from completed ♡'
+      : 'Added to completed ♡');
+  };
+
+  // Movies and shows get their own watched button.
+  openDetail = function (id) {
+    loadAccount();
+    originalOpenDetail(id);
+
+    const x = item(id);
+    if (!x || x.type === 'Book') return;
+
+    const modalBody = document.querySelector('.modal');
+    if (!modalBody) return;
+
+    const button = document.createElement('button');
+    button.className = 'shelfie-book-button';
+    button.style.marginTop = '12px';
+    button.textContent = isFinished(id)
+      ? '✓ Watched · Undo'
+      : '✓ Mark as Watched';
+
+    button.onclick = () => shelfieMarkFinished(id);
+    modalBody.appendChild(button);
+  };
+
+  // Books already have a Read button.
+  window.shelfieBookStatus = function (id, status) {
+    loadAccount();
+
+    if (status === 'read') {
+      const wasRead = isFinished(id);
+      state.completed = wasRead
+        ? state.completed.filter(x => x !== id)
+        : [...state.completed, id];
+
+      save();
+    }
+
+    if (status === 'tbr') {
+      state.completed =
+        state.completed.filter(x => x !== id);
+      save();
+    }
+
+    originalBookStatus(id, status);
+  };
+
+  submitReview = async function (id) {
+    loadAccount();
+    await originalSubmitReview(id);
+
+    // Rating is separate from Read / Watched.
+    save();
+  };
+
+  addComment = function (e, id) {
+    loadAccount();
+
+    const input = document.getElementById('commentText');
+    const text = input?.value.trim();
+
+    if (text) {
+      state.activity.push({
+        kind:'comment',
+        target:id,
+        title:item(id)?.title || 'Discussion',
+        text,
+        date:new Date().toLocaleDateString()
+      });
+    }
+
+    originalAddComment(e, id);
+    save();
+  };
+
+  postGroup = function (e, id) {
+    loadAccount();
+
+    const input = document.getElementById('groupPost');
+    const text = input?.value.trim();
+
+    if (text) {
+      state.activity.push({
+        kind:'group',
+        target:id,
+        title:state.groups.find(g => g.id === id)?.name ||
+          'Group',
+        text,
+        date:new Date().toLocaleDateString()
+      });
+    }
+
+    originalPostGroup(e, id);
+    save();
+  };
+
+  createGroup = function (e) {
+    loadAccount();
+    originalCreateGroup(e);
+    save();
+  };
+
+  render = function () {
+    loadAccount();
+    originalRender();
+  };
+
+  refreshCloud = async function () {
+    await originalRefresh();
+    loadAccount();
+    render();
+  };
+
+  // The account-change listener in the existing app
+  // calls refreshCloud after sign-in or sign-out.
+  // Switching accounts now loads separate local data.
+  loadAccount();
+  render();
+})();
+</script>
+
+<!-- SHELFIE STYLES · 07 -->
+<style>
+/* Force all Shelfie pop-ups into the center */
+.modalwrap {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.modal {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  max-height: 75dvh !important;
+  margin: 0 auto !important;
+  border-radius: 24px !important;
+  overflow-y: auto !important;
+}
+</style>
+
+ 
+<!-- ============================================================
+     SHELFIE · 15 · Friend profile viewing
+     ============================================================ -->
+<script>
+window.shelfieViewFriend = async function(id) {
+  if (!cloud || !id) return;
+
+  modal('Friend’s Shelfie ♡',
+    '<p class="muted">Loading profile... ♡</p>');
+
+  const { data, error } = await cloud
+    .from('profiles')
+    .select('id,username,display_name,bio,status')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error || !data) {
+    modal('Friend’s Shelfie ♡',
+      '<p class="muted">Could not load this profile.</p>');
+    return;
+  }
+
+  modal('Friend’s Shelfie ♡', `
+    <div class="profiletop">
+      <div class="avatar">
+        ${esc((data.display_name || data.username || 'S')[0])}
+      </div>
+
+      <h2>${esc(data.display_name || data.username)}</h2>
+      <p class="muted">@${esc(data.username)}</p>
+
+      ${data.bio
+        ? `<p class="shelfie-bio">${esc(data.bio)}</p>`
+        : ''}
+
+      ${data.status
+        ? `<div class="shelfie-status">
+             <div class="eyebrow">✦ MY STATUS</div>
+             <p>${esc(data.status)}</p>
+           </div>`
+        : ''}
+    </div>
+  `);
+};
+
+const shelfiePreviousSearchFriends = searchFriends;
+
+searchFriends = async function() {
+  await shelfiePreviousSearchFriends();
+
+  const results = document.getElementById('friendResults');
+  if (!results) return;
+
+  results.querySelectorAll('.socialresult').forEach(row => {
+    const followButton = row.querySelector('button');
+    const match = followButton?.getAttribute('onclick')
+      ?.match(/toggleFollow\('([^']+)'\)/);
+
+    if (!match) return;
+
+    const friendId = match[1];
+    const name = row.querySelector('b');
+
+    if (name) {
+      name.style.cursor = 'pointer';
+      name.style.color = 'var(--pink)';
+      name.setAttribute('role', 'button');
+      name.setAttribute('tabindex', '0');
+      name.onclick = () => shelfieViewFriend(friendId);
+      name.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          shelfieViewFriend(friendId);
+        }
+      };
+    }
+  });
+};
+</script>
+
+ 
+<!-- ============================================================
+     SHELFIE · 16 · Username normalization
+     ============================================================ -->
+<script>
+function shelfieUsernameFromEmail(email) {
+  let name = (email || '')
+    .split('@')[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '');
+
+  if (name.length < 3) {
+    name = (name + 'reader').slice(0, 3);
+  }
+
+  return name.slice(0, 40);
+}
+</script>
+
+<!-- ============================================================
+     SHELFIE · 17 · Profile-stat navigation
+     ============================================================ -->
+<script>
+(function () {
+  const previousOpenStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = async function(kind) {
+    await previousOpenStat(kind);
+
+    if (kind !== 'friends' || !cloudUser) return;
+
+    const { data: follows, error } = await cloud
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', cloudUser.id);
+
+    if (error || !follows?.length) return;
+
+    const ids = follows.map(f => f.following_id);
+
+    const { data: friends } = await cloud
+      .from('profiles')
+      .select('id,username,display_name')
+      .in('id', ids);
+
+    if (!friends) return;
+
+    modal('My Friends ♡', friends.map(friend => `
+      <button class="shelfie-book-button"
+        style="margin-bottom:10px;text-align:left"
+        onclick="shelfieViewFriend('${friend.id}')">
+
+        <b>${esc(friend.display_name || friend.username)}</b>
+        <div class="muted">@${esc(friend.username)}</div>
+        <div style="color:var(--pink);margin-top:5px">
+          View profile →
+        </div>
+
+      </button>
+    `).join(''));
+  };
+})();
+</script>
+ 
+
+<!-- SHELFIE STYLES · 08 -->
+<style>
+/* Full-page friend profiles */
+.shelfie-friend-back {
+  background:transparent;
+  border:0;
+  color:#f5a4df;
+  font-weight:750;
+  padding:18px 0 5px;
+}
+.shelfie-friend-list {
+  display:flex;
+  gap:11px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #49364d;
+}
+.shelfie-friend-list-cover {
+  width:55px;
+  height:82px;
+  object-fit:cover;
+  border-radius:8px;
+  flex-shrink:0;
+  background:#38263d;
+}
+.shelfie-friend-list-info {
+  flex:1;
+  min-width:0;
+  cursor:pointer;
+}
+.shelfie-friend-list-info b {
+  display:block;
+  color:#ffe5f5;
+  font-size:14px;
+}
+.shelfie-friend-list-info small {
+  color:#baa9bd;
+  font-size:12px;
+}
+.shelfie-friend-list-action {
+  background:#f5a4df;
+  color:#291427;
+  border:0;
+  border-radius:11px;
+  padding:9px 11px;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.shelfie-friend-list-action.saved {
+  background:#51304d;
+  color:#ffe5f5;
+  border:1px solid #a76b99;
+}
+.shelfie-friend-list .avatar {
+  width:42px;
+  height:42px;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 18 · Friend profiles, reviews and social activity
+     ============================================================ -->
+<script>
+(function () {
+  let friendProfile = null;
+  let friendRatings = [];
+  let friendFollowing = [];
+  let friendPageVersion = 0;
+
+  const previousRender = render;
+  const previousGo = go;
+  const previousViewFriend = window.shelfieViewFriend;
+
+  function mediaId(value) {
+    return String(value || '');
+  }
+
+  function getFriendBook(r) {
+    let x = item(r.title_id);
+
+    if (x) return x;
+
+    const id = mediaId(r.title_id);
+    const isBook = id.startsWith('openlibrary_');
+
+    x = {
+      id,
+      title:r.title_name || 'Untitled',
+      type:isBook ? 'Book' :
+        (id.startsWith('m') ? 'Movie' :
+        id.startsWith('s') ? 'Show' : 'Book'),
+      year:'',
+      genre:'',
+      description:'',
+      author:'',
+      workKey:isBook
+        ? '/works/' + id.replace('openlibrary_', '')
+        : '',
+      cover:'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie',
+      fallback:'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'
+    };
+
+    catalog.push(x);
+
+    if (isBook) {
+      fetch('https://openlibrary.org' + x.workKey + '.json')
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+          if (!data) return;
+          x.description = typeof data.description === 'string'
+            ? data.description
+            : data.description?.value || '';
+          if (data.covers?.[0]) {
+            x.cover = 'https://covers.openlibrary.org/b/id/' +
+              data.covers[0] + '-M.jpg';
+          }
+          if (tab === 'Friend') render();
+        })
+        .catch(() => {});
+    }
+
+    return x;
+  }
+
+  function friendHeader() {
+    if (!friendProfile) {
+      return '<div class="empty">Loading profile ♡</div>';
+    }
+
+    const p = friendProfile;
+    const name = p.display_name || p.username || 'Shelfie member';
+    const books = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Book'
+    ).length;
+    const movies = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Movie'
+    ).length;
+    const shows = friendRatings.filter(r =>
+      getFriendBook(r).type === 'Show'
+    ).length;
+
+    function tile(symbol, count, label, kind) {
+      return `<button class="shelfie-profile-stat"
+        onclick="shelfieFriendSection('${kind}')">
+        <span class="symbol">${symbol}</span>
+        <strong>${count}</strong>
+        <small>${label}</small>
+      </button>`;
+    }
+
+    return `
+      <button class="shelfie-friend-back"
+        onclick="shelfieFriendBack()">← Back</button>
+
+      <div class="profiletop">
+        <div class="avatar">${esc(name[0])}</div>
+        <h2 style="margin:0">${esc(name)}</h2>
+        <div class="muted">@${esc(p.username)}</div>
+
+        ${p.bio ? `<p class="shelfie-bio">${esc(p.bio)}</p>` : ''}
+        ${p.status ? `
+          <div class="shelfie-status">
+            <div class="eyebrow">✦ MY STATUS</div>
+            <p>${esc(p.status)}</p>
+          </div>` : ''}
+
+        ${cloudUser && cloudUser.id !== p.id ? `
+          <button class="secondary"
+            style="margin-top:13px"
+            onclick="shelfieFriendFollow('${p.id}')">
+            ${cloudFollowing.includes(p.id)
+              ? '✓ Following · Unfollow'
+              : '＋ Add Friend'}
+          </button>` : ''}
+      </div>
+
+      <div class="shelfie-profile-stats">
+        ${tile('♡',friendFollowing.length,'Friends','friends')}
+        ${tile('★',friendRatings.length,'Ratings','ratings')}
+        ${tile('♧','—','Groups','groups')}
+        ${tile('📖',books,'Books Rated','books')}
+        ${tile('🎬',movies,'Movies Rated','movies')}
+        ${tile('📺',shows,'Shows Rated','shows')}
+      </div>
+
+      <section class="shelfie-profile-section">
+        <h2>★ Their Reviews</h2>
+        ${friendRatings.length
+          ? friendMediaList(friendRatings)
+          : '<div class="empty">No public reviews yet ♡</div>'}
+      </section>
+    `;
+  }
+
+  function friendMediaList(ratings) {
+    if (!ratings.length) {
+      return '<div class="empty">Nothing here yet ♡</div>';
+    }
+
+    return ratings.map(r => {
+      const x = getFriendBook(r);
+      const isBook = x.type === 'Book';
+      const saved = state.saved.includes(x.id);
+
+      return `
+        <div class="shelfie-friend-list">
+          <img class="shelfie-friend-list-cover"
+            src="${esc(x.cover)}"
+            alt="${esc(x.title)}"
+            onclick="openDetail('${x.id}')"
+            onerror="this.src='https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'">
+
+          <div class="shelfie-friend-list-info"
+            onclick="shelfieFriendItem('${x.id}')">
+            <b>${esc(x.title)}</b>
+            <small class="stars">
+              ${'★'.repeat(r.stars)}
+              ${'☆'.repeat(5-r.stars)}
+            </small>
+            ${r.review
+              ? `<small style="display:block;margin-top:5px">
+                  ${esc(r.review)}
+                </small>`
+              : ''}
+            <small style="display:block;margin-top:5px;color:#f5a4df">
+              View details →
+            </small>
+          </div>
+
+          ${isBook ? `
+            <button class="shelfie-friend-list-action ${saved?'saved':''}"
+              onclick="shelfieFriendTBR('${x.id}')">
+              ${saved ? '✓ In TBR' : '＋ TBR'}
+            </button>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.shelfieFriendItem = function(id) {
+    openDetail(id);
+
+    const r = friendRatings.find(r => r.title_id === id);
+    const body = document.querySelector('.modal');
+
+    if (r && body) {
+      const section = document.createElement('div');
+      section.className = 'shelfie-about-text';
+      section.innerHTML = `
+        <b>${esc(friendProfile.display_name ||
+          friendProfile.username)}'s review</b>
+        <p class="stars">${'★'.repeat(r.stars)}
+          ${'☆'.repeat(5-r.stars)}</p>
+        <p>${esc(r.review || 'No written review.')}</p>
+      `;
+      body.appendChild(section);
+    }
+  };
+
+  window.shelfieFriendTBR = function(id) {
+    const x = item(id);
+    if (!x || x.type !== 'Book') return;
+
+    const saved = state.saved.includes(id);
+
+    state.saved = saved
+      ? state.saved.filter(bookId => bookId !== id)
+      : [...state.saved, id];
+
+    save();
+
+    render();
+
+    toast(saved
+      ? 'Removed from your TBR ♡'
+      : 'Added to your TBR ♡');
+  };
+
+  window.shelfieFriendBack = function() {
+    friendPageVersion++;
+    friendProfile = null;
+    previousGo('Profile');
+  };
+
+  window.shelfieViewFriend = async function(id) {
+    if (!cloud || !id) return;
+
+    if (cloudUser?.id === id) {
+      previousGo('Profile');
+      return;
+    }
+
+    const version = ++friendPageVersion;
+
+    friendProfile = null;
+    friendRatings = [];
+    friendFollowing = [];
+
+    tab = 'Friend';
+    sessionStorage.setItem('shelfie-current-page','Profile');
+    render();
+    window.scrollTo(0,0);
+
+    const [profileResult, ratingResult, followResult] =
+      await Promise.all([
+        cloud.from('profiles')
+          .select('id,username,display_name,bio,status')
+          .eq('id',id).maybeSingle(),
+
+        cloud.from('ratings')
+          .select('id,title_id,title_name,stars,review,created_at')
+          .eq('user_id',id)
+          .order('created_at',{ascending:false}),
+
+        cloud.from('follows')
+          .select('following_id')
+          .eq('follower_id',id)
+      ]);
+
+    if (version !== friendPageVersion) return;
+
+    if (profileResult.error || !profileResult.data) {
+      toast('Could not load this profile');
+      shelfieFriendBack();
+      return;
+    }
+
+    friendProfile = profileResult.data;
+    friendRatings = ratingResult.data || [];
+    friendFollowing = (followResult.data || [])
+      .map(f => f.following_id);
+
+    render();
+  };
+
+  window.shelfieFriendFollow = async function(id) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    await toggleFollow(id);
+    render();
+  };
+
+  window.shelfieFriendSection = async function(kind) {
+    if (!friendProfile) return;
+
+    if (kind === 'groups') {
+      modal('Their Groups ♡', `
+        <div class="empty">
+          Public groups will appear here when
+          group syncing is enabled ♡
+        </div>
+      `);
+      return;
+    }
+
+    if (kind === 'friends') {
+      modal('Their Friends ♡',
+        '<p class="muted">Loading friends...</p>');
+
+      if (!friendFollowing.length) {
+        modal('Their Friends ♡',
+          '<div class="empty">No friends to show yet ♡</div>');
+        return;
+      }
+
+      const {data,error} = await cloud.from('profiles')
+        .select('id,username,display_name')
+        .in('id',friendFollowing);
+
+      if (error) {
+        toast(error.message);
+        return;
+      }
+
+      modal('Their Friends ♡',
+        (data || []).map(p => `
+          <div class="shelfie-friend-list">
+            <div class="avatar"
+              onclick="shelfieViewFriend('${p.id}')">
+              ${esc((p.display_name || p.username)[0])}
+            </div>
+
+            <div class="shelfie-friend-list-info"
+              onclick="shelfieViewFriend('${p.id}')">
+              <b>${esc(p.display_name || p.username)}</b>
+              <small>@${esc(p.username)}</small>
+              <small style="display:block;color:#f5a4df">
+                View profile →
+              </small>
+            </div>
+
+            ${cloudUser?.id !== p.id ? `
+              <button class="shelfie-friend-list-action"
+                onclick="shelfieFriendFollowFromList('${p.id}')">
+                ${cloudFollowing.includes(p.id)
+                  ? '✓ Following'
+                  : '＋ Friend'}
+              </button>` : ''}
+          </div>
+        `).join('') ||
+        '<div class="empty">No profiles found ♡</div>');
+      return;
+    }
+
+    let list = friendRatings;
+
+    if (kind === 'books') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Book');
+    } else if (kind === 'movies') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Movie');
+    } else if (kind === 'shows') {
+      list = list.filter(r =>
+        getFriendBook(r).type === 'Show');
+    }
+
+    const labels = {
+      ratings:'Their Ratings ♡',
+      books:'Their Books ♡',
+      movies:'Their Movies ♡',
+      shows:'Their Shows ♡'
+    };
+
+    modal(labels[kind] || 'Shelfie ♡',
+      friendMediaList(list));
+  };
+
+  window.shelfieFriendFollowFromList = async function(id) {
+    if (!cloudUser) {
+      openAccount();
+      return;
+    }
+
+    await toggleFollow(id);
+    await shelfieFriendSection('friends');
+  };
+
+  render = function() {
+    previousRender();
+
+    if (tab === 'Friend') {
+      document.getElementById('screen').innerHTML =
+        friendHeader();
+    }
+  };
+
+  go = function(page) {
+    if (tab === 'Friend') friendPageVersion++;
+    previousGo(page);
+  };
+
+  // The existing Friends button already calls shelfieViewFriend.
+})();
+</script>
+
+
+<!-- ============================================================
+     SHELFIE · 19 · Friend-profile navigation enhancement
+     ============================================================ -->
+<script>
+(function () {
+  const originalViewFriend = window.shelfieViewFriend;
+
+  window.shelfieViewFriend = async function(id) {
+    closeModal();
+    await originalViewFriend(id);
+  };
+})();
+</script>
+
+
+<!-- ============================================================
+     SHELFIE · 20 · Friend movie and TV controls
+     ============================================================ -->
+<script>
+(function () {
+  const originalFriendSection = window.shelfieFriendSection;
+
+  function updateMovieButtons() {
+    document.querySelectorAll('.shelfie-friend-list').forEach(row => {
+      const info = row.querySelector('.shelfie-friend-list-info');
+      if (!info) return;
+
+      const onclick = info.getAttribute('onclick') || '';
+      const match = onclick.match(/shelfieFriendItem\('([^']+)'\)/);
+      if (!match) return;
+
+      const id = match[1];
+      const movie = item(id);
+      if (!movie || movie.type !== 'Movie') return;
+
+      let button = row.querySelector('.shelfie-friend-list-action');
+
+      if (!button) {
+        button = document.createElement('button');
+        button.className = 'shelfie-friend-list-action';
+        row.appendChild(button);
+      }
+
+      const saved = state.saved.includes(id);
+
+      button.textContent = saved ? '✓ In Watchlist' : '＋ Watchlist';
+      button.classList.toggle('saved', saved);
+
+      button.onclick = function(event) {
+        event.stopPropagation();
+
+        const alreadySaved = state.saved.includes(id);
+
+        state.saved = alreadySaved
+          ? state.saved.filter(savedId => savedId !== id)
+          : [...state.saved, id];
+
+        save();
+
+        updateMovieButtons();
+
+        toast(alreadySaved
+          ? 'Removed from your Watchlist ♡'
+          : 'Added to your Watchlist ♡');
+      };
+    });
+  }
+
+  window.shelfieFriendSection = async function(kind) {
+    await originalFriendSection(kind);
+
+    if (kind === 'movies' || kind === 'ratings') {
+      updateMovieButtons();
+    }
+  };
+
+  const originalRender = render;
+
+  render = function() {
+    originalRender();
+
+    if (tab === 'Friend') {
+      updateMovieButtons();
+    }
+  };
+})();
+</script>
+ 
+
+<!-- ============================================================
+     SHELFIE · 21 · Friend profile persistence
+     ============================================================ -->
+<script>
+(function () {
+  const KEY = 'shelfie-viewing-friend';
+
+  const originalViewFriend = window.shelfieViewFriend;
+
+  window.shelfieViewFriend = async function(id) {
+    if (id && id !== cloudUser?.id) {
+      sessionStorage.setItem(KEY, id);
+    }
+    return originalViewFriend(id);
+  };
+
+  const originalFriendBack = window.shelfieFriendBack;
+
+  window.shelfieFriendBack = function() {
+    sessionStorage.removeItem(KEY);
+    return originalFriendBack();
+  };
+
+  const originalGo = go;
+
+  go = function(page) {
+    sessionStorage.removeItem(KEY);
+    return originalGo(page);
+  };
+
+  // Restore the same friend's profile after refreshing.
+  async function restoreFriendProfile() {
+    const id = sessionStorage.getItem(KEY);
+    if (!id) return;
+
+    // Wait for Supabase to restore the signed-in session.
+    for (let attempt = 0; attempt < 40; attempt++) {
+      if (cloud && cloudUser) {
+        if (cloudUser.id === id) {
+          sessionStorage.removeItem(KEY);
+          return;
+        }
+
+        await window.shelfieViewFriend(id);
+        return;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+  }
+
+  restoreFriendProfile();
+})();
+</script>
+
+
+<!-- SHELFIE STYLES · 09 -->
+<style>
+.shelfie-group-page {
+  padding-bottom:40px;
+}
+.shelfie-group-back {
+  background:transparent;
+  border:0;
+  color:#f5a4df;
+  font-weight:750;
+  padding:18px 0;
+  cursor:pointer;
+}
+.shelfie-group-page h1 {
+  color:#ffe5f5;
+  font-size:32px;
+  margin:12px 0;
+}
+.shelfie-group-panel {
+  background:#211b2a;
+  border:1px solid #754b73;
+  border-radius:20px;
+  padding:20px;
+  margin-top:20px;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 22 · Group navigation and active group
+     ============================================================ -->
+<script>
+(function () {
+  let activeGroupId = null;
+  const GROUP_KEY = 'shelfie-open-group';
+
+  const originalOpenGroup = openGroup;
+  const originalRender = render;
+  const originalGo = go;
+
+  function showGroupPage() {
+    if (!activeGroupId) return;
+
+    const group = (state.groups || [])
+      .find(g => String(g.id) === String(activeGroupId));
+
+    if (!group) {
+      activeGroupId = null;
+      sessionStorage.removeItem(GROUP_KEY);
+      return;
+    }
+
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    screen.innerHTML = `
+      <div class="shelfie-group-page">
+        <button class="shelfie-group-back"
+          onclick="shelfieGroupBack()">← Back to Groups</button>
+
+        <div class="eyebrow">♡ YOUR SHELFIE GROUP</div>
+        <h1>${esc(group.name || 'My Group')} ♡</h1>
+
+        <div class="muted">
+          ♧ ${(group.members || []).length} members
+        </div>
+
+        <div class="shelfie-group-panel">
+          <h2>Group chat 💬</h2>
+          <div id="shelfie-group-chat-content"></div>
+        </div>
+      </div>
+    `;
+
+    // Reuse the existing group chat, including its post form.
+    originalOpenGroup(activeGroupId);
+
+    const modalElement = document.querySelector(
+      '#overlay .modal'
+    );
+
+    if (modalElement) {
+      const modalBody = modalElement.cloneNode(true);
+      const modalHeader = modalBody.querySelector('.modalhead');
+      if (modalHeader) modalHeader.remove();
+
+      const target = document.getElementById(
+        'shelfie-group-chat-content'
+      );
+
+      target.innerHTML = modalBody.innerHTML;
+    }
+
+    closeModal();
+  }
+
+  openGroup = function(id) {
+    activeGroupId = id;
+    sessionStorage.setItem(GROUP_KEY, String(id));
+    closeModal();
+    tab = 'Groups';
+    originalRender();
+    showGroupPage();
+    window.scrollTo(0,0);
+  };
+
+  window.shelfieGroupBack = function() {
+    activeGroupId = null;
+    sessionStorage.removeItem(GROUP_KEY);
+    originalGo('Groups');
+  };
+
+  render = function() {
+    originalRender();
+
+    if (activeGroupId && tab === 'Groups') {
+      showGroupPage();
+    }
+  };
+
+  go = function(page) {
+    activeGroupId = null;
+    sessionStorage.removeItem(GROUP_KEY);
+    originalGo(page);
+  };
+
+  // Reopen the same group after a refresh.
+  const savedGroup = sessionStorage.getItem(GROUP_KEY);
+
+  if (savedGroup) {
+    activeGroupId = savedGroup;
+    tab = 'Groups';
+
+    const restore = setInterval(() => {
+      if (!document.getElementById('screen')) return;
+
+      clearInterval(restore);
+      showGroupPage();
+    }, 200);
+
+    setTimeout(() => clearInterval(restore), 5000);
+  }
+})();
+</script>
+
+
+<!-- SHELFIE STYLES · 10 -->
+<style>
+/* Shelfie group chat: compact layout */
+.shelfie-group-panel {
+  padding: 16px !important;
+  margin-top: 16px !important;
+}
+
+/* Keep the main heading, but smaller */
+.shelfie-group-panel > h2 {
+  font-size: 21px !important;
+  margin: 0 0 12px !important;
+}
+
+/* Hide the duplicated heading from the old pop-up */
+#shelfie-group-chat-content h2 {
+  display: none !important;
+}
+
+/* Smaller message input */
+#shelfie-group-chat-content textarea {
+  min-height: 65px !important;
+  height: 65px !important;
+  max-height: 110px !important;
+  padding: 12px !important;
+  font-size: 14px !important;
+  resize: vertical;
+}
+
+/* Less empty space between chat elements */
+#shelfie-group-chat-content {
+  font-size: 14px;
+}
+
+#shelfie-group-chat-content p {
+  margin: 8px 0;
+}
+
+#shelfie-group-chat-content button {
+  padding: 12px !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 11 -->
+<style>
+/* Hide the duplicate chat heading inside the reused group content */
+#shelfie-group-chat-content h1,
+#shelfie-group-chat-content h2,
+#shelfie-group-chat-content h3 {
+  display: none !important;
+}
+
+/* Make the heading we're keeping smaller */
+.shelfie-group-panel > h2 {
+  font-size: 19px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Make the message box more compact */
+#shelfie-group-chat-content textarea {
+  height: 55px !important;
+  min-height: 55px !important;
+  max-height: 80px !important;
+  padding: 10px 12px !important;
+}
+
+/* Tighten spacing above the conversation */
+.shelfie-group-panel {
+  padding: 14px !important;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 23 · Group chat layout
+     ============================================================ -->
+<script>
+(function () {
+  function fixGroupLayout() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+
+    if (!content) return;
+
+    // The old popup sometimes uses a styled div,
+    // rather than a heading tag.
+    content.querySelectorAll('div, p, strong, b').forEach(el => {
+      if (
+        el.children.length === 0 &&
+        el.textContent.trim() === 'Group chat 💬'
+      ) {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  // Apply whenever the group page is rendered.
+  const previousRender = render;
+
+  render = function() {
+    previousRender();
+    fixGroupLayout();
+  };
+
+  const previousOpenGroup = openGroup;
+
+  openGroup = function(id) {
+    previousOpenGroup(id);
+    fixGroupLayout();
+  };
+
+  fixGroupLayout();
+})();
+</script>
+
+
+<!-- SHELFIE STYLES · 12 -->
+<style>
+/* Compact, scrollable Shelfie group conversation */
+.shelfie-chat-scroll {
+  height: 340px;
+  max-height: 48dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding: 8px 3px 12px;
+}
+
+/* Individual message and swipe timestamp */
+.shelfie-chat-message {
+  position: relative;
+  padding: 12px 10px;
+  border-bottom: 1px solid #49364d;
+  touch-action: pan-y;
+  transition: transform .18s ease;
+}
+
+.shelfie-chat-message.swiped {
+  transform: translateX(-65px);
+}
+
+.shelfie-chat-time {
+  position: absolute;
+  right: -65px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  text-align: right;
+  color: #b9a6bc;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.shelfie-chat-message:last-child {
+  border-bottom: none;
+}
+
+/* Keep the message composer compact */
+#shelfie-group-chat-content textarea {
+  height: 55px !important;
+  min-height: 55px !important;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 24 · Group chat presentation
+     ============================================================ -->
+<script>
+(function () {
+  function upgradeGroupChat() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+    if (!content) return;
+
+    // Find the message area between the conversation
+    // heading and the message input.
+    const textarea = content.querySelector('textarea');
+    if (!textarea) return;
+
+    const all = [...content.querySelectorAll('*')];
+
+    const heading = all.find(el =>
+      el.children.length === 0 &&
+      el.textContent.trim() === 'Group chat 💬'
+    );
+
+    // Find the container holding existing messages.
+    const candidates = [...content.querySelectorAll('div')]
+      .filter(el =>
+        el !== content &&
+        el.contains(heading) === false &&
+        !el.contains(textarea) &&
+        el.querySelectorAll('p').length > 0
+      );
+
+    const messageContainer = candidates.find(el =>
+      [...el.children].some(child =>
+        child.textContent.includes('Yagmur')
+      )
+    );
+
+    if (!messageContainer ||
+        messageContainer.classList.contains('shelfie-chat-scroll')) {
+      return;
+    }
+
+    messageContainer.classList.add('shelfie-chat-scroll');
+
+    const messages = [...messageContainer.children]
+      .filter(el => el.textContent.trim());
+
+    messages.forEach(message => {
+      message.classList.add('shelfie-chat-message');
+
+      // Existing group messages may not have saved timestamps.
+      // Only show a date when one is available.
+      const timestamp =
+        message.getAttribute('data-created-at') ||
+        message.getAttribute('data-time');
+
+      if (timestamp && !message.querySelector('.shelfie-chat-time')) {
+        const date = new Date(timestamp);
+
+        if (!isNaN(date.getTime())) {
+          const time = document.createElement('span');
+          time.className = 'shelfie-chat-time';
+          time.textContent = date.toLocaleString([], {
+            month:'short',
+            day:'numeric',
+            hour:'numeric',
+            minute:'2-digit'
+          });
+          message.appendChild(time);
+        }
+      }
+
+      let startX = 0;
+      let startY = 0;
+
+      message.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, {passive:true});
+
+      message.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+
+        if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) {
+          message.classList.toggle('swiped', dx < 0);
+        }
+      }, {passive:true});
+    });
+
+    // Show the most recent messages first on opening.
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  const oldRender = render;
+
+  render = function() {
+    oldRender();
+    upgradeGroupChat();
+  };
+
+  const oldOpenGroup = openGroup;
+
+  openGroup = function(id) {
+    oldOpenGroup(id);
+    upgradeGroupChat();
+  };
+
+  upgradeGroupChat();
+})();
+</script>
+
+<!-- SHELFIE STYLES · 13 -->
+<style>
+/* Shelfie iMessage-style group chat */
+.shelfie-group-panel {
+  padding: 15px !important;
+}
+
+.shelfie-group-panel > h2 {
+  margin: 0 0 14px !important;
+}
+
+#shelfie-group-chat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.shelfie-bubble-list {
+  height: 340px;
+  max-height: 45dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 2px 16px;
+  overscroll-behavior: contain;
+}
+
+.shelfie-bubble-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 85%;
+}
+
+.shelfie-bubble-row.mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.shelfie-bubble-name {
+  color: #f5a4df;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 9px 5px;
+}
+
+.shelfie-bubble {
+  background: #392b43;
+  color: #ffe5f5;
+  border-radius: 18px 18px 18px 5px;
+  padding: 11px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.shelfie-bubble-row.mine .shelfie-bubble {
+  background: #e99bd1;
+  color: #291427;
+  border-radius: 18px 18px 5px 18px;
+}
+
+.shelfie-chat-compose {
+  border-top: 1px solid #49364d;
+  padding-top: 14px;
+}
+
+.shelfie-chat-compose textarea {
+  height: 52px !important;
+  min-height: 52px !important;
+  resize: none !important;
+}
+
+.shelfie-chat-compose button {
+  margin-top: 9px;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 25 · Group message styling
+     ============================================================ -->
+<script>
+(function () {
+  function showShelfieBubbles() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+
+    if (!content || !groupSelected) return;
+
+    const group = (state.groups || []).find(
+      g => String(g.id) === String(groupSelected)
+    );
+
+    if (!group) return;
+
+    const currentName = cloudProfile?.display_name ||
+      state.name;
+
+    content.innerHTML = `
+      <div class="row spaced"
+        style="margin-bottom:12px">
+        <span class="subtle">
+          ♧ ${(group.members || []).length} members
+        </span>
+        <button class="linkbtn"
+          onclick="shareGroup('${group.id}')">
+          Invite ↗
+        </button>
+      </div>
+
+      <div class="shelfie-bubble-list" id="shelfieBubbleList">
+        ${(group.posts || []).map(post => {
+          const mine = post.name === currentName;
+
+          return `
+            <div class="shelfie-bubble-row ${mine ? 'mine' : ''}">
+              <span class="shelfie-bubble-name">
+                ${esc(post.name)}
+              </span>
+              <div class="shelfie-bubble">
+                ${esc(post.text)}
+              </div>
+            </div>
+          `;
+        }).join('') || `
+          <div class="empty">
+            Say hello to your group! ♡
+          </div>
+        `}
+      </div>
+
+      <form class="shelfie-chat-compose"
+        onsubmit="postGroup(event, '${group.id}')">
+        <textarea id="groupPost"
+          required maxlength="1000"
+          placeholder="Message your group..."></textarea>
+
+        <button class="primary full" type="submit">
+          Send ♡
+        </button>
+      </form>
+    `;
+
+    const list = document.getElementById('shelfieBubbleList');
+
+    if (list) {
+      list.scrollTop = list.scrollHeight;
+    }
+  }
+
+  const previousRender = render;
+
+  render = function () {
+    previousRender();
+    showShelfieBubbles();
+  };
+
+  const previousOpenGroup = openGroup;
+
+  openGroup = function (id) {
+    previousOpenGroup(id);
+    showShelfieBubbles();
+  };
+
+  const previousPostGroup = postGroup;
+
+  postGroup = function (event, id) {
+    previousPostGroup(event, id);
+    showShelfieBubbles();
+  };
+
+  showShelfieBubbles();
+})();
+</script>
+
+<!-- SHELFIE STYLES · 14 -->
+<style>
+/* Compact, natural-sized chat bubbles */
+.shelfie-bubble-list {
+  height: 280px !important;
+  max-height: 40dvh !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+.shelfie-bubble-row {
+  width: fit-content !important;
+  max-width: 82% !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row.mine {
+  margin-left: auto !important;
+}
+
+.shelfie-bubble {
+  display: inline-block !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 9px 13px !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-size: 14px !important;
+  flex: none !important;
+}
+
+.shelfie-chat-compose {
+  padding-bottom: 25px !important;
+}
+</style>
+
+<!-- SHELFIE STYLES · 15 -->
+<style>
+/* Shelfie: true text-sized message bubbles */
+
+.shelfie-bubble-list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.shelfie-bubble-row,
+.shelfie-bubble-row.mine {
+  display: flex !important;
+  flex-direction: column !important;
+  width: max-content !important;
+  max-width: 85% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+.shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+.shelfie-bubble-row .shelfie-bubble {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 17px 17px 5px 17px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  flex: 0 0 auto !important;
+}
+
+.shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  border-radius: 17px 17px 17px 5px !important;
+}
+
+.shelfie-bubble-name {
+  margin: 0 8px 4px !important;
+  font-size: 11px !important;
+}
+</style>
+
+
+
+<!-- ============================================================
+     SHELFIE · 26 · Profile layout and statistics
+     ============================================================ -->
+<script>
+(function () {
+  const previousProfilePage = profilePage;
+
+  profilePage = function () {
+    const html = previousProfilePage();
+
+    // Only show public activity.
+    // Group chat messages remain inside their groups.
+    const publicActivity = (state.activity || [])
+      .filter(a => a.kind !== 'group');
+
+    const oldActivity = state.activity;
+
+    try {
+      state.activity = publicActivity;
+      return previousProfilePage();
+    } finally {
+      state.activity = oldActivity;
+    }
+  };
+})();
+</script>
+
+
+
+<!-- SHELFIE STYLES · 16 -->
+<style>
+.shelfie-poll {
+  background:#302138;
+  border:1px solid #875a83;
+  border-radius:17px;
+  padding:15px;
+  margin:14px 0;
+}
+.shelfie-poll h3 {
+  color:#ffe5f5;
+  margin:0 0 12px;
+}
+.shelfie-poll-choice {
+  display:block;
+  width:100%;
+  background:#442b48;
+  color:#ffe5f5;
+  border:1px solid #875a83;
+  border-radius:11px;
+  padding:12px;
+  margin:8px 0;
+  text-align:left;
+}
+.shelfie-poll-choice.selected {
+  background:#e99cd1;
+  color:#291427;
+  font-weight:750;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 27 · Group page rendering
+     ============================================================ -->
+<script>
+(function () {
+  const oldRender = render;
+
+  function activeGroup() {
+    const id = sessionStorage.getItem('shelfie-open-group');
+    return (state.groups || []).find(
+      g => String(g.id) === String(id)
+    );
+  }
+
+  function pollHTML(group) {
+    return (group.polls || []).map(poll => `
+      <div class="shelfie-poll">
+        <div class="eyebrow">♡ BOOK CLUB POLL</div>
+        <h3>${esc(poll.question)}</h3>
+        ${poll.options.map((option, index) => `
+          <button class="shelfie-poll-choice
+            ${poll.votes?.[cloudUser?.id || 'guest'] === index
+              ? 'selected' : ''}"
+            onclick="shelfieVotePoll('${poll.id}',${index})">
+            ${esc(option)}
+            ${poll.votes?.[cloudUser?.id || 'guest'] === index
+              ? ' ✓' : ''}
+          </button>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function addPollsToGroup() {
+    const group = activeGroup();
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+    if (!group || !content) return;
+
+    content.querySelector('#shelfie-polls-area')?.remove();
+    content.querySelector('#shelfie-create-poll')?.remove();
+
+    const area = document.createElement('div');
+    area.id = 'shelfie-polls-area';
+    area.innerHTML = pollHTML(group);
+
+    const button = document.createElement('button');
+    button.id = 'shelfie-create-poll';
+    button.className = 'shelfie-book-button';
+    button.textContent = '＋ Create a Poll ♡';
+    button.onclick = () => window.shelfieCreatePoll();
+
+    content.prepend(area);
+    content.prepend(button);
+  }
+
+  window.shelfieCreatePoll = function () {
+    const group = activeGroup();
+    if (!group) return;
+
+    modal('Create a Poll ♡', `
+      <form onsubmit="shelfieSavePoll(event)">
+        <div class="field">
+          <label>Poll question</label>
+          <input id="pollQuestion" required maxlength="120"
+            value="What should we read/watch next?">
+        </div>
+
+        ${[1,2,3,4].map(n => `
+          <div class="field">
+            <label> Options ${n}</label>
+            <input class="pollOption" maxlength="120"
+              placeholder="Title ${n}"
+              ${n <= 2 ? 'required' : ''}>
+          </div>
+        `).join('')}
+
+        <button class="primary full" type="submit">
+          Create Poll ♡
+        </button>
+      </form>
+    `);
+  };
+
+  window.shelfieSavePoll = function (event) {
+    event.preventDefault();
+
+    const group = activeGroup();
+    if (!group) return;
+
+    const question =
+      document.getElementById('pollQuestion').value.trim();
+
+    const options = [...document.querySelectorAll('.pollOption')]
+      .map(input => input.value.trim())
+      .filter(Boolean);
+
+    if (options.length < 2) {
+      toast('Add at least two titles ♡');
+      return;
+    }
+
+    group.polls ||= [];
+    group.polls.push({
+      id:'poll_' + Date.now(),
+      question,
+      options,
+      votes:{}
+    });
+
+    save();
+    closeModal();
+    addPollsToGroup();
+    toast('Poll created! ♡');
+  };
+
+  window.shelfieVotePoll = function (pollId, index) {
+    const group = activeGroup();
+    const poll = group?.polls?.find(p => p.id === pollId);
+    if (!poll) return;
+
+    poll.votes ||= {};
+    poll.votes[cloudUser?.id || 'guest'] = index;
+
+    save();
+    addPollsToGroup();
+    toast('Your vote was saved ♡');
+  };
+
+  render = function () {
+    oldRender();
+    addPollsToGroup();
+  };
+
+  const oldOpenGroup = openGroup;
+
+  openGroup = function (id) {
+    oldOpenGroup(id);
+    addPollsToGroup();
+  };
+
+  addPollsToGroup();
+})();
+</script>
+
+ 
+
+<!-- SHELFIE STYLES · 17 -->
+<style>
+/* Shelfie group header: compact side-by-side layout */
+
+.shelfie-group-page {
+  position: relative;
+  padding-top: 0 !important;
+}
+
+.shelfie-group-back {
+  display: block;
+  max-width: 55%;
+  padding: 14px 0 !important;
+  margin: 0 !important;
+  font-size: 15px !important;
+}
+
+/* Move group title to the right */
+.shelfie-group-page > h1 {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  max-width: 48%;
+  margin: 0 !important;
+  font-size: 23px !important;
+  line-height: 1.3;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* Hide the extra heading above the title */
+.shelfie-group-page > .eyebrow {
+  display: none !important;
+}
+
+/* Bring member count and chat closer to the top */
+.shelfie-group-page > .muted {
+  margin-top: 5px !important;
+}
+
+.shelfie-group-panel {
+  margin-top: 12px !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 18 -->
+<style>
+/* SHELFIE — FINAL CHAT BUBBLE FIX */
+
+/* The conversation area */
+#shelfieBubbleList {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+
+/* Each message row */
+#shelfieBubbleList .shelfie-bubble-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  align-self: flex-start !important;
+
+  width: fit-content !important;
+  max-width: 80% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* Your own messages go right */
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+/* Actual message bubble */
+#shelfieBubbleList .shelfie-bubble {
+  display: block !important;
+
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  padding: 8px 12px !important;
+  margin: 0 !important;
+
+  flex: 0 0 auto !important;
+
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  border-radius: 17px 17px 17px 5px !important;
+}
+
+/* Your pink bubbles */
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  background: #e99bd1 !important;
+  color: #291427 !important;
+  border-radius: 17px 17px 5px 17px !important;
+}
+
+/* Other members' bubbles */
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  background: #392b43 !important;
+  color: #ffe5f5 !important;
+}
+
+/* Name sits just above the bubble */
+#shelfieBubbleList .shelfie-bubble-name {
+  margin: 0 7px 4px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 19 -->
+<style>
+/* Shelfie — fix oversized message bubbles */
+
+#shelfieBubbleList .shelfie-bubble-row,
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  width: auto !important;
+  max-width: 80% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble {
+  display: inline-block !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  align-self: flex-end !important;
+}
+
+/* Override inherited group chat sizing */
+#shelfie-group-chat-content .shelfie-bubble {
+  padding: 8px 12px !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 20 -->
+<style>
+/* SHELFIE — MINIMAL GROUP CHAT */
+
+/* Remove all message bubble backgrounds */
+#shelfieBubbleList .shelfie-bubble,
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble,
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+
+  padding: 2px 0 !important;
+  margin: 0 !important;
+
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+}
+
+/* Your messages: light pink, aligned right */
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  color: #f5b8e5 !important;
+}
+
+/* Other people's messages: soft white, aligned left */
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) .shelfie-bubble {
+  color: #f5edf5 !important;
+}
+
+/* Smaller usernames */
+#shelfieBubbleList .shelfie-bubble-name {
+  color: #bba5bd !important;
+  font-size: 11px !important;
+  margin: 0 0 3px !important;
+}
+
+/* Comfortable spacing between messages */
+#shelfieBubbleList {
+  gap: 17px !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 21 -->
+<style>
+/* Shelfie — bring usernames and messages closer */
+
+#shelfieBubbleList .shelfie-bubble-row {
+  gap: 0 !important;
+  justify-content: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-name {
+  margin: 0 0 2px !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+
+#shelfieBubbleList .shelfie-bubble {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Remove extra height from each message */
+#shelfieBubbleList .shelfie-bubble-row,
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  min-height: 0 !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 28 · Create cloud group
+     ============================================================ -->
+<script>
+(function () {
+  window.shelfieCreateCloudGroup = function () {
+    if (!cloud || !cloudUser) {
+      alert('Please sign in first ♡');
+      return;
+    }
+
+    modal('Create a Group ♡', `
+      <div style="display:grid;gap:14px">
+        <label>
+          Group name
+          <input id="newGroupName"
+            maxlength="80"
+            placeholder="The Discussion Room ♡">
+        </label>
+
+        <label>
+          Description
+          <textarea id="newGroupDescription"
+            placeholder="What is your group about?"></textarea>
+        </label>
+
+        <label>
+          Who can join?
+          <select id="newGroupVisibility">
+            <option value="public">
+              Public — anyone can join
+            </option>
+            <option value="private">
+              Private — invitation only
+            </option>
+          </select>
+        </label>
+
+        <button onclick="shelfieSaveCloudGroup()">
+          Create Group ♡
+        </button>
+      </div>
+    `);
+  };
+
+  window.shelfieSaveCloudGroup = async function () {
+    const name = document
+      .getElementById('newGroupName')
+      .value.trim();
+
+    const description = document
+      .getElementById('newGroupDescription')
+      .value.trim();
+
+    const visibility = document
+      .getElementById('newGroupVisibility')
+      .value;
+
+    if (!name) {
+      alert('Please enter a group name ♡');
+      return;
+    }
+
+    const { data, error } = await cloud
+      .from('shelfie_groups')
+      .insert({
+        name,
+        description,
+        visibility,
+        creator_id: cloudUser.id
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert('Could not create group: ' + error.message);
+      return;
+    }
+
+    closeModal();
+    toast('Your group was created! ♡');
+    console.log('New shared group:', data);
+  };
+
+  // Connect the existing Create a Group button.
+  const oldGroupsPage = groupsPage;
+
+  groupsPage = function () {
+    const html = oldGroupsPage();
+
+    return html.replace(
+      /onclick=["'](?:createGroup|newGroup|openCreateGroup)\(\)["']/,
+      'onclick="shelfieCreateCloudGroup()"'
+    );
+  };
+})();
+</script> 
+
+<!-- SHELFIE STYLES · 22 -->
+<style>
+/* Shelfie pink Create Group popup */
+#newGroupName,
+#newGroupDescription,
+#newGroupVisibility {
+  color: #F5A4DF !important;
+  background: #2B2033 !important;
+  border: 1px solid #754B73 !important;
+}
+
+#newGroupName::placeholder,
+#newGroupDescription::placeholder {
+  color: #C995BC !important;
+}
+
+.modal:has(#newGroupName) label {
+  color: #F5A4DF !important;
+}
+
+.modal:has(#newGroupName) h2 {
+  color: #F5A4DF !important;
+}
+
+.modal:has(#newGroupName) button:not(.iconbtn) {
+  background: #E99AD1 !important;
+  color: #321A35 !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+
+#newGroupVisibility option {
+  background: #2B2033;
+  color: #F5A4DF;
+}
+</style>
+ 
+<!-- SHELFIE STYLES · 23 -->
+<style>
+/* Match Create Group popup to Groups page */
+
+/* Soft white form labels */
+.modal:has(#newGroupName) label {
+  color: #FFF0FA !important;
+  font-weight: 600 !important;
+}
+
+/* Match main Create a group button */
+.modal:has(#newGroupName) button:not(.iconbtn) {
+  background: linear-gradient(
+    110deg,
+    #F5B1DF,
+    #E58BC7
+  ) !important;
+  color: #321A35 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 15px 20px !important;
+  min-height: 52px !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  width: 100% !important;
+}
+</style>
+
+<!-- SHELFIE STYLES · 24 -->
+<style>
+/* Pink dropdown arrows */
+.modal select {
+  color-scheme: dark;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23E99AD2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  background-size: 22px !important;
+  padding-right: 48px !important;
+}
+</style>
+
+<!-- ============================================================
+     SHELFIE · 29 · Shared group memberships and listing
+     ============================================================ -->
+<script>
+(function () {
+  let sharedGroups = [];
+async function loadSharedGroups() {
+  if (!cloud || !cloudUser) return;
+
+  const { data: memberships, error: memberError } = await cloud
+    .from('shelfie_group_members')
+    .select('group_id')
+    .eq('user_id', cloudUser.id);
+
+  if (memberError) {
+    console.error('Shelfie memberships:', memberError.message);
+    return;
+  }
+
+  const groupIds = (memberships || []).map(m => m.group_id);
+
+  if (!groupIds.length) {
+    sharedGroups = [];
+    if (tab === 'Groups') render();
+    return;
+  }
+
+  const { data, error } = await cloud
+    .from('shelfie_groups')
+    .select('*')
+    .in('id', groupIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Shelfie groups:', error.message);
+    return;
+  }
+
+  sharedGroups = data || [];
+ 
+    if (tab === 'Groups') render();
+  }
+
+  const previousGroupsPage = groupsPage;
+
+  groupsPage = function () {
+    const html = previousGroupsPage();
+
+    if (!sharedGroups.length) return html;
+
+    const cards = sharedGroups.map(group => `
+      <button class="shelfie-book-button"
+        style="margin:10px 0;text-align:left"
+        onclick="shelfieOpenSharedGroup('${group.id}')">
+        <strong>♧ ${esc(group.name)}</strong>
+        <div class="muted" style="margin-top:5px">
+          ${group.visibility === 'private'
+            ? '🔒 Private group'
+            : '♡ Public group'}
+        </div>
+      </button>
+    `).join('');
+
+    return html + `
+      <section class="shelfie-profile-section">
+        <h2>♡ Shared Groups</h2>
+        ${cards}
+      </section>
+    `;
+  };
+
+  window.shelfieOpenSharedGroup = function (id) {
+    const group = sharedGroups.find(g => g.id === id);
+    if (!group) return;
+
+    modal(esc(group.name) + ' ♡', `
+      <p class="muted">${esc(group.description || '')}</p>
+      <p>${group.visibility === 'private'
+        ? '🔒 Private group'
+        : '♡ Public group'}</p>
+      <p class="muted">
+        Shared group chat is coming in the next step ♡
+      </p>
+    `);
+  };
+
+  const previousSaveGroup = window.shelfieSaveCloudGroup;
+
+  window.shelfieSaveCloudGroup = async function () {
+    await previousSaveGroup();
+    await loadSharedGroups();
+  };
+
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    await loadSharedGroups();
+  };
+
+  loadSharedGroups();
+})();
+</script>
+ 
+<!-- ============================================================
+     SHELFIE · 30 · Shared group chat and real-time messaging
+     ============================================================ -->
+<script>
+(function () {
+  let activeSharedGroup = null;
+  let sharedMessages = [];
+  let sharedChannel = null;
+  let pageVersion = 0;
+
+  const oldRender = render;
+  const oldGo = go;
+
+  function leaveSharedGroup() {
+    pageVersion++;
+    activeSharedGroup = null;
+
+    if (sharedChannel && cloud) {
+      cloud.removeChannel(sharedChannel);
+      sharedChannel = null;
+    }
+  }
+
+  function sharedPage() {
+    if (!activeSharedGroup) return;
+
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    screen.innerHTML = `
+      <div class="shelfie-group-page">
+        <button class="shelfie-group-back"
+          onclick="shelfieSharedBack()">
+          ← Back to Groups
+        </button>
+
+        <h1>${esc(activeSharedGroup.name)} ♡</h1>
+
+        <div class="muted">
+          ${activeSharedGroup.visibility === 'private'
+            ? '🔒 Private group'
+            : '♡ Public group'}
+        </div>
+
+        <div class="shelfie-group-panel">
+          <h2>Group chat 💬</h2>
+
+          <div class="shelfie-bubble-list"
+            id="shelfieSharedMessages">
+            ${sharedMessages.length
+              ? sharedMessages.map(m => `
+                <div class="shelfie-bubble-row
+                  ${m.sender_id === cloudUser?.id ? 'mine' : ''}">
+                  <span class="shelfie-bubble-name">
+                    ${m.sender_id === cloudUser?.id
+                      ? 'You'
+                      : 'Member'}
+                  </span>
+                  <div class="shelfie-bubble">
+                    ${esc(m.body)}
+                  </div>
+                </div>
+              `).join('')
+              : '<div class="empty">Start the conversation ♡</div>'}
+          </div>
+
+          <form class="shelfie-chat-compose"
+            onsubmit="shelfieSendSharedMessage(event)">
+            <textarea id="shelfieSharedInput"
+              maxlength="2000"
+              required
+              placeholder="Message your group..."></textarea>
+
+            <button class="primary full" type="submit">
+              Send ♡
+            </button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const list = document.getElementById('shelfieSharedMessages');
+    if (list) list.scrollTop = list.scrollHeight;
+  }
+
+  async function loadMessages(version) {
+    if (!activeSharedGroup) return;
+
+    const { data, error } = await cloud
+      .from('shelfie_group_messages')
+      .select('id,group_id,sender_id,body,created_at')
+      .eq('group_id', activeSharedGroup.id)
+      .order('created_at', { ascending: true });
+
+    if (version !== pageVersion) return;
+
+    if (error) {
+      toast('Could not load messages: ' + error.message);
+      return;
+    }
+
+    sharedMessages = data || [];
+    sharedPage();
+  }
+
+  window.shelfieOpenSharedGroup = async function(id) {
+    if (!cloud || !cloudUser) {
+      openAccount();
+      return;
+    }
+
+    leaveSharedGroup();
+
+    const version = pageVersion;
+
+    const { data: group, error } = await cloud
+      .from('shelfie_groups')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (version !== pageVersion) return;
+
+    if (error || !group) {
+      toast('Could not open group ♡');
+      return;
+    }
+
+    activeSharedGroup = group;
+    sharedMessages = [];
+    closeModal();
+    tab = 'Groups';
+    sharedPage();
+    window.scrollTo(0, 0);
+
+    await loadMessages(version);
+
+    if (version !== pageVersion) return;
+
+    sharedChannel = cloud
+      .channel('shelfie-chat-' + id)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'shelfie_group_messages',
+        filter: 'group_id=eq.' + id
+      }, () => loadMessages(version))
+      .subscribe();
+  };
+
+  window.shelfieSendSharedMessage = async function(event) {
+    event.preventDefault();
+
+    if (!activeSharedGroup || !cloudUser) return;
+
+    const input = document.getElementById('shelfieSharedInput');
+    const body = input?.value.trim();
+    if (!body) return;
+
+    const groupId = activeSharedGroup.id;
+    const version = pageVersion;
+
+    const { error } = await cloud
+      .from('shelfie_group_messages')
+      .insert({
+        group_id: groupId,
+        sender_id: cloudUser.id,
+        body
+      });
+
+    if (error) {
+      toast('Could not send: ' + error.message);
+      return;
+    }
+
+    if (version !== pageVersion) return;
+
+    input.value = '';
+    await loadMessages(version);
+  };
+
+  window.shelfieSharedBack = function() {
+    leaveSharedGroup();
+    oldGo('Groups');
+  };
+
+  render = function() {
+    oldRender();
+
+    if (activeSharedGroup && tab === 'Groups') {
+      sharedPage();
+    }
+  };
+
+  go = function(page) {
+    leaveSharedGroup();
+    oldGo(page);
+  };
+})();
+</script>
+
+<!-- SHELFIE STYLES · 25 -->
+<style>
+/* Remove pink chat bubbles */
+#screen .message-bubble,
+#screen .chat-bubble,
+#screen .msg-bubble,
+#screen .message-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: #E9A6D6 !important;
+}
+
+/* Keep group messages light pink */
+#screen .message-bubble *,
+#screen .chat-bubble *,
+#screen .msg-bubble *,
+#screen .message-content * {
+  color: #E9A6D6 !important;
+}
+</style>
+
+ 
+<!-- SHELFIE STYLES · 26 -->
+<style>
+/* Remove pink bubbles from shared group chats */
+.shelfie-group-page .shelfie-bubble,
+.shelfie-group-page .shelfie-message-bubble,
+.shelfie-group-page .chat-message,
+.shelfie-group-page .message-bubble,
+.shelfie-group-page [class*="bubble"]:not(button) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  color: #F5B8E5 !important;
+}
+</style>
+
+<!-- ============================================================
+     SHELFIE · 31 · Group joining
+     ============================================================ -->
+<script>
+window.shelfieJoinGroup = async function(groupId) {
+  if (!cloudUser || !cloud) {
+    toast('Sign in to join a group ♡');
+    openAccount();
+    return;
+  }
+
+  const { data: group, error: groupError } = await cloud
+    .from('shelfie_groups')
+    .select('id,visibility')
+    .eq('id', groupId)
+    .single();
+
+  if (groupError || !group) {
+    toast('Could not find this group ♡');
+    return;
+  }
+
+  if (group.visibility !== 'public') {
+    toast('This group requires an invitation ♡');
+    return;
+  }
+
+  const { error } = await cloud
+    .from('shelfie_group_members')
+    .upsert({
+      group_id: groupId,
+      user_id: cloudUser.id,
+      role: 'member'
+    }, {
+      onConflict: 'group_id,user_id',
+      ignoreDuplicates: true
+    });
+
+  if (error) {
+    toast('Could not join: ' + error.message);
+    return;
+  }
+
+  toast('You joined the group! ♡');
+
+  if (typeof shelfieLoadSharedGroups === 'function') {
+    await shelfieLoadSharedGroups();
+  }
+
+  render();
+};
+</script>
+
+<!-- ============================================================
+     SHELFIE · 32 · Shared group modal behavior
+     ============================================================ -->
+<script>
+(function () {
+  const originalModal = modal;
+
+  modal = function(title, body) {
+    const isSharedGroup =
+      title.includes('♡') &&
+      body.includes('Public group') &&
+      body.includes('Shared group chat');
+
+    if (isSharedGroup) {
+      const groupName = title.replace('♡', '').trim();
+
+      const group = (window.shelfieSharedGroups || [])
+        .find(g => g.name === groupName);
+
+      if (group && group.visibility === 'public') {
+        body += `
+          <button class="primary full"
+            style="margin-top:16px"
+            onclick="shelfieJoinGroup('${group.id}')">
+            ♡ Join Group
+          </button>
+        `;
+      }
+    }
+
+    return originalModal(title, body);
+  };
+})();
+</script>
+
+<!-- ============================================================
+     SHELFIE · 33 · Notification center
+     ============================================================ -->
+<script>
+window.shelfieOpenNotifications = async function() {
+  if (!cloud || !cloudUser) {
+    modal('Notifications ♡', '<p>Please sign in to see your notifications ♡</p>');
+    return;
+  }
+
+  modal('Notifications ♡',
+    '<p style="color:#E99AD2">Loading notifications... ♡</p>'
+  );
+
+  const { data, error } = await cloud
+    .from('shelfie_notifications')
+    .select('id,type,message,group_id,is_read,created_at')
+    .eq('user_id', cloudUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    modal('Notifications ♡',
+      '<p>Could not load notifications ♡</p>');
+    return;
+  }
+
+  const notifications = data || [];
+
+  const content = notifications.length
+    ? notifications.map(n => `
+        <div style="
+          background:${n.is_read ? '#241429' : '#39203F'};
+          border:1px solid #68436C;
+          border-radius:15px;
+          padding:15px;
+          margin-bottom:10px;
+          color:#F9E9F6;
+        ">
+          <div style="color:#E99AD2;font-size:13px">
+            ${n.is_read ? '♡' : '● New'}
+          </div>
+          <p style="margin:8px 0">
+            ${esc(n.message || 'New notification ♡')}
+          </p>
+        </div>
+      `).join('')
+    : '<p style="text-align:center;color:#E99AD2;padding:25px">No notifications yet ♡</p>';
+
+  modal('Notifications ♡', content);
+};
+</script>
+
+ 
+<!-- ============================================================
+     SHELFIE · 34 · Notification bell
+     ============================================================ -->
+<script>
+(function () {
+  function addNotificationBell() {
+    if (document.getElementById('shelfie-notification-bell')) return;
+
+    const bell = document.createElement('button');
+    bell.id = 'shelfie-notification-bell';
+    bell.setAttribute('aria-label', 'Open notifications');
+    bell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E99AD2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>';
+
+    bell.style.cssText = `
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 14px);
+      right: 16px;
+      z-index: 999;
+      width: 43px;
+      height: 43px;
+      border-radius: 50%;
+      background: #39203F;
+      border: 1px solid #E99AD2;
+      color: #E99AD2;
+      font-size: 21px;
+      cursor: pointer;
+      box-shadow: 0 3px 12px #0005;
+    `;
+
+    bell.onclick = function () {
+      shelfieOpenNotifications();
+    };
+
+    bell.style.display = 'flex';
+    bell.style.alignItems = 'center';
+    bell.style.justifyContent = 'center';
+    document.body.appendChild(bell);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addNotificationBell);
+  } else {
+    addNotificationBell();
+  }
+})();
+</script>
+
+
+<!-- SHELFIE STYLES · 27 -->
+<style>
+/* Shelfie matching header buttons */
+#shelfie-notification-bell {
+  position: static !important;
+  width: 43px !important;
+  height: 43px !important;
+  flex-shrink: 0;
+  background: #39203F !important;
+  border: 1px solid #E99AD2 !important;
+  border-radius: 14px !important;
+  color: #E99AD2 !important;
+  box-shadow: none !important;
+}
+
+.shelfie-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.shelfie-header-actions > button {
+  width: 43px !important;
+  height: 43px !important;
+  flex-shrink: 0;
+  border-radius: 14px !important;
+  background: #39203F !important;
+  border: 1px solid #E99AD2 !important;
+  color: #E99AD2 !important;
+  box-shadow: none !important;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 35 · Header action layout
+     ============================================================ -->
+<script>
+(function () {
+  function arrangeShelfieButtons() {
+    const bell = document.getElementById('shelfie-notification-bell');
+    if (!bell) return;
+
+    // Find the existing search, share and settings buttons.
+    const buttons = [...document.querySelectorAll('button')]
+      .filter(b => {
+        const label = (b.textContent || '').trim();
+        return ['⌕', '↗', '⚙️', '⚙', '🔍'].includes(label);
+      });
+
+    if (buttons.length < 3) return;
+
+    const settings = buttons.find(b =>
+      /⚙/.test(b.textContent)
+    );
+
+    if (!settings) return;
+
+    const parent = settings.parentElement;
+    parent.classList.add('shelfie-header-actions');
+
+    parent.appendChild(bell);
+
+  }
+
+  arrangeShelfieButtons();
+})();
+</script>
+ 
+<!-- SHELFIE STYLES · 28 -->
+
+<!-- Removed exact duplicate style section; original retained above. -->
+
+
+
+<!-- ============================================================
+     SHELFIE · 36 · Header action layout compatibility
+     ============================================================ -->
+
+<!-- Removed exact duplicate script section; original retained above. -->
+
+
+<!-- ============================================================
+     SHELFIE · 37 · Notification bell styling
+     ============================================================ -->
+<script>
+(function () {
+  function makeBellPink() {
+    const bell = document.getElementById('shelfie-notification-bell');
+    if (!bell) return;
+
+    bell.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="22" height="22"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="#E99AD2"
+           stroke-width="1.8"
+           stroke-linecap="round"
+           stroke-linejoin="round">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+        <path d="M10 21h4"/>
+      </svg>
+    `;
+
+    bell.style.display = 'flex';
+    bell.style.alignItems = 'center';
+    bell.style.justifyContent = 'center';
+  }
+
+  makeBellPink();
+})();
+</script>
+
+ 
+<!-- ============================================================
+     SHELFIE · 38 · Membership request approvals
+     ============================================================ -->
+<script>
+window.shelfieReviewRequest = async function(requestId, approve) {
+  if (!cloud || !cloudUser) return;
+
+  const { error } = await cloud.rpc(
+    'shelfie_review_group_request',
+    {
+      p_request_id: requestId,
+      p_approve: approve
+    }
+  );
+
+  if (error) {
+    alert('Could not review request: ' + error.message);
+    return;
+  }
+
+  shelfieOpenNotifications();
+};
+
+window.shelfieOpenNotifications = async function() {
+  if (!cloud || !cloudUser) {
+    modal('Notifications ♡', '<p>Please sign in ♡</p>');
+    return;
+  }
+
+  modal('Notifications ♡', '<p>Loading notifications... ♡</p>');
+
+  const { data, error } = await cloud
+    .from('shelfie_notifications')
+    .select('id,type,message,group_id,actor_id,is_read,created_at')
+    .eq('user_id', cloudUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    modal('Notifications ♡', '<p>Could not load notifications ♡</p>');
+    return;
+  }
+
+  const notifications = data || [];
+
+  const requests = notifications.filter(n =>
+    n.type === 'group_request'
+  );
+
+  const requestGroups = [...new Set(
+    requests.map(n => n.group_id).filter(Boolean)
+  )];
+
+  let pendingRequests = [];
+
+  if (requestGroups.length) {
+    const result = await cloud
+      .from('shelfie_group_requests')
+      .select('id,group_id,user_id,status')
+      .in('group_id', requestGroups)
+      .eq('status', 'pending');
+
+    if (result.error) {
+      modal('Notifications ♡',
+        '<p>Could not load group requests ♡</p>');
+      return;
+    }
+
+    pendingRequests = result.data || [];
+  }
+
+  const content = notifications.map(n => {
+    const request = n.type === 'group_request'
+      ? pendingRequests.find(r =>
+          r.group_id === n.group_id &&
+          r.user_id === n.actor_id
+        )
+      : null;
+
+    if (n.type === 'group_request' && !request) return '';
+
+    return `
+      <div style="
+        background:#39203F;
+        border:1px solid #68436C;
+        border-radius:15px;
+        padding:15px;
+        margin-bottom:10px;
+        color:#F9E9F6;
+      ">
+        <p style="margin:0 0 12px">
+          ${esc(n.message || 'New notification ♡')}
+        </p>
+
+        ${request ? `
+          <div style="display:flex;gap:10px">
+            <button
+              onclick="shelfieReviewRequest('${request.id}',true)"
+              style="flex:1;background:#E99AD2;color:#261329;
+              border:0;border-radius:12px;padding:12px">
+              Approve ♡
+            </button>
+
+            <button
+              onclick="shelfieReviewRequest('${request.id}',false)"
+              style="flex:1;background:#241429;color:#E99AD2;
+              border:1px solid #E99AD2;border-radius:12px;padding:12px">
+              Decline
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  modal(
+    'Notifications ♡',
+    content.trim() ||
+    '<p style="text-align:center;color:#E99AD2;padding:25px">No notifications yet ♡</p>'
+  );
+};
+</script>
+
+<!-- ============================================================
+     SHELFIE · 39 · Group discovery
+     ============================================================ -->
+<script>
+window.shelfieDiscoverGroups = async function() {
+  modal('Discover Groups ♡', `
+    <input
+      id="shelfie-group-search"
+      placeholder="Search groups... ♡"
+      oninput="shelfieSearchGroups()"
+      style="
+        width:100%;
+        box-sizing:border-box;
+        background:#241429;
+        color:#F9E9F6;
+        border:1px solid #E99AD2;
+        border-radius:12px;
+        padding:14px;
+        margin-bottom:15px;
+      "
+    >
+    <div id="shelfie-group-results">
+      <p style="color:#E99AD2">Loading groups... ♡</p>
+    </div>
+  `);
+
+  shelfieSearchGroups();
+};
+
+window.shelfieSearchGroups = async function() {
+  const input = document.getElementById('shelfie-group-search');
+  const results = document.getElementById('shelfie-group-results');
+  if (!input || !results || !cloud) return;
+
+  const search = input.value.trim();
+
+  let query = cloud
+    .from('shelfie_groups')
+    .select('id,name,description,visibility')
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (search) {
+    query = query.ilike('name', '%' +
+      search.replace(/[%_,]/g, '') + '%');
+  }
+
+  const { data, error } = await query;
+
+  if (!document.getElementById('shelfie-group-results')) return;
+
+  if (error) {
+    results.textContent = 'Could not search groups ♡';
+    return;
+  }
+
+  results.innerHTML = (data || []).map(g => `
+    <div style="
+      background:#39203F;
+      border:1px solid #68436C;
+      border-radius:15px;
+      padding:15px;
+      margin-bottom:10px;
+    ">
+      <strong>${esc(g.name)}</strong>
+      <p style="color:#C69FC5">
+        ${g.visibility === 'private' ? '🔒 Private' : '♡ Public'}
+      </p>
+      <p>${esc(g.description || '')}</p>
+      <button
+        onclick="shelfieChooseGroup('${g.id}','${g.visibility}')"
+        style="
+          background:#E99AD2;
+          color:#261329;
+          border:0;
+          border-radius:12px;
+          padding:12px 18px;
+          font-weight:bold;
+        "
+      >
+        ${g.visibility === 'private'
+          ? 'Request Access ♡'
+          : 'Join Group ♡'}
+      </button>
+    </div>
+  `).join('') || '<p>No groups found ♡</p>';
+};
+
+window.shelfieChooseGroup = async function(groupId, visibility) {
+  if (!cloudUser) {
+    alert('Please sign in first ♡');
+    return;
+  }
+
+  if (visibility === 'public') {
+    await shelfieJoinGroup(groupId);
+    return;
+  }
+
+  const { error } = await cloud
+    .from('shelfie_group_requests')
+    .insert({
+      group_id: groupId,
+      user_id: cloudUser.id
+    });
+
+  if (error) {
+    alert('Could not request access: ' + error.message);
+    return;
+  }
+
+  alert('Request sent to the group owner ♡');
+};
+</script>
+
+<!-- ============================================================
+     SHELFIE · 40 · Discover-groups button
+     ============================================================ -->
+<script>
+(function () {
+  function addDiscoverButton() {
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    const heading = [...screen.querySelectorAll('h1,h2,h3,h4')]
+      .find(el => /Your groups/i.test(el.textContent));
+
+    if (!heading) return;
+
+    if (document.getElementById('shelfie-discover-btn')) return;
+
+    const button = document.createElement('button');
+    button.id = 'shelfie-discover-btn';
+    button.textContent = '⌕ Discover Groups ♡';
+    button.onclick = () => shelfieDiscoverGroups();
+
+    button.style.cssText = `
+      display:block;
+      width:100%;
+      margin:14px 0 22px;
+      padding:15px;
+      background:#39203F;
+      color:#E99AD2;
+      border:1px solid #E99AD2;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+    `;
+
+    const createButton = [...screen.querySelectorAll('button')]
+      .find(el => /Create a group/i.test(el.textContent));
+
+    if (createButton) {
+      createButton.insertAdjacentElement('afterend', button);
+    } else {
+      heading.insertAdjacentElement('afterend', button);
+    }
+  }
+
+  const observer = new MutationObserver(addDiscoverButton);
+  observer.observe(document.getElementById('screen'), {
+    childList: true,
+    subtree: true
+  });
+
+  addDiscoverButton();
+})();
+</script>
+
+<!-- ============================================================
+     SHELFIE · 41 · Group search
+     ============================================================ -->
+<script>
+window.shelfieSearchGroups = async function() {
+  const input = document.getElementById('shelfie-group-search');
+  const results = document.getElementById('shelfie-group-results');
+  if (!input || !results || !cloud) return;
+
+  const search = input.value.trim();
+
+  // Show nothing until someone types.
+  if (!search) {
+    results.innerHTML = '';
+    return;
+  }
+
+  // Prevent older searches from overwriting newer results.
+  const searchId = (window.shelfieSearchId || 0) + 1;
+  window.shelfieSearchId = searchId;
+
+  const { data, error } = await cloud
+    .from('shelfie_groups')
+    .select('id,name,description,visibility')
+    .ilike('name', search.replace(/[%_\\]/g, '') + '%')
+    .order('name')
+    .limit(30);
+
+  if (searchId !== window.shelfieSearchId ||
+      !document.getElementById('shelfie-group-results')) return;
+
+  if (error) {
+    results.textContent = 'Could not search groups ♡';
+    return;
+  }
+
+  results.innerHTML = (data || []).map(g => `
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:13px 2px;
+      border-bottom:1px solid #553459;
+    ">
+      <div style="flex:1;min-width:0">
+        <div style="color:#F9E9F6;font-weight:600">
+          ${esc(g.name)}
+        </div>
+        <div style="
+          color:#C69FC5;
+          font-size:12px;
+          margin-top:4px;
+        ">
+          ${g.visibility === 'private' ? 'Private' : 'Public'}
+          ${g.description ? ' · ' + esc(g.description) : ''}
+        </div>
+      </div>
+
+      <button
+        onclick="shelfieChooseGroup('${g.id}','${g.visibility}')"
+        style="
+          flex-shrink:0;
+          background:#E99AD2;
+          color:#261329;
+          border:0;
+          border-radius:10px;
+          padding:9px 12px;
+          font-size:12px;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        ${g.visibility === 'private' ? 'Request ♡' : 'Join ♡'}
+      </button>
+    </div>
+  `).join('') || `
+    <p style="color:#C69FC5;text-align:center;padding:20px">
+      No matching groups ♡
+    </p>
+  `;
+};
+
+// Keep the results empty when Discover Groups first opens.
+const shelfieOriginalDiscoverGroups = window.shelfieDiscoverGroups;
+
+window.shelfieDiscoverGroups = async function() {
+  await shelfieOriginalDiscoverGroups();
+
+  const results = document.getElementById('shelfie-group-results');
+  if (results) results.innerHTML = '';
+};
+</script>
+
+<!-- ============================================================
+     SHELFIE · 42 · Group membership count
+     ============================================================ -->
+<script>
+(function () {
+  function updateGroupCount() {
+    if (typeof tab === 'undefined' || tab !== 'Groups') return;
+
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    const heading = [...screen.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        el.textContent.trim() === "Groups you're in"
+      );
+
+    if (!heading) return;
+
+    const row = heading.parentElement;
+    if (!row) return;
+
+    const counter = [...row.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        /^\d+\s+groups?$/.test(el.textContent.trim())
+      );
+
+    if (!counter) return;
+
+    const localCount = Array.isArray(state?.groups)
+      ? state.groups.length
+      : 0;
+
+    const sharedCount = screen.querySelectorAll(
+      '.shelfie-profile-section button.shelfie-book-button'
+    ).length;
+
+    const total = localCount + sharedCount;
+
+    const label = `${total} ${total === 1 ? 'group' : 'groups'}`;
+
+    if (counter.textContent !== label) {
+      counter.textContent = label;
+    }
+  }
+
+  const screen = document.getElementById('screen');
+
+  if (screen) {
+    new MutationObserver(updateGroupCount).observe(screen, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  updateGroupCount();
+})();
+</script>
+
+<!-- SHELFIE STYLES · 29 -->
+<style>
+/* Smaller profile stat cards */
+#screen:has(.shelfie-profile-stats) .shelfie-profile-stats {
+  gap: 8px !important;
+}
+
+#screen .shelfie-profile-stats > * {
+  padding: 10px 5px !important;
+  min-height: 78px !important;
+  border-radius: 13px !important;
+}
+
+#screen .shelfie-profile-stats h2,
+#screen .shelfie-profile-stats strong {
+  font-size: 20px !important;
+}
+
+/* Small edit pencil */
+#shelfie-profile-pencil {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #39203F;
+  border: 1px solid #E99AD2;
+  border-radius: 12px;
+  color: #E99AD2;
+  cursor: pointer;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 43 · Profile layout polish
+     ============================================================ -->
+<script>
+(function () {
+  function tidyProfile() {
+    const screen = document.getElementById('screen');
+    if (!screen || tab !== 'Profile') return;
+
+    const editButton = [...screen.querySelectorAll('button')]
+      .find(b => /Edit profile/i.test(b.textContent));
+
+    if (!editButton) return;
+
+    if (document.getElementById('shelfie-profile-pencil')) return;
+
+    const pencil = document.createElement('button');
+    pencil.id = 'shelfie-profile-pencil';
+    pencil.setAttribute('aria-label', 'Edit profile');
+    pencil.innerHTML = `
+      <svg width="19" height="19" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/>
+      </svg>
+    `;
+
+    pencil.onclick = () => editButton.click();
+
+    screen.style.position = 'relative';
+    screen.appendChild(pencil);
+
+    editButton.style.display = 'none';
+  }
+
+  const screen = document.getElementById('screen');
+
+  if (screen) {
+    new MutationObserver(tidyProfile).observe(screen, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  tidyProfile();
+})();
+</script>
+ 
+<!-- SHELFIE STYLES · 30 -->
+<style>
+/* Compact profile stats */
+#screen:has(#shelfie-profile-pencil) [class*="stat"] {
+  gap: 7px !important;
+}
+
+#screen:has(#shelfie-profile-pencil) [class*="stat"] > div,
+#screen:has(#shelfie-profile-pencil) [class*="stat"] > button {
+  min-height: 0 !important;
+  padding: 8px 4px !important;
+  border-radius: 12px !important;
+}
+
+#screen:has(#shelfie-profile-pencil) [class*="stat"] strong {
+  font-size: 19px !important;
+}
+</style>
+
+
+<!-- SHELFIE STYLES · 31 -->
+<style>
+/* Shared group chat — plain text, no bubbles */
+#shelfieSharedMessages .shelfie-bubble {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  color: #F5B8E5 !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+#shelfieSharedMessages .shelfie-bubble-row {
+  min-height: 0 !important;
+  height: auto !important;
+  gap: 0 !important;
+}
+
+#shelfieSharedMessages .shelfie-bubble-name {
+  margin-bottom: 2px !important;
+}
+</style>
+
+
+<!-- ============================================================
+     SHELFIE · 44 · Cloud-backed groups and books-read counts
+     ============================================================ -->
+<script>
+(function () {
+  let myGroupIds = [];
+  let myBookRatings = [];
+
+  async function syncProfileStats() {
+    if (!cloud || !cloudUser || tab !== 'Profile') return;
+
+    const userId = cloudUser.id;
+
+    const [groups, ratings] = await Promise.all([
+      cloud.from('shelfie_group_members')
+        .select('group_id')
+        .eq('user_id', userId),
+
+      cloud.from('ratings')
+        .select('title_id,title_name,stars,review')
+        .eq('user_id', userId)
+    ]);
+
+    if (cloudUser?.id !== userId) return;
+
+    if (groups.error) {
+      console.error('Group count error:', groups.error);
+    } else {
+      myGroupIds = [...new Set(
+        (groups.data || []).map(g => g.group_id)
+      )];
+    }
+
+    if (ratings.error) {
+      console.error('Book count error:', ratings.error);
+    } else {
+      myBookRatings = (ratings.data || []).filter(r => {
+        const x = item(r.title_id);
+        return x?.type === 'Book' ||
+          String(r.title_id).startsWith('openlibrary_');
+      });
+    }
+
+    const cards = document.querySelectorAll(
+      '#screen .shelfie-profile-stats .shelfie-profile-stat'
+    );
+
+    if (tab !== 'Profile' || cards.length !== 6) return;
+
+    if (!groups.error) {
+      cards[2].querySelector('strong').textContent =
+        myGroupIds.length;
+    }
+
+    if (!ratings.error) {
+      cards[3].querySelector('strong').textContent =
+        myBookRatings.length;
+    }
+  }
+
+  const oldRender = render;
+
+  render = function () {
+    oldRender();
+    if (tab === 'Profile') syncProfileStats();
+  };
+
+  const oldOpenStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = async function(kind) {
+    if (kind !== 'groups' && kind !== 'books') {
+      return oldOpenStat(kind);
+    }
+
+    await syncProfileStats();
+
+    if (kind === 'groups') {
+      const {data, error} = await cloud
+        .from('shelfie_groups')
+        .select('id,name')
+        .in('id', myGroupIds.length
+          ? myGroupIds
+          : ['00000000-0000-0000-0000-000000000000']);
+
+      if (error) {
+        toast('Could not load groups ♡');
+        return;
+      }
+
+      modal('My Groups ♡',
+        (data || []).map(g => `
+          <button class="shelfie-book-button"
+            style="margin-bottom:10px;text-align:left"
+            onclick="shelfieOpenSharedGroup('${g.id}')">
+            ♧ ${esc(g.name)} →
+          </button>
+        `).join('') ||
+        '<div class="empty">No groups yet ♡</div>'
+      );
+      return;
+    }
+
+    if (kind === 'books') {
+      modal('Books Read ♡',
+        myBookRatings.map(r => `
+          <button class="shelfie-book-button"
+            style="margin-bottom:10px;text-align:left"
+            onclick="openDetail('${esc(r.title_id)}')">
+            📖 ${esc(r.title_name || 'Untitled')}
+            <div style="color:#F5A4DF;margin-top:5px">
+              ${'★'.repeat(Math.min(5,Math.max(0,r.stars || 0)))}
+            </div>
+            <div class="muted">
+              ${esc(r.review || '')}
+            </div>
+          </button>
+        `).join('') ||
+        '<div class="empty">No rated books yet ♡</div>'
+      );
+    }
+  };
+
+  syncProfileStats();
+})();
+</script>
+
+
+<!-- ============================================================
+     SHELFIE · 45 · Open Library book details
+     ============================================================ -->
+<script>
+(function () {
+  const originalOpen = openDetail;
+  const bookCache = new Map();
+
+  async function loadBookDetails(book) {
+    if (bookCache.has(book.id)) {
+      return bookCache.get(book.id);
+    }
+
+    const task = (async () => {
+      const olId = String(book.id)
+        .replace(/^openlibrary_/, '');
+
+      let result = null;
+
+      try {
+        if (/^OL\d+W$/i.test(olId)) {
+          const response = await fetch(
+            'https://openlibrary.org/works/' + olId + '.json'
+          );
+          if (response.ok) result = await response.json();
+        }
+
+        if (!result) {
+          const response = await fetch(
+            'https://openlibrary.org/search.json?' +
+            new URLSearchParams({
+              title: book.title,
+              limit: '5',
+              fields: 'key,title,author_name,first_publish_year,cover_i'
+            })
+          );
+
+          if (response.ok) {
+            const search = await response.json();
+            const match = (search.docs || []).find(d =>
+              d.title?.toLowerCase() === book.title.toLowerCase()
+            ) || search.docs?.[0];
+
+            if (match) {
+              book.author = book.author ||
+                match.author_name?.join(', ') || '';
+              book.year = book.year ||
+                match.first_publish_year || '';
+              if (match.cover_i &&
+                  (!book.cover || book.cover.includes('placehold.co'))) {
+                book.cover =
+                  'https://covers.openlibrary.org/b/id/' +
+                  match.cover_i + '-M.jpg';
+              }
+
+              const workResponse = await fetch(
+                'https://openlibrary.org' + match.key + '.json'
+              );
+              if (workResponse.ok) {
+                result = await workResponse.json();
+              }
+            }
+          }
+        }
+
+        if (result) {
+          const description = result.description;
+          book.description = book.description ||
+            (typeof description === 'string'
+              ? description
+              : description?.value || '');
+
+          if (result.covers?.[0] &&
+              (!book.cover || book.cover.includes('placehold.co'))) {
+            book.cover =
+              'https://covers.openlibrary.org/b/id/' +
+              result.covers[0] + '-M.jpg';
+          }
+
+          if (!book.author && result.authors?.length) {
+            const authors = await Promise.all(
+              result.authors.slice(0, 3).map(async a => {
+                const key = a.author?.key || a.key;
+                if (!/^\/authors\/OL\d+A$/.test(key || '')) {
+                  return '';
+                }
+                const response = await fetch(
+                  'https://openlibrary.org' + key + '.json'
+                );
+                if (!response.ok) return '';
+                const data = await response.json();
+                return data.name || '';
+              })
+            );
+            book.author = authors.filter(Boolean).join(', ');
+          }
+        }
+      } catch (error) {
+        console.warn('Book details unavailable:', error);
+      }
+
+      return book;
+    })();
+
+    bookCache.set(book.id, task);
+    return task;
+  }
+
+  window.shelfieOpenRatedBook = async function(id, title) {
+    let book = item(id);
+
+    if (!book) {
+      book = {
+        id,
+        title,
+        type: 'Book',
+        author: '',
+        year: '',
+        genre: '',
+        description: '',
+        cover: 'https://placehold.co/120x180/38213f/f8b5e4?text=Shelfie'
+      };
+      catalog.push(book);
+    }
+
+    originalOpen(id);
+
+    await loadBookDetails(book);
+
+    // Refresh only if the same book is still open.
+    const popup = document.querySelector('#overlay .modal');
+    if (popup && popup.textContent.includes(book.title)) {
+      originalOpen(id);
+    }
+  };
+
+  // Enrich any book opened normally, too.
+  openDetail = function(id) {
+    const book = item(id);
+    if (!book || book.type !== 'Book') {
+      return originalOpen(id);
+    }
+
+    return shelfieOpenRatedBook(id, book.title);
+  };
+
+  // Handle rated-book cards even when the book is missing
+  // from the local catalog.
+  document.addEventListener('click', function(event) {
+    const button = event.target.closest(
+      '.shelfie-book-button'
+    );
+    if (!button || !button.closest('#overlay')) return;
+
+    const action = button.getAttribute('onclick') || '';
+    const match = action.match(
+      /^openDetail\('([^']+)'\)$/
+    );
+    if (!match) return;
+
+    const id = match[1];
+    if (item(id)) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const title = button.textContent
+      .replace(/[📖★☆]/g, '')
+      .trim().split('\n')[0].trim();
+
+    shelfieOpenRatedBook(id, title);
+  }, true);
+})();
+</script>
+
+
+
+ 
+
+<!-- Shelfie: keep ratings synchronized across account, profile and book detail -->
+
+<!-- ============================================================
+     SHELFIE · 46 · Cloud rating persistence and synchronization
+     ============================================================ -->
+<script>
+(function () {
+  let syncing = null;
+  let syncedUser = null;
+  const previousRefresh = refreshCloud;
+  const previousBookRate = window.shelfieBookRate;
+  const previousSubmit = submitReview;
+
+  async function syncMyRatings() {
+    if (!cloud || !cloudUser) return;
+    const userId = cloudUser.id;
+    if (syncing && syncedUser === userId) return syncing;
+    syncedUser = userId;
+    syncing = (async function () {
+      const {data, error} = await cloud.from('ratings')
+        .select('title_id,title_name,stars,review,created_at')
+        .eq('user_id', userId);
+      if (error) { console.warn('Shelfie rating sync:', error); return; }
+      if (cloudUser?.id !== userId) return;
+      let changed = false;
+      for (const r of data || []) {
+        if (!r.title_id) continue;
+        const old = state.reviews.find(x => x.id === r.title_id);
+        if (!old || old.stars !== r.stars || old.text !== (r.review || '')) {
+          state.reviews = state.reviews.filter(x => x.id !== r.title_id);
+          state.reviews.push({id:r.title_id, stars:r.stars,
+            text:r.review || '', date:'Recently'});
+          changed = true;
+        }
+      }
+      if (changed) { save(); if (tab === 'Profile') render(); }
+    })();
+    try { await syncing; } finally { syncing = null; }
+  }
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    await syncMyRatings();
+  };
+
+  window.shelfieBookRate = async function (id, stars) {
+    const book = item(id);
+    if (!book) { toast('Book not loaded yet. Search for it again.'); return; }
+    if (!cloudUser) { previousBookRate(id, stars); return; }
+
+    const existing = state.reviews.find(r => r.id === id);
+    const reviewText = existing?.text || '';
+    const {error} = await cloud.from('ratings').upsert({
+      user_id:cloudUser.id, title_id:id, title_name:book.title,
+      media_type:'book', stars, review:reviewText
+    }, {onConflict:'user_id,title_id'});
+    if (error) { toast('Rating not saved: ' + error.message); return; }
+
+    state.reviews = state.reviews.filter(r => r.id !== id);
+    state.reviews.push({id, stars, text:reviewText, date:'Just now'});
+    save();
+    openDetail(id);
+    toast('Your ' + stars + '-star rating was saved ♡');
+    await refreshCloud();
+  };
+
+  submitReview = async function (id) {
+    await previousSubmit(id);
+    await syncMyRatings();
+  };
+
+  // Restore account ratings on page load and whenever sign-in changes.
+  setTimeout(() => syncMyRatings(), 600);
+  if (cloud?.auth) cloud.auth.onAuthStateChange(() => {
+    setTimeout(() => syncMyRatings(), 700);
+  });
+})();
+</script>
+
+
+<!-- Reveal profile after the existing authentication refresh, without launching
+     another full refresh or waiting for unrelated group/ratings queries. -->
+<script>
+(function () {
+  if (!document.documentElement.classList.contains('shelfie-profile-boot')) return;
+  let done = false;
+  function reveal() {
+    if (done) return;
+    done = true;
+    document.documentElement.classList.remove('shelfie-profile-boot');
+    clearInterval(check);
+    clearTimeout(fallback);
+  }
+  // Never trap the user behind a loading screen.
+  const fallback = setTimeout(reveal, 3000);
+  const check = setInterval(function () {
+    if (!cloud || !cloudUser) {
+      if (cloudReady) reveal();
+      return;
+    }
+    // Only show the signed-in profile after the actual account profile arrives.
+    if (cloudProfile && cloudProfile.id === cloudUser.id) reveal();
+  }, 75);
+})();
+</script>
+
+
+<!-- SHELFIE MIGRATION · Stage 3: cloud library (staging, legacy data retained) -->
+<script>
+(function () {
+  'use strict';
+  const library = new Map();
+  let legacySnapshot = null;
+  let loadedFor = null;
+  let loading = null;
+  const mediaType = x => x?.type === 'Book' ? 'book' : x?.type === 'Movie' ? 'movie' : 'show';
+  const libraryKey = (type,id) => type + ':' + id;
+  const lookup = id => { const x = item(id); return x ? library.get(libraryKey(mediaType(x), id)) : null; };
+  const metadataFor = x => ({author:x.author||'',cover:x.cover||'',year:x.year||'',genre:x.genre||'',description:x.description||'',workKey:x.workKey||'',fallback:x.fallback||''});
+  function hydrate(rows) {
+    library.clear();
+    for (const r of rows || []) {
+      library.set(libraryKey(r.media_type,r.title_id), r);
+      if (!item(r.title_id)) catalog.push({id:r.title_id,title:r.title_name,type:r.media_type==='book'?'Book':r.media_type==='movie'?'Movie':'Show',...r.metadata});
+    }
+    // Capture the current browser state before replacing visible lists.
+    if (!legacySnapshot) legacySnapshot = {saved:[...(state.saved||[])],completed:[...(state.completed||[])]};
+    // Cloud is authoritative only after a successful fetch. Legacy browser data is not erased.
+    state.saved = [...library.values()].filter(r=>['tbr','watchlist'].includes(r.status)).map(r=>r.title_id);
+    state.completed = [...library.values()].filter(r=>['read','watched'].includes(r.status)).map(r=>r.title_id);
+  }
+  async function loadLibrary() {
+    if (!cloud || !cloudUser) { loadedFor=null; library.clear(); return; }
+    const userId=cloudUser.id;
+    if (loading && loadedFor===userId) return loading;
+    loadedFor=userId;
+    loading=(async()=>{
+      const {data,error}=await cloud.from('shelfie_library').select('user_id,media_type,title_id,title_name,status,metadata,created_at,updated_at').eq('user_id',userId);
+      if (error) throw error;
+      if (cloudUser?.id!==userId) return;
+      hydrate(data);
+      render();
+    })();
+    try { await loading; } catch(e) { console.error('Shelfie cloud library read:',e); toast('Could not load cloud library: '+e.message); loadedFor=null; }
+    finally { loading=null; }
+  }
+  async function setStatus(id,status) {
+    if (!cloudUser) { openAccount(); toast('Sign in to save your library in the cloud ♡'); return; }
+    const x=item(id);
+    if (!x) { toast('Search for this title again first'); return; }
+    const userId=cloudUser.id, type=mediaType(x), key=libraryKey(type,id), existing=library.get(key);
+    const next=existing?.status===status ? 'none' : status;
+    const result=next==='none'
+      ? await cloud.from('shelfie_library').delete().eq('user_id',userId).eq('media_type',type).eq('title_id',id)
+      : await cloud.from('shelfie_library').upsert({user_id:userId,media_type:type,title_id:id,title_name:x.title,status:next,metadata:metadataFor(x),updated_at:new Date().toISOString()},{onConflict:'user_id,media_type,title_id'});
+    if (result.error) { toast('Could not save to Supabase: '+result.error.message); return; }
+    if (cloudUser?.id!==userId) return;
+    if(next==='none') library.delete(key);
+    else library.set(key,{user_id:userId,media_type:type,title_id:id,title_name:x.title,status:next,metadata:metadataFor(x)});
+    hydrate([...library.values()]);
+    openDetail(id); render(); toast('Saved to your Shelfie cloud ♡');
+  }
+  window.shelfieBookStatus=(id,status)=>setStatus(id,status);
+  window.shelfieMarkFinished=id=>setStatus(id,'watched');
+  toggleSave=id=>{ const x=item(id); return setStatus(id,x?.type==='Book'?'tbr':'watchlist'); };
+  const previousOpenDetail=openDetail;
+  openDetail=function(id){
+    previousOpenDetail(id);
+    const x=item(id); if(!x) return;
+    const current=lookup(id)?.status||'none';
+    const buttons=[...document.querySelectorAll('.modal button')];
+    if(x.type==='Book'){
+      const read=buttons.find(b=>b.getAttribute('onclick')?.includes("shelfieBookStatus('"+id+"', 'read')"));
+      const tbr=buttons.find(b=>b.getAttribute('onclick')?.includes("shelfieBookStatus('"+id+"', 'tbr')"));
+      if(read) read.textContent=current==='read'?'✓ Read':'✓ Mark as Read';
+      if(tbr) tbr.textContent=current==='tbr'?'♥ In TBR':'♡ Add to TBR';
+    }else{
+      const watched=buttons.find(b=>b.textContent.includes('Mark as Watched')||b.textContent.includes('Watched · Undo'));
+      if(watched) watched.textContent=current==='watched'?'✓ Watched · Undo':'✓ Mark as Watched';
+      const saved=buttons.find(b=>b.getAttribute('onclick')?.includes("toggleSave('"+id+"')"));
+      if(saved) saved.textContent=current==='watchlist'?'✓ In Watchlist':'＋ Add to Watchlist';
+    }
+  };
+  // Deliberately NO automatic import: old browser records may be prototypes or belong to another user.
+  window.shelfieImportLibraryPreview=function(){
+    if(!cloudUser){openAccount();return;}
+    const candidates=new Map();
+    function offer(id,status){const x=item(id);if(!x)return;const k=libraryKey(mediaType(x),id);if(library.has(k))return; candidates.set(k,{id,status,title:x.title});}
+    for(const id of (legacySnapshot?.saved||state.saved||[])) offer(id,item(id)?.type==='Book'?'tbr':'watchlist');
+    for(const id of (legacySnapshot?.completed||state.completed||[])) offer(id,item(id)?.type==='Book'?'read':'watched');
+    try { const raw=JSON.parse(localStorage.getItem('shelfie-book-statuses-'+cloudUser.id)||'{}');for(const [id,status] of Object.entries(raw))if(['read','tbr'].includes(status))offer(id,status); } catch(_){}
+    const rows=[...candidates.values()];
+    modal('Import existing library ♡', `<p class="muted">These ${rows.length} browser-only items are not yet in your Supabase library. Review them before importing. Existing cloud entries will never be overwritten.</p>${rows.map(r=>`<p class="tiny">${esc(r.title)} — ${esc(r.status)}</p>`).join('')||'<p>Nothing to import from this browser.</p>'}${rows.length?'<button class="primary full" id="shelfieConfirmImport">Import these items to Supabase</button>':''}<p class="cloudhint">Keep your old browser data until you verify everything on another device.</p>`);
+    const btn=document.getElementById('shelfieConfirmImport');
+    if(btn)btn.onclick=async()=>{
+      btn.disabled=true;
+      const userId=cloudUser.id;let count=0;
+      for(const r of rows){
+        if(cloudUser?.id!==userId)break;
+        const x=item(r.id);if(!x)continue;
+        const {error}=await cloud.from('shelfie_library').upsert({user_id:userId,media_type:mediaType(x),title_id:r.id,title_name:x.title,status:r.status,metadata:metadataFor(x)},{onConflict:'user_id,media_type,title_id',ignoreDuplicates:true});
+        if(error){toast('Import stopped: '+error.message);break;}count++;
+      }
+      closeModal();await loadLibrary();toast(count+' library items imported ♡');
+    };
+  };
+  // Accessible from settings without modifying other Shelfie functionality.
+  const settings=document.getElementById('shelfieSettings');
+  if(settings){const oldClick=settings.onclick;settings.onclick=function(e){oldClick?.call(this,e);if(cloudUser){const target=document.querySelector('.modal');if(target){const b=document.createElement('button');b.className='secondary full';b.style.marginTop='12px';b.textContent='☁️ Import browser library to Supabase';b.onclick=window.shelfieImportLibraryPreview;target.appendChild(b);}}};}
+  const oldRefresh=refreshCloud;
+  refreshCloud=async function(){await oldRefresh();await loadLibrary();};
+  if(cloud?.auth)cloud.auth.onAuthStateChange(()=>setTimeout(loadLibrary,350));
+  setTimeout(loadLibrary,800);
+})();
+</script>
+
+</body></html>
