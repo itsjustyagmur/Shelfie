@@ -4330,9 +4330,8 @@ window.shelfieOpenNotifications = async function() {
 
     const bell = document.createElement('button');
     bell.id = 'shelfie-notification-bell';
-    bell.innerHTML = '♧';
     bell.setAttribute('aria-label', 'Open notifications');
-    bell.innerHTML = '🔔';
+    bell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E99AD2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>';
 
     bell.style.cssText = `
       position: fixed;
@@ -4354,6 +4353,9 @@ window.shelfieOpenNotifications = async function() {
       shelfieOpenNotifications();
     };
 
+    bell.style.display = 'flex';
+    bell.style.alignItems = 'center';
+    bell.style.justifyContent = 'center';
     document.body.appendChild(bell);
   }
 
@@ -4430,12 +4432,10 @@ window.shelfieOpenNotifications = async function() {
     parent.classList.add('shelfie-header-actions');
 
     parent.appendChild(bell);
-    bell.textContent = '♧';
-    bell.innerHTML = '🔔';
+
   }
 
-  window.addEventListener('load', arrangeShelfieButtons);
-  setTimeout(arrangeShelfieButtons, 800);
+  arrangeShelfieButtons();
 })();
 </script>
  
@@ -4480,8 +4480,7 @@ window.shelfieOpenNotifications = async function() {
     bell.style.justifyContent = 'center';
   }
 
-  window.addEventListener('load', makeBellPink);
-  setTimeout(makeBellPink, 1200);
+  makeBellPink();
 })();
 </script>
 
@@ -5452,42 +5451,29 @@ window.shelfieDiscoverGroups = async function() {
 </script>
 
 
-<!-- Wait for signed-in profile and stat data before revealing the profile. -->
+<!-- Reveal profile after the existing authentication refresh, without launching
+     another full refresh or waiting for unrelated group/ratings queries. -->
 <script>
 (function () {
   if (!document.documentElement.classList.contains('shelfie-profile-boot')) return;
-  let finished = false;
+  let done = false;
   function reveal() {
-    if (finished) return;
-    finished = true;
+    if (done) return;
+    done = true;
     document.documentElement.classList.remove('shelfie-profile-boot');
+    clearInterval(check);
+    clearTimeout(fallback);
   }
-  // Network or authentication errors must never leave the screen hidden.
-  const fallback = setTimeout(reveal, 12000);
-  (async function () {
-    try {
-      if (!cloud) return;
-      const {data:{session}} = await cloud.auth.getSession();
-      if (session?.user) {
-        cloudUser = session.user;
-        // refreshCloud includes the existing profile and rating synchronization.
-        await refreshCloud();
-        // Profile stat counts are loaded separately by the existing page code.
-        await Promise.allSettled([
-          cloud.from('shelfie_group_members').select('group_id').eq('user_id',session.user.id),
-          cloud.from('ratings').select('title_id').eq('user_id',session.user.id)
-        ]);
-        if (tab === 'Profile') render();
-        // Give the existing asynchronous stat painter one turn to update cards.
-        await new Promise(resolve => setTimeout(resolve, 450));
-      }
-    } catch (err) {
-      console.warn('Profile loading:', err);
-    } finally {
-      clearTimeout(fallback);
-      reveal();
+  // Never trap the user behind a loading screen.
+  const fallback = setTimeout(reveal, 3000);
+  const check = setInterval(function () {
+    if (!cloud || !cloudUser) {
+      if (cloudReady) reveal();
+      return;
     }
-  })();
+    // Only show the signed-in profile after the actual account profile arrives.
+    if (cloudProfile && cloudProfile.id === cloudUser.id) reveal();
+  }, 75);
 })();
 </script>
 
