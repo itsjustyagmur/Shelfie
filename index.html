@@ -2345,5 +2345,145 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+<style>
+.shelfie-group-page {
+  padding-bottom:40px;
+}
+.shelfie-group-back {
+  background:transparent;
+  border:0;
+  color:#f5a4df;
+  font-weight:750;
+  padding:18px 0;
+  cursor:pointer;
+}
+.shelfie-group-page h1 {
+  color:#ffe5f5;
+  font-size:32px;
+  margin:12px 0;
+}
+.shelfie-group-panel {
+  background:#211b2a;
+  border:1px solid #754b73;
+  border-radius:20px;
+  padding:20px;
+  margin-top:20px;
+}
+</style>
+
+<script>
+(function () {
+  let activeGroupId = null;
+  const GROUP_KEY = 'shelfie-open-group';
+
+  const originalOpenGroup = openGroup;
+  const originalRender = render;
+  const originalGo = go;
+
+  function showGroupPage() {
+    if (!activeGroupId) return;
+
+    const group = (state.groups || [])
+      .find(g => String(g.id) === String(activeGroupId));
+
+    if (!group) {
+      activeGroupId = null;
+      sessionStorage.removeItem(GROUP_KEY);
+      return;
+    }
+
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    screen.innerHTML = `
+      <div class="shelfie-group-page">
+        <button class="shelfie-group-back"
+          onclick="shelfieGroupBack()">← Back to Groups</button>
+
+        <div class="eyebrow">♡ YOUR SHELFIE GROUP</div>
+        <h1>${esc(group.name || 'My Group')} ♡</h1>
+
+        <div class="muted">
+          ♧ ${(group.members || []).length} members
+        </div>
+
+        <div class="shelfie-group-panel">
+          <h2>Group chat 💬</h2>
+          <div id="shelfie-group-chat-content"></div>
+        </div>
+      </div>
+    `;
+
+    // Reuse the existing group chat, including its post form.
+    originalOpenGroup(activeGroupId);
+
+    const modalElement = document.querySelector(
+      '#overlay .modal'
+    );
+
+    if (modalElement) {
+      const modalBody = modalElement.cloneNode(true);
+      const modalHeader = modalBody.querySelector('.modalhead');
+      if (modalHeader) modalHeader.remove();
+
+      const target = document.getElementById(
+        'shelfie-group-chat-content'
+      );
+
+      target.innerHTML = modalBody.innerHTML;
+    }
+
+    closeModal();
+  }
+
+  openGroup = function(id) {
+    activeGroupId = id;
+    sessionStorage.setItem(GROUP_KEY, String(id));
+    closeModal();
+    tab = 'Groups';
+    originalRender();
+    showGroupPage();
+    window.scrollTo(0,0);
+  };
+
+  window.shelfieGroupBack = function() {
+    activeGroupId = null;
+    sessionStorage.removeItem(GROUP_KEY);
+    originalGo('Groups');
+  };
+
+  render = function() {
+    originalRender();
+
+    if (activeGroupId && tab === 'Groups') {
+      showGroupPage();
+    }
+  };
+
+  go = function(page) {
+    activeGroupId = null;
+    sessionStorage.removeItem(GROUP_KEY);
+    originalGo(page);
+  };
+
+  // Reopen the same group after a refresh.
+  const savedGroup = sessionStorage.getItem(GROUP_KEY);
+
+  if (savedGroup) {
+    activeGroupId = savedGroup;
+    tab = 'Groups';
+
+    const restore = setInterval(() => {
+      if (!document.getElementById('screen')) return;
+
+      clearInterval(restore);
+      showGroupPage();
+    }, 200);
+
+    setTimeout(() => clearInterval(restore), 5000);
+  }
+})();
+</script>
+
 
 </body></html>
