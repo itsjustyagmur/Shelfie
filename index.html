@@ -3134,12 +3134,12 @@ function shelfieUsernameFromEmail(email) {
     const group = activeGroup();
     if (!group) return;
 
-    modal('Create a Book Club Poll ♡', `
+    modal('Create a Poll ♡', `
       <form onsubmit="shelfieSavePoll(event)">
         <div class="field">
           <label>Poll question</label>
           <input id="pollQuestion" required maxlength="120"
-            value="What should we read next?">
+            value="What should we read/watch next?">
         </div>
 
         ${[1,2,3,4].map(n => `
