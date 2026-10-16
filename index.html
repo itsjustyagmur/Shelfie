@@ -4016,5 +4016,37 @@ window.shelfieJoinGroup = async function(groupId) {
   render();
 };
 </script>
+<script>
+(function () {
+  const originalModal = modal;
+
+  modal = function(title, body) {
+    const isSharedGroup =
+      title.includes('♡') &&
+      body.includes('Public group') &&
+      body.includes('Shared group chat');
+
+    if (isSharedGroup) {
+      const groupName = title.replace('♡', '').trim();
+
+      const group = (window.shelfieSharedGroups || [])
+        .find(g => g.name === groupName);
+
+      if (group && group.visibility === 'public') {
+        body += `
+          <button class="primary full"
+            style="margin-top:16px"
+            onclick="shelfieJoinGroup('${group.id}')">
+            ♡ Join Group
+          </button>
+        `;
+      }
+    }
+
+    return originalModal(title, body);
+  };
+})();
+</script>
+
  
 </body></html>
