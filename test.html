@@ -5587,4 +5587,302 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+  
+<!-- SHELFIE · 46 · Supabase activity timeline -->
+<style>
+.shelfie-activity-entry {
+  background: linear-gradient(135deg,#302035,#1d1725);
+  border: 1px solid #654368;
+  border-radius: 15px;
+  padding: 13px 15px;
+  margin-bottom: 10px;
+}
+.shelfie-activity-entry .eyebrow {
+  color: #f5a4df;
+  font-size: 11px;
+  letter-spacing: .6px;
+}
+.shelfie-activity-entry p {
+  color: #f9e9f6;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 7px 0;
+  overflow-wrap: anywhere;
+}
+.shelfie-activity-entry .subtle {
+  color: #b7a5b9;
+  font-size: 10px;
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  let activity = [];
+  let activityUser = null;
+  let activityVersion = 0;
+
+  function dateLabel(value) {
+    if (!value) return 'Date unavailable';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return 'Date unavailable';
+
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  function activityHTML() {
+    if (!cloudUser) {
+      return '<div class="empty">Sign in to see your activity ♡</div>';
+    }
+
+    if (activityUser !== cloudUser.id) {
+      return '<div class="empty">Loading your activity ♡</div>';
+    }
+
+    if (!activity.length) {
+      return '<div class="empty">Your activity will appear here ♡</div>';
+    }
+
+    return activity.map(a => `
+      <div class="shelfie-activity-entry">
+        <div class="eyebrow">${esc(a.label)}</div>
+        <p>
+          <strong>${esc(a.title)}</strong>
+          ${a.details ? `<span> — ${esc(a.details)}</span>` : ''}
+        </p>
+        <div class="subtle">${dateLabel(a.date)}</div>
+      </div>
+    `).join('');
+  }
+
+  function replaceActivitySection(html) {
+    const start = html.indexOf('<h2>✦ My Activity</h2>');
+    if (start < 0) return html;
+
+    const sectionStart = html.lastIndexOf(
+      '<section class="shelfie-profile-section">', start
+    );
+    const sectionEnd = html.indexOf('</section>', start);
+
+    if (sectionStart < 0 || sectionEnd < 0) return html;
+
+    return html.slice(0, sectionStart) +
+      `<section class="shelfie-profile-section">
+        <h2>✦ My Activity</h2>
+        ${activityHTML()}
+      </section>` +
+      html.slice(sectionEnd + '</section>'.length);
+  }
+
+  const previousProfile = profilePage;
+
+  profilePage = function () {
+    return replaceActivitySection(previousProfile());
+  };
+
+  async function loadActivity() {
+    const user = cloudUser?.id;
+    const version = ++activityVersion;
+
+    if (!cloud || !user) {
+      activity = [];
+      activityUser = null;
+      return;
+    }
+
+    const results = await Promise.all([
+      cloud.from('shelfie_activity')
+        .select('*')
+        .eq('user_id', user)
+        .order('created_at', {ascending:false})
+        .limit(100),
+
+      cloud.from('ratings')
+        .select('id,title_id,title_name,media_type,stars,review,created_at,updated_at')
+        .eq('user_id', user)
+        .order('created_at', {ascending:false})
+        .limit(100),
+
+      cloud.from('shelfie_groups')
+        .select('id,name,created_at')
+        .eq('creator_id', user),
+
+      cloud.from('shelfie_group_members')
+        .select('group_id,created_at')
+        .eq('user_id', user),
+
+      cloud.from('shelfie_library')
+        .select('title_id,title_name,media_type,status,created_at,updated_at')
+        .eq('user_id', user)
+    ]);
+
+    if (version !== activityVersion ||
+        cloudUser?.id !== user) return;
+
+    const [history, ratings, groups, members, library] = results;
+
+    const failures = results.filter(r => r.error);
+    if (failures.length) {
+      console.warn('Shelfie activity loading:', failures.map(r => r.error));
+    }
+
+    const entries = [];
+
+    // Previously logged events, including status changes.
+    for (const e of history.data || []) {
+      entries.push({
+        key: e.event_key || e.id,
+        label: ({
+          status: '✦ Status update',
+          rating: '★ Rated',
+          review: '★ Reviewed',
+          group_created: '♧ Created a group',
+          group_joined: '♧ Joined a group'
+        })[e.event_type] || '✦ Shelfie activity',
+        title: e.title || 'Shelfie',
+        details: e.details || '',
+        date: e.created_at
+      });
+    }
+
+    // Existing cloud ratings, including Little Women.
+    for (const r of ratings.data || []) {
+      entries.push({
+        key: 'rating:' + r.id,
+        label: '★ Rated a ' + (r.media_type || 'title'),
+        title: r.title_name || 'Untitled',
+        details: '★'.repeat(Math.min(5, Math.max(0, r.stars || 0))) +
+          (r.review ? ' · ' + r.review : ''),
+        date: r.updated_at || r.created_at
+      });
+    }
+
+    const groupNames = new Map(
+      (groups.data || []).map(g => [String(g.id), g.name])
+    );
+    const ownedIds = new Set(
+      (groups.data || []).map(g => String(g.id))
+    );
+
+    // Group names for memberships in groups created by others.
+    const unknownIds = (members.data || [])
+      .map(m => String(m.group_id))
+      .filter(id => !groupNames.has(id));
+
+    if (unknownIds.length) {
+      const found = await cloud.from('shelfie_groups')
+        .select('id,name')
+        .in('id', [...new Set(unknownIds)]);
+
+      for (const g of found.data || []) {
+        groupNames.set(String(g.id), g.name);
+      }
+    }
+
+    for (const g of groups.data || []) {
+      entries.push({
+        key: 'created:' + g.id,
+        label: '♧ Created a group',
+        title: g.name,
+        details: '',
+        date: g.created_at
+      });
+    }
+
+    for (const m of members.data || []) {
+      if (ownedIds.has(String(m.group_id))) continue;
+
+      entries.push({
+        key: 'joined:' + m.group_id,
+        label: '♧ Joined a group',
+        title: groupNames.get(String(m.group_id)) || 'Shelfie group',
+        details: '',
+        date: m.created_at
+      });
+    }
+
+    // Existing library records.
+    for (const r of library.data || []) {
+      const label = r.status === 'read'
+        ? '📖 Finished reading'
+        : r.status === 'watched'
+          ? '🎬 Finished watching'
+          : '♡ Added to ' +
+            (r.media_type === 'book' ? 'TBR' : 'watchlist');
+
+      entries.push({
+        key: 'library:' + r.media_type + ':' + r.title_id,
+        label,
+        title: r.title_name,
+        details: '',
+        date: r.updated_at || r.created_at
+      });
+    }
+
+    // Avoid displaying the same event twice when a logged
+    // activity entry and an existing cloud record overlap.
+    const seen = new Set();
+    activity = entries
+      .filter(e => {
+        if (seen.has(e.key)) return false;
+        seen.add(e.key);
+        return true;
+      })
+      .sort((a,b) =>
+        new Date(b.date || 0) - new Date(a.date || 0)
+      )
+      .slice(0,100);
+
+    activityUser = user;
+
+    if (tab === 'Profile') {
+      const section = [...document.querySelectorAll(
+        '#screen .shelfie-profile-section'
+      )].find(el =>
+        el.querySelector('h2')?.textContent.includes('My Activity')
+      );
+
+      if (section) {
+        section.innerHTML =
+          '<h2>✦ My Activity</h2>' + activityHTML();
+      }
+    }
+  }
+
+  window.shelfieRefreshActivity = loadActivity;
+
+  const previousGo = go;
+  go = function (page) {
+    previousGo(page);
+    if (page === 'Profile') loadActivity();
+  };
+
+  const previousRender = render;
+  render = function () {
+    previousRender();
+    if (tab === 'Profile' &&
+        cloudUser &&
+        activityUser !== cloudUser.id) {
+      loadActivity();
+    }
+  };
+
+  if (cloud?.auth) {
+    cloud.auth.onAuthStateChange(() => {
+      activityUser = null;
+      activity = [];
+      setTimeout(loadActivity, 500);
+    });
+  }
+
+  setTimeout(loadActivity, 900);
+})();
+</script>
+
+
 </body></html>
