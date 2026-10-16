@@ -8108,4 +8108,30 @@ window.shelfieFilterRatings = function(query) {
  setTimeout(()=>{if(cloudUser)load()},1200);
 })();
 </script>
-<style>.shelfie-community-sort{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:14px 0 20px;padding:12px 14px;background:#281a30;border:1px solid #80527b;border-radius:14px;color:#f5c1e7}.shelfie-community-sort select{background:#3b2442;color:#ffe0f3;border:1px solid #d98fc4;border-radius:10px;padding:10px 12px;font:inherit;max-width:62%}</style></body></html>
+<style>.shelfie-community-sort{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:14px 0 20px;padding:12px 14px;background:#281a30;border:1px solid #80527b;border-radius:14px;color:#f5c1e7}.shelfie-community-sort select{background:#3b2442;color:#ffe0f3;border:1px solid #d98fc4;border-radius:10px;padding:10px 12px;font:inherit;max-width:62%}</style>
+<!-- Shelfie · Home groups redesign: compact plum cards, real Supabase membership -->
+<style>
+.shelfie-home-groups{margin:22px 0 30px;color:#ffe6f6}
+.shelfie-home-groups .shg-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.shelfie-home-groups .shg-top h2{font-size:clamp(19px,5vw,24px);margin:0;color:#fff0fa}
+.shelfie-home-groups .shg-link{background:none;border:0;color:#f0a3d7;font:inherit;font-size:14px;font-weight:750;white-space:nowrap;padding:10px 2px;cursor:pointer}
+.shelfie-home-groups .shg-cards{display:grid;gap:10px}
+.shelfie-home-groups .shg-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border-radius:16px;border:1px solid #785078;background:linear-gradient(130deg,#32213a,#241a2d);padding:13px;color:#fff0fa;cursor:pointer;min-height:75px}
+.shelfie-home-groups .shg-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:#553052;color:#f5b3df;font-size:22px}
+.shelfie-home-groups .shg-info{flex:1;min-width:0}.shelfie-home-groups .shg-name{font-weight:800;overflow-wrap:anywhere}.shelfie-home-groups .shg-meta{color:#c9a9c7;font-size:12px;margin-top:4px}.shelfie-home-groups .shg-chevron{color:#f0a3d7;font-size:22px}
+.shelfie-home-groups .shg-empty{padding:18px 12px;text-align:center;background:#251a2c;border:1px dashed #795079;border-radius:15px;color:#cbb3cd}
+.shelfie-home-groups .shg-discover{display:block;margin:12px auto 0;padding:10px 16px;border:0;background:none;color:#f0a3d7;font-weight:750;font-size:14px;cursor:pointer}
+</style>
+<script>
+(function(){
+ const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let cache=[],owner=null,fetching=false,last=0;
+ function markup(){return `<section class="shelfie-home-groups" id="shelfieHomeGroups"><div class="shg-top"><h2>✧ Your Groups</h2><button type="button" class="shg-link" onclick="go('Groups')">See all →</button></div><div class="shg-cards" id="shelfieHomeGroupCards">${cards()}</div><button type="button" class="shg-discover" onclick="shelfieDiscoverGroups()">＋ Discover groups ♡</button></section>`}
+ function cards(){if(!cloudUser)return '<div class="shg-empty">Sign in to see your groups ♡</div>';if(!cache.length)return '<div class="shg-empty">Your next favorite discussion is waiting ♡</div>';return cache.slice(0,3).map(g=>`<button type="button" class="shg-card" onclick="shelfieOpenSharedGroup('${safe(g.id)}')"><span class="shg-icon">♧</span><span class="shg-info"><span class="shg-name">${safe(g.name)}</span><span class="shg-meta">${safe(g.visibility||'Your Shelfie group')} · ${g.creator_id===owner?'Created by you':'Member'}</span></span><span class="shg-chevron">›</span></button>`).join('')}
+ function paint(){const el=document.getElementById('shelfieHomeGroupCards');if(el)el.innerHTML=cards()}
+ async function fetchGroups(){if(!cloud||!cloudUser||fetching)return;const uid=cloudUser.id;if(owner===uid&&Date.now()-last<60000)return;fetching=true;try{const [a,b]=await Promise.all([cloud.from('shelfie_group_members').select('group_id').eq('user_id',uid),cloud.from('shelfie_groups').select('id,name,creator_id,visibility').eq('creator_id',uid)]);if(a.error||b.error)throw a.error||b.error;const ids=[...new Set([...(a.data||[]).map(x=>x.group_id),...(b.data||[]).map(x=>x.id)])];let data=b.data||[];if(ids.length){const r=await cloud.from('shelfie_groups').select('id,name,creator_id,visibility').in('id',ids);if(r.error)throw r.error;data=r.data||[]}if(cloudUser?.id!==uid)return;cache=data;owner=uid;last=Date.now();paint()}catch(e){console.warn('Shelfie home groups:',e)}finally{fetching=false}}
+ function install(){if(typeof tab==='undefined'||tab!=='Home')return;const screen=document.getElementById('screen');if(!screen||screen.querySelector('#shelfieHomeGroups'))return;const heading=[...screen.querySelectorAll('.sectionhead h2')].find(e=>/Your groups/i.test(e.textContent));if(!heading)return;const head=heading.closest('.sectionhead');if(!head)return;let stop=head.nextElementSibling;while(stop&&(stop.classList.contains('groupcard')||stop.id==='shelfie-discover-btn')){const next=stop.nextElementSibling;stop.remove();stop=next}head.insertAdjacentHTML('beforebegin',markup());head.remove();const discover=screen.querySelector('#shelfie-discover-btn');if(discover)discover.remove();if(owner!==cloudUser?.id){cache=[];owner=null;paint()}fetchGroups()}
+ const observer=new MutationObserver(()=>install());const screen=document.getElementById('screen');if(screen)observer.observe(screen,{childList:true});setTimeout(install,0);window.addEventListener('focus',()=>{last=0;fetchGroups()});
+})();
+</script>
+</body></html>
