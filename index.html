@@ -4303,6 +4303,124 @@ window.shelfieOpenNotifications = async function() {
 })();
 </script>
 
- 
+ <script>
+window.shelfieReviewRequest = async function(requestId, approve) {
+  if (!cloud || !cloudUser) return;
+
+  const { error } = await cloud.rpc(
+    'shelfie_review_group_request',
+    {
+      p_request_id: requestId,
+      p_approve: approve
+    }
+  );
+
+  if (error) {
+    alert('Could not review request: ' + error.message);
+    return;
+  }
+
+  shelfieOpenNotifications();
+};
+
+window.shelfieOpenNotifications = async function() {
+  if (!cloud || !cloudUser) {
+    modal('Notifications ♡', '<p>Please sign in ♡</p>');
+    return;
+  }
+
+  modal('Notifications ♡', '<p>Loading notifications... ♡</p>');
+
+  const { data, error } = await cloud
+    .from('shelfie_notifications')
+    .select('id,type,message,group_id,actor_id,is_read,created_at')
+    .eq('user_id', cloudUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    modal('Notifications ♡', '<p>Could not load notifications ♡</p>');
+    return;
+  }
+
+  const notifications = data || [];
+
+  const requests = notifications.filter(n =>
+    n.type === 'group_request'
+  );
+
+  const requestGroups = [...new Set(
+    requests.map(n => n.group_id).filter(Boolean)
+  )];
+
+  let pendingRequests = [];
+
+  if (requestGroups.length) {
+    const result = await cloud
+      .from('shelfie_group_requests')
+      .select('id,group_id,user_id,status')
+      .in('group_id', requestGroups)
+      .eq('status', 'pending');
+
+    if (result.error) {
+      modal('Notifications ♡',
+        '<p>Could not load group requests ♡</p>');
+      return;
+    }
+
+    pendingRequests = result.data || [];
+  }
+
+  const content = notifications.map(n => {
+    const request = n.type === 'group_request'
+      ? pendingRequests.find(r =>
+          r.group_id === n.group_id &&
+          r.user_id === n.actor_id
+        )
+      : null;
+
+    if (n.type === 'group_request' && !request) return '';
+
+    return `
+      <div style="
+        background:#39203F;
+        border:1px solid #68436C;
+        border-radius:15px;
+        padding:15px;
+        margin-bottom:10px;
+        color:#F9E9F6;
+      ">
+        <p style="margin:0 0 12px">
+          ${esc(n.message || 'New notification ♡')}
+        </p>
+
+        ${request ? `
+          <div style="display:flex;gap:10px">
+            <button
+              onclick="shelfieReviewRequest('${request.id}',true)"
+              style="flex:1;background:#E99AD2;color:#261329;
+              border:0;border-radius:12px;padding:12px">
+              Approve ♡
+            </button>
+
+            <button
+              onclick="shelfieReviewRequest('${request.id}',false)"
+              style="flex:1;background:#241429;color:#E99AD2;
+              border:1px solid #E99AD2;border-radius:12px;padding:12px">
+              Decline
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  modal(
+    'Notifications ♡',
+    content.trim() ||
+    '<p style="text-align:center;color:#E99AD2;padding:25px">No notifications yet ♡</p>'
+  );
+};
+</script>
  
 </body></html>
