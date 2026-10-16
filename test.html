@@ -7275,6 +7275,502 @@ window.shelfieDiscoverGroups = async function() {
 </style>
 
 
+<!-- SHELFIE · Finished collections with genre filters -->
+<style>
+.shelfie-finished-page {
+  padding: 16px 0 40px;
+}
+
+.shelfie-finished-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 22px;
+}
+
+.shelfie-finished-heading h1 {
+  font-family: Georgia, serif;
+  color: #ffe5f5;
+  font-size: 25px;
+  margin: 0;
+}
+
+.shelfie-finished-back {
+  background: #302137;
+  border: 1px solid #754b73;
+  border-radius: 12px;
+  color: #f5a4df;
+  font-size: 26px;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.shelfie-finished-search {
+  width: 100%;
+  background: #251c2d;
+  border: 1px solid #66446a;
+  border-radius: 14px;
+  padding: 14px;
+  color: #ffe5f5;
+  margin-bottom: 12px;
+}
+
+.shelfie-finished-genres {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 3px 0 14px;
+  scrollbar-width: none;
+}
+
+.shelfie-finished-genres::-webkit-scrollbar {
+  display: none;
+}
+
+.shelfie-finished-genre {
+  flex-shrink: 0;
+  background: #281d30;
+  border: 1px solid #5b405f;
+  border-radius: 20px;
+  color: #d8bed6;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.shelfie-finished-genre.active {
+  background: #f5a4df;
+  color: #291427;
+  border-color: #f5a4df;
+}
+
+.shelfie-finished-count {
+  color: #cdb8cd;
+  font-size: 12px;
+  margin: 5px 0 17px;
+}
+
+.shelfie-finished-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px 11px;
+}
+
+.shelfie-finished-cover {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: #ffe5f5;
+  text-align: left;
+  min-width: 0;
+}
+
+.shelfie-finished-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #38243e;
+  border: 1px solid #66446a;
+  border-radius: 12px;
+}
+
+.shelfie-finished-cover span {
+  display: block;
+  font-size: 12px;
+  margin-top: 7px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.shelfie-finished-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 10px;
+  color: #cdb8cd;
+}
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  let finishedKind = 'books';
+  let finishedRows = [];
+  let finishedGenre = 'All';
+  let finishedSearch = '';
+  let finishedVersion = 0;
+
+  const fallbackCover =
+    'https://placehold.co/240x360/38213f/f8b5e4?text=Shelfie';
+
+  const settings = {
+    books: {
+      title: 'Books Read',
+      media: 'book',
+      status: 'read'
+    },
+    movies: {
+      title: 'Movies Watched',
+      media: 'movie',
+      status: 'watched'
+    },
+    shows: {
+      title: 'Shows Watched',
+      media: 'show',
+      status: 'watched'
+    }
+  };
+
+  function normalizeGenre(value) {
+    if (Array.isArray(value)) {
+      return value.flatMap(normalizeGenre);
+    }
+
+    if (!value) return [];
+
+    return String(value)
+      .split(/[,;|]/)
+      .map(x => x.trim())
+      .filter(Boolean);
+  }
+
+  function genresFor(row) {
+    const meta = row.metadata || {};
+    const existing = item(row.title_id);
+
+    return [
+      ...normalizeGenre(meta.genres),
+      ...normalizeGenre(meta.genre),
+      ...normalizeGenre(existing?.genre)
+    ].filter(x =>
+      x.toLowerCase() !== 'book' &&
+      x.toLowerCase() !== 'movie' &&
+      x.toLowerCase() !== 'show'
+    );
+  }
+
+  function ensureFinishedItem(row) {
+    const meta = row.metadata || {};
+    let x = item(row.title_id);
+
+    if (!x) {
+      x = {
+        id: row.title_id,
+        title: row.title_name || 'Untitled',
+        type: finishedKind === 'books'
+          ? 'Book'
+          : finishedKind === 'movies'
+            ? 'Movie'
+            : 'Show',
+        author: meta.author || '',
+        year: meta.year || '',
+        genre: meta.genre || '',
+        cover: meta.cover || '',
+        description: meta.description || '',
+        workKey: meta.workKey || '',
+        fallback: fallbackCover
+      };
+
+      catalog.push(x);
+    }
+
+    if (!x.cover && meta.cover) {
+      x.cover = meta.cover;
+    }
+
+    if (!x.cover &&
+        String(row.title_id).startsWith('goodreads_isbn_')) {
+      const isbn = row.title_id.replace(
+        'goodreads_isbn_', ''
+      );
+
+      x.cover =
+        'https://covers.openlibrary.org/b/isbn/' +
+        encodeURIComponent(isbn) + '-M.jpg';
+    }
+
+    x.cover ||= fallbackCover;
+    x.fallback ||= fallbackCover;
+
+    return x;
+  }
+
+  function finishedPage() {
+    const title = settings[finishedKind].title;
+
+    return `
+      <section class="shelfie-finished-page">
+
+        <div class="shelfie-finished-heading">
+          <button
+            class="shelfie-finished-back"
+            onclick="go('Profile')"
+            aria-label="Back to profile">‹</button>
+
+          <h1>${esc(title)} ♡</h1>
+        </div>
+
+        <input
+          class="shelfie-finished-search"
+          type="search"
+          placeholder="⌕ Search your collection..."
+          value="${esc(finishedSearch)}"
+          oninput="shelfieSearchFinished(this.value)">
+
+        <div
+          id="shelfieFinishedGenres"
+          class="shelfie-finished-genres">
+        </div>
+
+        <div
+          id="shelfieFinishedCount"
+          class="shelfie-finished-count">
+        </div>
+
+        <div
+          id="shelfieFinishedGrid"
+          class="shelfie-finished-grid">
+          <div class="shelfie-finished-empty">
+            Loading your Shelfie ♡
+          </div>
+        </div>
+
+      </section>
+    `;
+  }
+
+  function drawFinished() {
+    if (tab !== 'FinishedLibrary') return;
+
+    const genresEl = document.getElementById(
+      'shelfieFinishedGenres'
+    );
+
+    const countEl = document.getElementById(
+      'shelfieFinishedCount'
+    );
+
+    const gridEl = document.getElementById(
+      'shelfieFinishedGrid'
+    );
+
+    if (!genresEl || !countEl || !gridEl) return;
+
+    const genreMap = new Map();
+
+    finishedRows.forEach(row => {
+      genresFor(row).forEach(genre => {
+        const key = genre.toLowerCase();
+
+        if (!genreMap.has(key)) {
+          genreMap.set(key, genre);
+        }
+      });
+    });
+
+    const genres = [
+      'All',
+      ...[...genreMap.values()].sort(
+        (a, b) => a.localeCompare(b)
+      )
+    ];
+
+    genresEl.innerHTML = genres.map((genre, i) => `
+      <button
+        class="shelfie-finished-genre
+          ${finishedGenre === genre ? 'active' : ''}"
+        data-genre-index="${i}">
+        ${esc(genre)}
+      </button>
+    `).join('');
+
+    genresEl.querySelectorAll('[data-genre-index]')
+      .forEach(button => {
+        button.addEventListener('click', () => {
+          const index = Number(
+            button.dataset.genreIndex
+          );
+
+          finishedGenre = genres[index];
+          drawFinished();
+        });
+      });
+
+    const q = finishedSearch.trim().toLowerCase();
+
+    const matches = finishedRows.filter(row => {
+      const x = ensureFinishedItem(row);
+
+      const genreMatches =
+        finishedGenre === 'All' ||
+        genresFor(row).some(g =>
+          g.toLowerCase() ===
+          finishedGenre.toLowerCase()
+        );
+
+      const text = [
+        x.title,
+        x.author,
+        x.year
+      ].join(' ').toLowerCase();
+
+      return genreMatches && text.includes(q);
+    });
+
+    countEl.textContent =
+      matches.length + ' of ' +
+      finishedRows.length + ' titles';
+
+    gridEl.innerHTML = matches.map(row => {
+      const x = ensureFinishedItem(row);
+
+      return `
+        <button
+          class="shelfie-finished-cover"
+          data-finished-id="${esc(x.id)}"
+          aria-label="Open ${esc(x.title)}">
+
+          <img
+            src="${esc(x.cover)}"
+            alt="${esc(x.title)} cover"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='${fallbackCover}'">
+
+          <span>${esc(x.title)}</span>
+        </button>
+      `;
+    }).join('') || `
+      <div class="shelfie-finished-empty">
+        No matching titles found ♡
+      </div>
+    `;
+
+    gridEl.querySelectorAll('[data-finished-id]')
+      .forEach(button => {
+        button.addEventListener('click', () => {
+          openDetail(button.dataset.finishedId);
+        });
+      });
+  }
+
+  window.shelfieSearchFinished = function(value) {
+    finishedSearch = value;
+    drawFinished();
+  };
+
+  const previousRender = render;
+
+  render = function() {
+    if (tab === 'FinishedLibrary') {
+      nav();
+
+      document.getElementById('screen').innerHTML =
+        finishedPage();
+
+      drawFinished();
+      return;
+    }
+
+    previousRender();
+  };
+
+  const previousOpenStat = window.shelfieOpenStat;
+
+  window.shelfieOpenStat = function(kind) {
+    if (!['books','movies','shows'].includes(kind)) {
+      return previousOpenStat(kind);
+    }
+
+    return window.shelfieOpenFinishedPage(kind);
+  };
+
+  window.shelfieOpenFinishedPage =
+    async function(kind) {
+
+    if (!cloudUser || !cloud) {
+      openAccount();
+      return;
+    }
+
+    const config = settings[kind];
+    if (!config) return;
+
+    const userId = cloudUser.id;
+    const version = ++finishedVersion;
+
+    finishedKind = kind;
+    finishedGenre = 'All';
+    finishedSearch = '';
+    finishedRows = [];
+
+    tab = 'FinishedLibrary';
+    render();
+    window.scrollTo(0, 0);
+
+    try {
+      const all = [];
+
+      for (let offset = 0; ; offset += 500) {
+        const {data,error} = await cloud
+          .from('shelfie_library')
+          .select(
+            'title_id,title_name,media_type,status,metadata'
+          )
+          .eq('user_id', userId)
+          .eq('media_type', config.media)
+          .eq('status', config.status)
+          .order('title_name', {ascending:true})
+          .range(offset, offset + 499);
+
+        if (error) throw error;
+
+        all.push(...(data || []));
+
+        if (!data || data.length < 500) break;
+      }
+
+      if (version !== finishedVersion ||
+          cloudUser?.id !== userId ||
+          tab !== 'FinishedLibrary') return;
+
+      const unique = new Map();
+
+      all.forEach(row => {
+        unique.set(row.title_id, row);
+      });
+
+      finishedRows = [...unique.values()];
+
+      finishedRows.forEach(ensureFinishedItem);
+
+      drawFinished();
+
+    } catch(error) {
+      if (version !== finishedVersion ||
+          tab !== 'FinishedLibrary') return;
+
+      const grid = document.getElementById(
+        'shelfieFinishedGrid'
+      );
+
+      if (grid) {
+        grid.innerHTML = `
+          <div class="shelfie-finished-empty">
+            Couldn't load your collection.
+            Please try again ♡
+          </div>
+        `;
+      }
+
+      toast(error.message || 'Could not load collection');
+    }
+  };
+})();
+</script>
+
 
   
 </body></html>
