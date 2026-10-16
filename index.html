@@ -3967,4 +3967,54 @@ function shelfieUsernameFromEmail(email) {
   color: #F5B8E5 !important;
 }
 </style>
+<script>
+window.shelfieJoinGroup = async function(groupId) {
+  if (!cloudUser || !cloud) {
+    toast('Sign in to join a group ♡');
+    openAccount();
+    return;
+  }
+
+  const { data: group, error: groupError } = await cloud
+    .from('shelfie_groups')
+    .select('id,visibility')
+    .eq('id', groupId)
+    .single();
+
+  if (groupError || !group) {
+    toast('Could not find this group ♡');
+    return;
+  }
+
+  if (group.visibility !== 'public') {
+    toast('This group requires an invitation ♡');
+    return;
+  }
+
+  const { error } = await cloud
+    .from('shelfie_group_members')
+    .upsert({
+      group_id: groupId,
+      user_id: cloudUser.id,
+      role: 'member'
+    }, {
+      onConflict: 'group_id,user_id',
+      ignoreDuplicates: true
+    });
+
+  if (error) {
+    toast('Could not join: ' + error.message);
+    return;
+  }
+
+  toast('You joined the group! ♡');
+
+  if (typeof shelfieLoadSharedGroups === 'function') {
+    await shelfieLoadSharedGroups();
+  }
+
+  render();
+};
+</script>
+ 
 </body></html>
