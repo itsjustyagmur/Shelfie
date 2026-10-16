@@ -3728,5 +3728,201 @@ function shelfieUsernameFromEmail(email) {
   loadSharedGroups();
 })();
 </script>
- 
+ <script>
+(function () {
+  let activeSharedGroup = null;
+  let sharedMessages = [];
+  let sharedChannel = null;
+  let pageVersion = 0;
+
+  const oldRender = render;
+  const oldGo = go;
+
+  function leaveSharedGroup() {
+    pageVersion++;
+    activeSharedGroup = null;
+
+    if (sharedChannel && cloud) {
+      cloud.removeChannel(sharedChannel);
+      sharedChannel = null;
+    }
+  }
+
+  function sharedPage() {
+    if (!activeSharedGroup) return;
+
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    screen.innerHTML = `
+      <div class="shelfie-group-page">
+        <button class="shelfie-group-back"
+          onclick="shelfieSharedBack()">
+          ← Back to Groups
+        </button>
+
+        <h1>${esc(activeSharedGroup.name)} ♡</h1>
+
+        <div class="muted">
+          ${activeSharedGroup.visibility === 'private'
+            ? '🔒 Private group'
+            : '♡ Public group'}
+        </div>
+
+        <div class="shelfie-group-panel">
+          <h2>Group chat 💬</h2>
+
+          <div class="shelfie-bubble-list"
+            id="shelfieSharedMessages">
+            ${sharedMessages.length
+              ? sharedMessages.map(m => `
+                <div class="shelfie-bubble-row
+                  ${m.sender_id === cloudUser?.id ? 'mine' : ''}">
+                  <span class="shelfie-bubble-name">
+                    ${m.sender_id === cloudUser?.id
+                      ? 'You'
+                      : 'Member'}
+                  </span>
+                  <div class="shelfie-bubble">
+                    ${esc(m.body)}
+                  </div>
+                </div>
+              `).join('')
+              : '<div class="empty">Start the conversation ♡</div>'}
+          </div>
+
+          <form class="shelfie-chat-compose"
+            onsubmit="shelfieSendSharedMessage(event)">
+            <textarea id="shelfieSharedInput"
+              maxlength="2000"
+              required
+              placeholder="Message your group..."></textarea>
+
+            <button class="primary full" type="submit">
+              Send ♡
+            </button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const list = document.getElementById('shelfieSharedMessages');
+    if (list) list.scrollTop = list.scrollHeight;
+  }
+
+  async function loadMessages(version) {
+    if (!activeSharedGroup) return;
+
+    const { data, error } = await cloud
+      .from('shelfie_group_messages')
+      .select('id,group_id,sender_id,body,created_at')
+      .eq('group_id', activeSharedGroup.id)
+      .order('created_at', { ascending: true });
+
+    if (version !== pageVersion) return;
+
+    if (error) {
+      toast('Could not load messages: ' + error.message);
+      return;
+    }
+
+    sharedMessages = data || [];
+    sharedPage();
+  }
+
+  window.shelfieOpenSharedGroup = async function(id) {
+    if (!cloud || !cloudUser) {
+      openAccount();
+      return;
+    }
+
+    leaveSharedGroup();
+
+    const version = pageVersion;
+
+    const { data: group, error } = await cloud
+      .from('shelfie_groups')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (version !== pageVersion) return;
+
+    if (error || !group) {
+      toast('Could not open group ♡');
+      return;
+    }
+
+    activeSharedGroup = group;
+    sharedMessages = [];
+    closeModal();
+    tab = 'Groups';
+    sharedPage();
+    window.scrollTo(0, 0);
+
+    await loadMessages(version);
+
+    if (version !== pageVersion) return;
+
+    sharedChannel = cloud
+      .channel('shelfie-chat-' + id)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'shelfie_group_messages',
+        filter: 'group_id=eq.' + id
+      }, () => loadMessages(version))
+      .subscribe();
+  };
+
+  window.shelfieSendSharedMessage = async function(event) {
+    event.preventDefault();
+
+    if (!activeSharedGroup || !cloudUser) return;
+
+    const input = document.getElementById('shelfieSharedInput');
+    const body = input?.value.trim();
+    if (!body) return;
+
+    const groupId = activeSharedGroup.id;
+    const version = pageVersion;
+
+    const { error } = await cloud
+      .from('shelfie_group_messages')
+      .insert({
+        group_id: groupId,
+        sender_id: cloudUser.id,
+        body
+      });
+
+    if (error) {
+      toast('Could not send: ' + error.message);
+      return;
+    }
+
+    if (version !== pageVersion) return;
+
+    input.value = '';
+    await loadMessages(version);
+  };
+
+  window.shelfieSharedBack = function() {
+    leaveSharedGroup();
+    oldGo('Groups');
+  };
+
+  render = function() {
+    oldRender();
+
+    if (activeSharedGroup && tab === 'Groups') {
+      sharedPage();
+    }
+  };
+
+  go = function(page) {
+    leaveSharedGroup();
+    oldGo(page);
+  };
+})();
+</script>
 </body></html>
