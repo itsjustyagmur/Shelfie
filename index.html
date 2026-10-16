@@ -2752,6 +2752,178 @@ function shelfieUsernameFromEmail(email) {
   upgradeGroupChat();
 })();
 </script>
+<style>
+/* Shelfie iMessage-style group chat */
+.shelfie-group-panel {
+  padding: 15px !important;
+}
 
+.shelfie-group-panel > h2 {
+  margin: 0 0 14px !important;
+}
+
+#shelfie-group-chat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.shelfie-bubble-list {
+  height: 340px;
+  max-height: 45dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 2px 16px;
+  overscroll-behavior: contain;
+}
+
+.shelfie-bubble-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 85%;
+}
+
+.shelfie-bubble-row.mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.shelfie-bubble-name {
+  color: #f5a4df;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 9px 5px;
+}
+
+.shelfie-bubble {
+  background: #392b43;
+  color: #ffe5f5;
+  border-radius: 18px 18px 18px 5px;
+  padding: 11px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.shelfie-bubble-row.mine .shelfie-bubble {
+  background: #e99bd1;
+  color: #291427;
+  border-radius: 18px 18px 5px 18px;
+}
+
+.shelfie-chat-compose {
+  border-top: 1px solid #49364d;
+  padding-top: 14px;
+}
+
+.shelfie-chat-compose textarea {
+  height: 52px !important;
+  min-height: 52px !important;
+  resize: none !important;
+}
+
+.shelfie-chat-compose button {
+  margin-top: 9px;
+}
+</style>
+
+<script>
+(function () {
+  function showShelfieBubbles() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+
+    if (!content || !groupSelected) return;
+
+    const group = (state.groups || []).find(
+      g => String(g.id) === String(groupSelected)
+    );
+
+    if (!group) return;
+
+    const currentName = cloudProfile?.display_name ||
+      state.name;
+
+    content.innerHTML = `
+      <div class="row spaced"
+        style="margin-bottom:12px">
+        <span class="subtle">
+          ♧ ${(group.members || []).length} members
+        </span>
+        <button class="linkbtn"
+          onclick="shareGroup('${group.id}')">
+          Invite ↗
+        </button>
+      </div>
+
+      <div class="shelfie-bubble-list" id="shelfieBubbleList">
+        ${(group.posts || []).map(post => {
+          const mine = post.name === currentName;
+
+          return `
+            <div class="shelfie-bubble-row ${mine ? 'mine' : ''}">
+              <span class="shelfie-bubble-name">
+                ${esc(post.name)}
+              </span>
+              <div class="shelfie-bubble">
+                ${esc(post.text)}
+              </div>
+            </div>
+          `;
+        }).join('') || `
+          <div class="empty">
+            Say hello to your group! ♡
+          </div>
+        `}
+      </div>
+
+      <form class="shelfie-chat-compose"
+        onsubmit="postGroup(event, '${group.id}')">
+        <textarea id="groupPost"
+          required maxlength="1000"
+          placeholder="Message your group..."></textarea>
+
+        <button class="primary full" type="submit">
+          Send ♡
+        </button>
+      </form>
+    `;
+
+    const list = document.getElementById('shelfieBubbleList');
+
+    if (list) {
+      list.scrollTop = list.scrollHeight;
+    }
+  }
+
+  const previousRender = render;
+
+  render = function () {
+    previousRender();
+    showShelfieBubbles();
+  };
+
+  const previousOpenGroup = openGroup;
+
+  openGroup = function (id) {
+    previousOpenGroup(id);
+    showShelfieBubbles();
+  };
+
+  const previousPostGroup = postGroup;
+
+  postGroup = function (event, id) {
+    previousPostGroup(event, id);
+    showShelfieBubbles();
+  };
+
+  showShelfieBubbles();
+})();
+</script>
 
 </body></html>
