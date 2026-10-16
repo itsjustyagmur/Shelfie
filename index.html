@@ -4206,6 +4206,72 @@ window.shelfieOpenNotifications = async function() {
   setTimeout(arrangeShelfieButtons, 800);
 })();
 </script>
- 
+ <style>
+/* Shelfie matching header buttons */
+#shelfie-notification-bell {
+  position: static !important;
+  width: 43px !important;
+  height: 43px !important;
+  flex-shrink: 0;
+  background: #39203F !important;
+  border: 1px solid #E99AD2 !important;
+  border-radius: 14px !important;
+  color: #E99AD2 !important;
+  box-shadow: none !important;
+}
+
+.shelfie-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.shelfie-header-actions > button {
+  width: 43px !important;
+  height: 43px !important;
+  flex-shrink: 0;
+  border-radius: 14px !important;
+  background: #39203F !important;
+  border: 1px solid #E99AD2 !important;
+  color: #E99AD2 !important;
+  box-shadow: none !important;
+}
+</style>
+
+<script>
+(function () {
+  function arrangeShelfieButtons() {
+    const bell = document.getElementById('shelfie-notification-bell');
+    if (!bell) return;
+
+    // Find the existing search, share and settings buttons.
+    const buttons = [...document.querySelectorAll('button')]
+      .filter(b => {
+        const label = (b.textContent || '').trim();
+        return ['⌕', '↗', '⚙️', '⚙', '🔍'].includes(label);
+      });
+
+    if (buttons.length < 3) return;
+
+    const settings = buttons.find(b =>
+      /⚙/.test(b.textContent)
+    );
+
+    if (!settings) return;
+
+    const parent = settings.parentElement;
+    parent.classList.add('shelfie-header-actions');
+
+    parent.appendChild(bell);
+    bell.textContent = '♧';
+    bell.innerHTML = '🔔';
+  }
+
+  window.addEventListener('load', arrangeShelfieButtons);
+  setTimeout(arrangeShelfieButtons, 800);
+})();
+</script>
  
 </body></html>
