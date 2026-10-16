@@ -7771,6 +7771,48 @@ window.shelfieDiscoverGroups = async function() {
 })();
 </script>
 
+<style>
+/* SHELFIE — Perfectly aligned book cover grid */
+
+.shelfie-finished-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 20px 12px !important;
+  align-items: start;
+}
+
+.shelfie-finished-cover {
+  display: flex !important;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  align-self: start;
+  text-align: left;
+}
+
+.shelfie-finished-cover img {
+  width: 100% !important;
+  aspect-ratio: 2 / 3 !important;
+  height: auto !important;
+  object-fit: cover !important;
+  display: block;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.shelfie-finished-cover span {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.35;
+  font-size: 12px;
+  margin-top: 8px;
+  min-height: 32px;
+}
+</style>
+
 
   
 </body></html>
