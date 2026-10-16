@@ -3144,9 +3144,9 @@ function shelfieUsernameFromEmail(email) {
 
         ${[1,2,3,4].map(n => `
           <div class="field">
-            <label>Book option ${n}</label>
+            <label> Options ${n}</label>
             <input class="pollOption" maxlength="120"
-              placeholder="Book title ${n}"
+              placeholder="Title ${n}"
               ${n <= 2 ? 'required' : ''}>
           </div>
         `).join('')}
@@ -3172,7 +3172,7 @@ function shelfieUsernameFromEmail(email) {
       .filter(Boolean);
 
     if (options.length < 2) {
-      toast('Add at least two books ♡');
+      toast('Add at least two titles ♡');
       return;
     }
 
