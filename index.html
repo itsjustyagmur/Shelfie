@@ -3341,5 +3341,53 @@ function shelfieUsernameFromEmail(email) {
 }
 </style>
 
+<style>
+/* Shelfie — fix oversized message bubbles */
+
+#shelfieBubbleList .shelfie-bubble-row,
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  width: auto !important;
+  max-width: 80% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row:not(.mine) {
+  align-self: flex-start !important;
+  align-items: flex-start !important;
+}
+
+#shelfieBubbleList .shelfie-bubble {
+  display: inline-block !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+#shelfieBubbleList .shelfie-bubble-row.mine .shelfie-bubble {
+  align-self: flex-end !important;
+}
+
+/* Override inherited group chat sizing */
+#shelfie-group-chat-content .shelfie-bubble {
+  padding: 8px 12px !important;
+}
+</style>
+
  
 </body></html>
