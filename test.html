@@ -7859,4 +7859,112 @@ window.shelfieFilterRatings = function(query) {
 };
 </script>
 
+<style>
+/* Shelfie social feed */
+.shelfie-social-head{display:flex;align-items:center;justify-content:space-between;margin:22px 0 13px;gap:12px}
+.shelfie-social-head h2{font-size:19px;margin:0}.shelfie-social-card{background:linear-gradient(145deg,#251c2d,#18141f);border:1px solid #614361;border-radius:19px;padding:15px;margin-bottom:13px}
+.shelfie-social-user{display:flex;align-items:center;gap:10px;margin-bottom:12px}.shelfie-social-user .avatar{width:37px;height:37px}
+.shelfie-social-body{display:flex;gap:12px;min-width:0}.shelfie-social-body img{width:78px;height:115px;object-fit:cover;border-radius:9px;background:#35253a;flex-shrink:0}.shelfie-social-body>div{min-width:0}.shelfie-social-body h3{font-size:16px;line-height:1.35;margin:0 0 8px;overflow-wrap:anywhere}
+.shelfie-social-actions{display:flex;gap:18px;margin-top:14px;align-items:center;flex-wrap:wrap}.shelfie-social-actions button{background:none;border:0;color:#f5a4df;padding:6px 0;font-weight:650;font-size:13px}.shelfie-social-actions button.liked{color:#ffb2df}
+.shelfie-social-back{border:1px solid #785578;background:#302137;color:#f5a4df;border-radius:12px;padding:9px 13px}.shelfie-social-comment{padding:11px 0;border-bottom:1px solid #514052}.shelfie-social-comment b{color:#f5a4df}.shelfie-social-comment p{margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere}.shelfie-social-empty{padding:23px 8px;text-align:center;color:#cbb6cb}
+</style>
+<script>
+/* Shelfie social: Supabase-only ratings, likes, and comments. */
+(function(){
+ let rows=[],likes=[],comments=[],socialUser=null,loading=false,lastLoad=0,version=0;
+ const fallback='https://placehold.co/240x360/38213f/f8b5e4?text=Shelfie';
+ function ids(){return cloudUser?[cloudUser.id,...cloudFollowing.filter(Boolean)]:[]}
+ function friendlyDate(d){if(!d)return '';const x=new Date(d);return Number.isNaN(x.getTime())?'':x.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+ function poster(r){const x=item(r.title_id);if(x?.cover)return x.cover;if(String(r.title_id).startsWith('goodreads_isbn_'))return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(r.title_id.slice(15))+'-M.jpg';return fallback}
+ function card(r){
+   const id=String(r.id),name=r.profiles?.display_name||r.profiles?.username||'Shelfie member';
+   const n=likes.filter(l=>String(l.rating_id)===id).length, c=comments.filter(l=>String(l.rating_id)===id).length;
+   const mine=likes.some(l=>String(l.rating_id)===id&&l.user_id===cloudUser?.id);
+   const stars=Math.max(0,Math.min(5,Number(r.stars)||0));
+   return `<article class="shelfie-social-card"><div class="shelfie-social-user"><div class="avatar">${esc(name.charAt(0).toUpperCase())}</div><div><b>${esc(name)}</b><div class="subtle">${esc(friendlyDate(r.created_at))} · ${esc(r.media_type||'Rating')}</div></div></div>
+   <div class="shelfie-social-body"><img src="${esc(poster(r))}" alt="${esc(r.title_name)} cover" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"><div><h3>${esc(r.title_name)}</h3><div class="stars">${'★'.repeat(stars)}${'☆'.repeat(5-stars)}</div>${r.review?`<p style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(r.review)}</p>`:''}</div></div>
+   <div class="shelfie-social-actions"><button class="${mine?'liked':''}" onclick="shelfieSocialLike('${esc(id)}')">${mine?'♥ Liked':'♡ Like'} · ${n}</button><button onclick="shelfieSocialComments('${esc(id)}')">💬 ${c} comments</button></div></article>`;
+ }
+ function section(limit){
+   if(!cloudUser)return '<div class="shelfie-social-empty">Sign in to see reviews from people you follow ♡</div>';
+   if(loading&&!rows.length)return '<div class="shelfie-social-empty">Loading your circle ♡</div>';
+   return rows.slice(0,limit||rows.length).map(card).join('')||'<div class="shelfie-social-empty">Follow friends to see their ratings here ♡</div>';
+ }
+ function homeSocial(html){
+   const start=html.search(/<div class="sectionhead"><h2>💗 Your circle<\/h2>/);
+   const end=html.indexOf('<div class="sectionhead"><h2>✨ Your groups</h2>',start);
+   if(start>=0&&end>start)html=html.slice(0,start)+`<div class="shelfie-social-head"><h2>💗 Your circle</h2><button class="linkbtn" onclick="shelfieSocialAll()">See all →</button></div><div id="shelfieCircle">${section(5)}</div>`+html.slice(end);
+   const community=html.search(/<div class="sectionhead"><h2>🌎 Community reviews<\/h2>/);
+   if(community>=0)html=html.slice(0,community)+`<div class="shelfie-social-head"><h2>♡ Community reviews</h2><button class="linkbtn" onclick="shelfieSocialAll()">See all →</button></div><div id="shelfieCommunity">${section(5)}</div>`;
+   return html;
+ }
+ const previousHome=home;
+ home=function(){return homeSocial(previousHome())};
+ const previousRender=render;
+ render=function(){
+   if(tab==='ShelfieCircle'){
+     nav();document.getElementById('screen').innerHTML=`<div class="hero"><button class="shelfie-social-back" onclick="go('Home')">‹ Back</button><h1>💗 Your circle</h1><p class="muted">Ratings and reviews from you and people you follow.</p></div><div id="shelfieSocialFull">${section()}</div>`;
+     return;
+   }
+   previousRender();
+   if(tab==='Home'&&cloudUser&&(!lastLoad||Date.now()-lastLoad>60000)&&!loading)load();
+ };
+ function paint(){if(tab==='Home'){
+   const a=document.getElementById('shelfieCircle'),b=document.getElementById('shelfieCommunity');if(a)a.innerHTML=section(5);if(b)b.innerHTML=section(5);
+ }else if(tab==='ShelfieCircle'){const a=document.getElementById('shelfieSocialFull');if(a)a.innerHTML=section()}}
+ async function load(force=false){
+   if(!cloud||!cloudUser){rows=[];likes=[];comments=[];paint();return}
+   if(loading)return;
+   loading=true;const myVersion=++version,uid=cloudUser.id;
+   try{
+     const f=await cloud.from('follows').select('following_id').eq('follower_id',uid);
+     if(f.error)throw f.error;
+     cloudFollowing=(f.data||[]).map(x=>x.following_id);
+     const allowed=[uid,...cloudFollowing.filter(x=>x!==uid)];
+     const r=await cloud.from('ratings').select('id,user_id,title_id,title_name,media_type,stars,review,created_at,profiles(username,display_name)').in('user_id',allowed).order('created_at',{ascending:false}).limit(250);
+     if(r.error)throw r.error;
+     const rr=r.data||[],ratingIds=rr.map(x=>x.id);
+     let ll=[],cc=[];
+     if(ratingIds.length){
+       const [l,c]=await Promise.all([
+         cloud.from('shelfie_rating_likes').select('rating_id,user_id').in('rating_id',ratingIds),
+         cloud.from('shelfie_rating_comments').select('id,rating_id,user_id,body,created_at,profiles(display_name,username)').in('rating_id',ratingIds).order('created_at',{ascending:true})
+       ]);
+       if(l.error)throw l.error;if(c.error)throw c.error;
+       ll=l.data||[];cc=c.data||[];
+     }
+     if(myVersion!==version||cloudUser?.id!==uid)return;
+     rows=rr;likes=ll;comments=cc;socialUser=uid;lastLoad=Date.now();paint();
+   }catch(e){console.error('Shelfie social:',e);toast('Social feed unavailable: '+(e.message||'check Supabase SQL'));}
+   finally{loading=false}
+ }
+ window.shelfieSocialAll=function(){tab='ShelfieCircle';sessionStorage.setItem('shelfie-current-page',tab);render();scrollTo(0,0);load()};
+ window.shelfieSocialLike=async function(id){
+   if(!cloudUser){openAccount();return}
+   const r=rows.find(x=>String(x.id)===String(id));if(!r)return;
+   const already=likes.some(x=>String(x.rating_id)===String(id)&&x.user_id===cloudUser.id);
+   const q=already?cloud.from('shelfie_rating_likes').delete().eq('rating_id',id).eq('user_id',cloudUser.id):cloud.from('shelfie_rating_likes').insert({rating_id:id,user_id:cloudUser.id});
+   const {error}=await q;if(error){toast(error.message);return}await loadAfterAction();
+ };
+ async function loadAfterAction(){lastLoad=0;await load(true)}
+ window.shelfieSocialComments=function(id){
+   const r=rows.find(x=>String(x.id)===String(id));if(!r)return;
+   const thread=comments.filter(x=>String(x.rating_id)===String(id));
+   modal('Comments ♡',`<p class="muted">On ${esc(r.title_name)} · ${esc(r.profiles?.display_name||r.profiles?.username||'Shelfie member')}'s rating</p><div id="shelfieSocialThread">${thread.map(x=>`<div class="shelfie-social-comment"><b>${esc(x.profiles?.display_name||x.profiles?.username||'Shelfie member')}</b><div class="subtle">${esc(friendlyDate(x.created_at))}</div><p>${esc(x.body)}</p></div>`).join('')||'<p class="muted">Be the first to comment ♡</p>'}</div><form onsubmit="shelfieSocialPost(event,'${esc(id)}')"><textarea id="shelfieSocialMessage" maxlength="1000" required placeholder="Add a comment..." style="margin-top:15px"></textarea><button type="submit" class="primary full" style="margin-top:10px">Post comment ♡</button></form>`);
+ };
+ window.shelfieSocialPost=async function(e,id){
+   e.preventDefault();if(!cloudUser){openAccount();return}
+   const field=document.getElementById('shelfieSocialMessage'),body=field?.value.trim();if(!body)return;
+   const button=e.submitter;if(button)button.disabled=true;
+   const {error}=await cloud.from('shelfie_rating_comments').insert({rating_id:id,user_id:cloudUser.id,body});
+   if(error){toast(error.message);if(button)button.disabled=false;return}
+   closeModal();await loadAfterAction();shelfieSocialComments(id);toast('Comment posted ♡');
+ };
+ const previousRefresh=refreshCloud;
+ refreshCloud=async function(){await previousRefresh();lastLoad=0;rows=[];likes=[];comments=[];await load(true)};
+ window.addEventListener('focus',()=>{if(tab==='Home'||tab==='ShelfieCircle'){if(Date.now()-lastLoad>30000)load()}});
+ setTimeout(()=>{if(cloudUser)load();else paint()},1500);
+})();
+</script>
+
 </body></html>
