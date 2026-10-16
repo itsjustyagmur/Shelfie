@@ -8066,4 +8066,46 @@ window.shelfieFilterRatings = function(query) {
  new MutationObserver(wire).observe(screen,{subtree:true,childList:true});wire();
 })();
 </script>
-</body></html>
+<style>
+.shelfie-discover-note{color:#c9abc9;font-size:13px;margin:-4px 0 15px}.shelfie-discover-click{cursor:pointer}.shelfie-discover-click:focus-visible{outline:2px solid #f5a4df;outline-offset:3px}
+</style>
+<script>
+/* Public discovery is separate from the follow-only Circle feed. */
+(function(){
+ let community=[],busy=false,loaded=0,owner=null,sort='newest',likeCounts=new Map(),commentCounts=new Map();
+ const coverFallback='https://placehold.co/240x360/38213f/f8b5e4?text=Shelfie';
+ const date=d=>{const t=new Date(d);return isNaN(t.getTime())?'':t.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})};
+ function poster(r){const x=item(r.title_id);if(x?.cover)return x.cover;if(String(r.title_id).startsWith('goodreads_isbn_'))return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(String(r.title_id).slice(15))+'-M.jpg';return coverFallback}
+ function count(map,id){return map.get(String(id))||0}
+ function ordered(){return [...community].sort((a,b)=>{let n=sort==='liked'?count(likeCounts,b.id)-count(likeCounts,a.id):sort==='commented'?count(commentCounts,b.id)-count(commentCounts,a.id):0;return n||new Date(b.created_at)-new Date(a.created_at)})}
+ function filter(){return `<div class="shelfie-community-sort"><label for="shelfieCommunitySort">Sort reviews</label><select id="shelfieCommunitySort" onchange="shelfieSortCommunity(this.value)"><option value="newest" ${sort==='newest'?'selected':''}>Newest</option><option value="liked" ${sort==='liked'?'selected':''}>Most liked ♡</option><option value="commented" ${sort==='commented'?'selected':''}>Most commented 💬</option></select></div>`}
+ function card(r){const id=String(r.id),name=r.profiles?.display_name||r.profiles?.username||'Shelfie member';const stars=Math.max(0,Math.min(5,Number(r.stars)||0));return `<article class="shelfie-social-card"><div class="shelfie-social-user"><div class="avatar">${esc(name.charAt(0).toUpperCase())}</div><div><b>${esc(name)}</b><div class="subtle">${esc(date(r.created_at))} · ${esc(r.media_type||'Rating')}</div></div></div><div class="shelfie-social-body shelfie-discover-click" role="button" tabindex="0" onclick="shelfieCommunityOpen('${esc(id)}')" onkeydown="if(event.key==='Enter')shelfieCommunityOpen('${esc(id)}')"><img src="${esc(poster(r))}" alt="${esc(r.title_name)} cover" loading="lazy" onerror="this.onerror=null;this.src='${coverFallback}'"><div><h3>${esc(r.title_name)}</h3><div class="stars">${'★'.repeat(stars)}${'☆'.repeat(5-stars)}</div>${r.review?`<p style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(r.review)}</p>`:''}</div></div><div class="shelfie-social-actions"><button onclick="shelfieCommunityOpen('${esc(id)}')">♡ ${count(likeCounts,id)||''} Like / view likes</button><button onclick="shelfieCommunityOpen('${esc(id)}')">💬 ${count(commentCounts,id)||''} Comments</button></div></article>`}
+ function section(limit){if(!cloudUser)return '<div class="shelfie-social-empty">Sign in to discover Shelfie reviews ♡</div>';if(busy&&!community.length)return '<div class="shelfie-social-empty">Discovering Shelfie reviews ♡</div>';return ordered().slice(0,limit||community.length).map(card).join('')||'<div class="shelfie-social-empty">No community reviews to discover yet ♡</div>'}
+ function paint(){const home=document.getElementById('shelfieCommunity');if(home)home.innerHTML=section(5);const full=document.getElementById('shelfieCommunityFull');if(full)full.innerHTML=section()}
+ async function load(force=false){if(!cloud||!cloudUser){community=[];paint();return}if(busy||(!force&&owner===cloudUser.id&&Date.now()-loaded<45000))return;busy=true;try{const {data,error}=await cloud.from('ratings').select('id,user_id,title_id,title_name,media_type,stars,review,created_at,profiles(username,display_name)').order('created_at',{ascending:false}).limit(250);if(error)throw error;const uid=cloudUser.id;community=(data||[]).filter(r=>r.user_id!==uid);
+     const ids=community.map(r=>r.id);
+     likeCounts=new Map();commentCounts=new Map();
+     if(ids.length){
+       const [likes,comments]=await Promise.all([
+         cloud.from('shelfie_rating_likes').select('rating_id').in('rating_id',ids),
+         cloud.from('shelfie_rating_comments').select('rating_id').in('rating_id',ids)
+       ]);
+       if(likes.error)console.warn('Community likes count:',likes.error);
+       else for(const x of likes.data||[])likeCounts.set(String(x.rating_id),count(likeCounts,x.rating_id)+1);
+       if(comments.error)console.warn('Community comments count:',comments.error);
+       else for(const x of comments.data||[])commentCounts.set(String(x.rating_id),count(commentCounts,x.rating_id)+1);
+     }
+     owner=uid;loaded=Date.now();}catch(e){console.warn('Shelfie discovery:',e);toast('Community reviews unavailable: '+e.message)}finally{busy=false;paint()}}
+ const oldHome=home;
+ home=function(){let html=oldHome();const heading='<div class="shelfie-social-head"><h2>🌎 Community reviews</h2><button class="linkbtn" onclick="shelfieCommunityAll()">See all →</button></div><p class="shelfie-discover-note">Discover reviews and new people across Shelfie ♡</p><div id="shelfieCommunity">'+section(5)+'</div>';const start=html.indexOf('<div class="shelfie-social-head"><h2>♡ Community reviews</h2>');if(start>=0)return html.slice(0,start)+heading;const old=html.indexOf('<div class="sectionhead"><h2>🌎 Community reviews</h2>');return old>=0?html.slice(0,old)+heading:html+heading};
+ const oldRender=render;
+ render=function(){if(tab==='ShelfieCommunity'){nav();document.getElementById('screen').innerHTML=`<div class="hero"><button class="shelfie-social-back" onclick="go('Home')">‹ Back</button><h1>🌎 Community reviews</h1><p class="muted">Discover ratings and reviews from people across Shelfie.</p></div>${filter()}<div id="shelfieCommunityFull">${section()}</div>`;if(cloudUser)load();return}oldRender();if(tab==='Home'&&cloudUser)load()};
+ window.shelfieSortCommunity=function(value){if(!['newest','liked','commented'].includes(value))return;sort=value;paint()};
+ window.shelfieCommunityAll=function(){tab='ShelfieCommunity';sessionStorage.setItem('shelfie-current-page',tab);render();window.scrollTo(0,0);load(true)};
+ window.shelfieCommunityOpen=function(id){if(typeof window.shelfieOpenRating==='function')window.shelfieOpenRating(id);else if(typeof window.shelfieOpenSocialRating==='function')window.shelfieOpenSocialRating(id);else toast('Review details are unavailable')};
+ const oldRefresh=refreshCloud;refreshCloud=async function(){await oldRefresh();loaded=0;if(tab==='Home'||tab==='ShelfieCommunity')await load(true)};
+ window.addEventListener('focus',()=>{if((tab==='Home'||tab==='ShelfieCommunity')&&Date.now()-loaded>45000)load()});
+ setTimeout(()=>{if(cloudUser)load()},1200);
+})();
+</script>
+<style>.shelfie-community-sort{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:14px 0 20px;padding:12px 14px;background:#281a30;border:1px solid #80527b;border-radius:14px;color:#f5c1e7}.shelfie-community-sort select{background:#3b2442;color:#ffe0f3;border:1px solid #d98fc4;border-radius:10px;padding:10px 12px;font:inherit;max-width:62%}</style></body></html>
