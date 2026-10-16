@@ -2595,5 +2595,163 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+<style>
+/* Compact, scrollable Shelfie group conversation */
+.shelfie-chat-scroll {
+  height: 340px;
+  max-height: 48dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding: 8px 3px 12px;
+}
+
+/* Individual message and swipe timestamp */
+.shelfie-chat-message {
+  position: relative;
+  padding: 12px 10px;
+  border-bottom: 1px solid #49364d;
+  touch-action: pan-y;
+  transition: transform .18s ease;
+}
+
+.shelfie-chat-message.swiped {
+  transform: translateX(-65px);
+}
+
+.shelfie-chat-time {
+  position: absolute;
+  right: -65px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  text-align: right;
+  color: #b9a6bc;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.shelfie-chat-message:last-child {
+  border-bottom: none;
+}
+
+/* Keep the message composer compact */
+#shelfie-group-chat-content textarea {
+  height: 55px !important;
+  min-height: 55px !important;
+}
+</style>
+
+<script>
+(function () {
+  function upgradeGroupChat() {
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+    if (!content) return;
+
+    // Find the message area between the conversation
+    // heading and the message input.
+    const textarea = content.querySelector('textarea');
+    if (!textarea) return;
+
+    const all = [...content.querySelectorAll('*')];
+
+    const heading = all.find(el =>
+      el.children.length === 0 &&
+      el.textContent.trim() === 'Group chat 💬'
+    );
+
+    // Find the container holding existing messages.
+    const candidates = [...content.querySelectorAll('div')]
+      .filter(el =>
+        el !== content &&
+        el.contains(heading) === false &&
+        !el.contains(textarea) &&
+        el.querySelectorAll('p').length > 0
+      );
+
+    const messageContainer = candidates.find(el =>
+      [...el.children].some(child =>
+        child.textContent.includes('Yagmur')
+      )
+    );
+
+    if (!messageContainer ||
+        messageContainer.classList.contains('shelfie-chat-scroll')) {
+      return;
+    }
+
+    messageContainer.classList.add('shelfie-chat-scroll');
+
+    const messages = [...messageContainer.children]
+      .filter(el => el.textContent.trim());
+
+    messages.forEach(message => {
+      message.classList.add('shelfie-chat-message');
+
+      // Existing group messages may not have saved timestamps.
+      // Only show a date when one is available.
+      const timestamp =
+        message.getAttribute('data-created-at') ||
+        message.getAttribute('data-time');
+
+      if (timestamp && !message.querySelector('.shelfie-chat-time')) {
+        const date = new Date(timestamp);
+
+        if (!isNaN(date.getTime())) {
+          const time = document.createElement('span');
+          time.className = 'shelfie-chat-time';
+          time.textContent = date.toLocaleString([], {
+            month:'short',
+            day:'numeric',
+            hour:'numeric',
+            minute:'2-digit'
+          });
+          message.appendChild(time);
+        }
+      }
+
+      let startX = 0;
+      let startY = 0;
+
+      message.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, {passive:true});
+
+      message.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+
+        if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) {
+          message.classList.toggle('swiped', dx < 0);
+        }
+      }, {passive:true});
+    });
+
+    // Show the most recent messages first on opening.
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  const oldRender = render;
+
+  render = function() {
+    oldRender();
+    upgradeGroupChat();
+  };
+
+  const oldOpenGroup = openGroup;
+
+  openGroup = function(id) {
+    oldOpenGroup(id);
+    upgradeGroupChat();
+  };
+
+  upgradeGroupChat();
+})();
+</script>
+
 
 </body></html>
