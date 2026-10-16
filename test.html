@@ -8134,4 +8134,69 @@ window.shelfieFilterRatings = function(query) {
  const observer=new MutationObserver(()=>install());const screen=document.getElementById('screen');if(screen)observer.observe(screen,{childList:true});setTimeout(install,0);window.addEventListener('focus',()=>{last=0;fetchGroups()});
 })();
 </script>
+<!-- SHELFIE: TMDB Movies & Shows via secure Supabase Edge Function -->
+<style>
+.shelfie-tmdb-status{padding:18px 8px;color:#d8b0d1;text-align:center}
+.shelfie-tmdb-source{font-size:12px;color:#d7a2cb;margin:10px 4px;text-align:right}
+</style>
+<script>
+(function(){
+  let timer, sequence=0;
+  const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
+  function category(){return filter==='Movies'?'movie':filter==='Shows'?'tv':null}
+  function normalized(x){return {
+    id:'tmdb_'+x.media_type+'_'+x.id, title:x.title, type:x.media_type==='movie'?'Movie':'Show',
+    year:x.year||'', genre:(x.genres||[]).join(', ')|| (x.media_type==='movie'?'Movie':'TV Show'),
+    description:x.description||'', cover:x.poster||fallback, fallback,
+    tmdbId:x.id, tmdbType:x.media_type, tmdbRating:x.rating, tmdbBackdrop:x.backdrop||''
+  }}
+  async function request(params){
+    if(typeof SHELFIE_URL==='undefined'||typeof SHELFIE_KEY==='undefined') throw new Error('Supabase is not configured');
+    const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams(params);
+    const response=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
+    let data;try{data=await response.json()}catch(_){data={}};
+    if(!response.ok)throw new Error(data.error||('TMDB service unavailable ('+response.status+')'));
+    return data;
+  }
+  function upsert(x){let obj=normalized(x),existing=item(obj.id);if(existing)Object.assign(existing,obj);else catalog.push(obj);return existing||obj}
+  const previousUpdate=updateResults;
+  updateResults=function(){
+    clearTimeout(timer);const current=++sequence;
+    const type=category(),query=search.trim();
+    if(!type||query.length<2){previousUpdate();return}
+    const chips=document.querySelector('.chips');
+    if(chips)chips.innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');
+    const results=document.getElementById('results');if(!results)return;
+    results.innerHTML='<div class="shelfie-tmdb-status">Searching '+(type==='movie'?'movies':'shows')+' ♡</div>';
+    timer=setTimeout(async()=>{
+      try{
+        const data=await request({type,q:query});
+        if(current!==sequence||tab!=='Search'||category()!==type||search.trim()!==query)return;
+        const items=(data.results||[]).map(upsert);
+        results.innerHTML=items.map(coverCard).join('')||'<div class="shelfie-tmdb-status">No titles found ♡</div>';
+        results.insertAdjacentHTML('afterend','<div class="shelfie-tmdb-source" id="shelfieTmdbCredit">Movie & TV information provided by TMDB. Not endorsed or certified by TMDB.</div>');
+        document.querySelectorAll('#shelfieTmdbCredit').forEach((e,i)=>{if(i>0)e.remove()});
+      }catch(err){if(current===sequence){results.innerHTML='<div class="shelfie-tmdb-status">'+esc(err.message||'Search unavailable')+'. Try again later ♡</div>';}}
+    },350);
+  };
+  const previousSearch=searchPage;
+  searchPage=function(){const html=previousSearch();setTimeout(()=>{if(tab==='Search'&&category()&&search.trim().length>=2)updateResults()},0);return html};
+  const previousDetail=openDetail;
+  openDetail=function(id){
+    const x=item(id);if(!x||!x.tmdbId)return previousDetail(id);
+    previousDetail(id);
+    if(x.description){const modalEl=document.querySelector('#overlay .modal');if(modalEl&&!modalEl.querySelector('.shelfie-tmdb-overview')){
+      const node=document.createElement('div');node.className='shelfie-tmdb-overview';node.style.cssText='margin:14px 0;padding:14px;border:1px solid #754b73;border-radius:14px;background:#2a192f;color:#f9d8ed';
+      node.innerHTML='<b>About ♡</b><p style="line-height:1.55;margin:9px 0 0">'+esc(x.description)+'</p>';
+      const detail=modalEl.querySelector('.detail');if(detail)detail.after(node);
+    }}
+    // Fetch fresh overview/genres for search results when needed.
+    if(!x.description||!x.genre||x.genre==='Movie'||x.genre==='TV Show')request({type:x.tmdbType,id:String(x.tmdbId)}).then(data=>{
+      if(!data.item)return;upsert(data.item);
+      const el=document.querySelector('#overlay .modal .shelfie-tmdb-overview');if(el)el.innerHTML='<b>About ♡</b><p>'+esc(x.description)+'</p>';
+    }).catch(()=>{});
+  };
+})();
+</script>
+
 </body></html>
