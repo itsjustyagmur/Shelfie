@@ -3045,5 +3045,180 @@ function shelfieUsernameFromEmail(email) {
 })();
 </script>
 
+
+<style>
+.shelfie-poll {
+  background:#302138;
+  border:1px solid #875a83;
+  border-radius:17px;
+  padding:15px;
+  margin:14px 0;
+}
+.shelfie-poll h3 {
+  color:#ffe5f5;
+  margin:0 0 12px;
+}
+.shelfie-poll-choice {
+  display:block;
+  width:100%;
+  background:#442b48;
+  color:#ffe5f5;
+  border:1px solid #875a83;
+  border-radius:11px;
+  padding:12px;
+  margin:8px 0;
+  text-align:left;
+}
+.shelfie-poll-choice.selected {
+  background:#e99cd1;
+  color:#291427;
+  font-weight:750;
+}
+</style>
+
+<script>
+(function () {
+  const oldRender = render;
+
+  function activeGroup() {
+    const id = sessionStorage.getItem('shelfie-open-group');
+    return (state.groups || []).find(
+      g => String(g.id) === String(id)
+    );
+  }
+
+  function pollHTML(group) {
+    return (group.polls || []).map(poll => `
+      <div class="shelfie-poll">
+        <div class="eyebrow">♡ BOOK CLUB POLL</div>
+        <h3>${esc(poll.question)}</h3>
+        ${poll.options.map((option, index) => `
+          <button class="shelfie-poll-choice
+            ${poll.votes?.[cloudUser?.id || 'guest'] === index
+              ? 'selected' : ''}"
+            onclick="shelfieVotePoll('${poll.id}',${index})">
+            ${esc(option)}
+            ${poll.votes?.[cloudUser?.id || 'guest'] === index
+              ? ' ✓' : ''}
+          </button>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function addPollsToGroup() {
+    const group = activeGroup();
+    const content = document.getElementById(
+      'shelfie-group-chat-content'
+    );
+    if (!group || !content) return;
+
+    content.querySelector('#shelfie-polls-area')?.remove();
+    content.querySelector('#shelfie-create-poll')?.remove();
+
+    const area = document.createElement('div');
+    area.id = 'shelfie-polls-area';
+    area.innerHTML = pollHTML(group);
+
+    const button = document.createElement('button');
+    button.id = 'shelfie-create-poll';
+    button.className = 'shelfie-book-button';
+    button.textContent = '＋ Create Book Club Poll ♡';
+    button.onclick = () => window.shelfieCreatePoll();
+
+    content.prepend(area);
+    content.prepend(button);
+  }
+
+  window.shelfieCreatePoll = function () {
+    const group = activeGroup();
+    if (!group) return;
+
+    modal('Create a Book Club Poll ♡', `
+      <form onsubmit="shelfieSavePoll(event)">
+        <div class="field">
+          <label>Poll question</label>
+          <input id="pollQuestion" required maxlength="120"
+            value="What should we read next?">
+        </div>
+
+        ${[1,2,3,4].map(n => `
+          <div class="field">
+            <label>Book option ${n}</label>
+            <input class="pollOption" maxlength="120"
+              placeholder="Book title ${n}"
+              ${n <= 2 ? 'required' : ''}>
+          </div>
+        `).join('')}
+
+        <button class="primary full" type="submit">
+          Create Poll ♡
+        </button>
+      </form>
+    `);
+  };
+
+  window.shelfieSavePoll = function (event) {
+    event.preventDefault();
+
+    const group = activeGroup();
+    if (!group) return;
+
+    const question =
+      document.getElementById('pollQuestion').value.trim();
+
+    const options = [...document.querySelectorAll('.pollOption')]
+      .map(input => input.value.trim())
+      .filter(Boolean);
+
+    if (options.length < 2) {
+      toast('Add at least two books ♡');
+      return;
+    }
+
+    group.polls ||= [];
+    group.polls.push({
+      id:'poll_' + Date.now(),
+      question,
+      options,
+      votes:{}
+    });
+
+    save();
+    closeModal();
+    addPollsToGroup();
+    toast('Poll created! ♡');
+  };
+
+  window.shelfieVotePoll = function (pollId, index) {
+    const group = activeGroup();
+    const poll = group?.polls?.find(p => p.id === pollId);
+    if (!poll) return;
+
+    poll.votes ||= {};
+    poll.votes[cloudUser?.id || 'guest'] = index;
+
+    save();
+    addPollsToGroup();
+    toast('Your vote was saved ♡');
+  };
+
+  render = function () {
+    oldRender();
+    addPollsToGroup();
+  };
+
+  const oldOpenGroup = openGroup;
+
+  openGroup = function (id) {
+    oldOpenGroup(id);
+    addPollsToGroup();
+  };
+
+  addPollsToGroup();
+})();
+</script>
+
+ 
  
 </body></html>
