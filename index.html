@@ -3650,21 +3650,40 @@ function shelfieUsernameFromEmail(email) {
 <script>
 (function () {
   let sharedGroups = [];
+async function loadSharedGroups() {
+  if (!cloud || !cloudUser) return;
 
-  async function loadSharedGroups() {
-    if (!cloud || !cloudUser) return;
+  const { data: memberships, error: memberError } = await cloud
+    .from('shelfie_group_members')
+    .select('group_id')
+    .eq('user_id', cloudUser.id);
 
-    const { data, error } = await cloud
-      .from('shelfie_groups')
-      .select('*')
-      .order('created_at', { ascending: false });
+  if (memberError) {
+    console.error('Shelfie memberships:', memberError.message);
+    return;
+  }
 
-    if (error) {
-      console.error('Shelfie groups:', error.message);
-      return;
-    }
+  const groupIds = (memberships || []).map(m => m.group_id);
 
-    sharedGroups = data || [];
+  if (!groupIds.length) {
+    sharedGroups = [];
+    if (tab === 'Groups') render();
+    return;
+  }
+
+  const { data, error } = await cloud
+    .from('shelfie_groups')
+    .select('*')
+    .in('id', groupIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Shelfie groups:', error.message);
+    return;
+  }
+
+  sharedGroups = data || [];
+ 
     if (tab === 'Groups') render();
   }
 
