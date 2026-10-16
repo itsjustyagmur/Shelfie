@@ -6587,7 +6587,7 @@ window.shelfieDiscoverGroups = async function() {
 
       const status = statuses.get(String(r.title_id));
       const stars = Math.max(0,Math.min(5,Number(r.stars)||0));
-      const showTBR = book && status !== 'read';
+      const showTBR = false; // Own ratings never display a TBR action
 
       return `
         <div class="shelfie-rating-row">
@@ -6740,7 +6740,20 @@ window.shelfieDiscoverGroups = async function() {
 
         if (cloudUser?.id !== uid) return;
 
-        modal('My Ratings ♡',ratingList(ratings,library));
+        modal('My Ratings ♡', `
+          <input class="searchbox" id="shelfieRatingsSearch"
+            type="search" autocomplete="off"
+            aria-label="Search my ratings"
+            placeholder="⌕ Search titles or authors..."
+            style="margin:0 0 15px"
+            oninput="shelfieFilterRatings(this.value)">
+          <div id="shelfieRatingsResults">
+            ${ratingList(ratings,library)}
+          </div>
+          <p id="shelfieRatingsNoResults" class="empty" hidden>
+            No matching ratings found ♡
+          </p>
+        `);
       }
     } catch(error) {
       modal('Shelfie ♡',
@@ -7815,4 +7828,35 @@ window.shelfieDiscoverGroups = async function() {
 
 
   
+
+<!-- SHELFIE · My Ratings search and compact author/star layout -->
+<style>
+#shelfieRatingsResults .shelfie-rating-author,
+#shelfieRatingsResults .shelfie-rating-stars {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 5px;
+}
+#shelfieRatingsResults .shelfie-rating-author { margin-right: 10px; }
+#shelfieRatingsResults .shelfie-rating-stars { white-space: nowrap; }
+#shelfieRatingsNoResults[hidden] { display: none !important; }
+</style>
+<script>
+window.shelfieFilterRatings = function(query) {
+  const needle = String(query || '').trim().toLocaleLowerCase();
+  const rows = document.querySelectorAll('#shelfieRatingsResults .shelfie-rating-row');
+  let shown = 0;
+  rows.forEach(row => {
+    const title = row.querySelector('.shelfie-rating-title')?.textContent || '';
+    const author = row.querySelector('.shelfie-rating-author')?.textContent || '';
+    const match = (title + ' ' + author).toLocaleLowerCase().includes(needle);
+    row.hidden = !match;
+    row.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  const empty = document.getElementById('shelfieRatingsNoResults');
+  if (empty) empty.hidden = shown > 0;
+};
+</script>
+
 </body></html>
