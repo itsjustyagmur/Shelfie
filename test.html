@@ -4356,7 +4356,21 @@ window.shelfieOpenNotifications = async function() {
     bell.style.display = 'flex';
     bell.style.alignItems = 'center';
     bell.style.justifyContent = 'center';
-    document.body.appendChild(bell);
+    // Keep notifications in the header, directly before Settings.
+    const header = document.querySelector('.header-right');
+    const settings = document.getElementById('shelfieSettings');
+    if (header) {
+      header.classList.add('shelfie-header-actions');
+      header.insertBefore(bell, settings && settings.parentElement === header ? settings : null);
+      bell.style.position = 'static';
+      bell.style.top = 'auto';
+      bell.style.right = 'auto';
+      bell.style.zIndex = 'auto';
+      bell.style.borderRadius = '14px';
+      bell.style.boxShadow = 'none';
+    } else {
+      document.body.appendChild(bell);
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -4431,7 +4445,7 @@ window.shelfieOpenNotifications = async function() {
     const parent = settings.parentElement;
     parent.classList.add('shelfie-header-actions');
 
-    parent.appendChild(bell);
+    parent.insertBefore(bell, settings);
 
   }
 
@@ -4481,6 +4495,13 @@ window.shelfieOpenNotifications = async function() {
   }
 
   makeBellPink();
+  const bell = document.getElementById('shelfie-notification-bell');
+  const header = document.querySelector('.header-right');
+  const settings = document.getElementById('shelfieSettings');
+  if (bell && header) {
+    header.insertBefore(bell, settings && settings.parentElement === header ? settings : null);
+    header.classList.add('shelfie-header-actions');
+  }
 })();
 </script>
 
@@ -5759,7 +5780,7 @@ window.shelfieDiscoverGroups = async function() {
         })[e.event_type] || '✦ Shelfie activity',
         title: e.title || 'Shelfie',
         details: e.details || '',
-        date: e.created_at,
+        date: e.occurred_at || e.created_at,
         targetType: e.target_type || (e.event_type?.startsWith('group_') ? 'group' : e.event_type === 'status' ? 'profile' : 'title'),
         targetId: e.target_id || null,
         metadata: e.metadata || {}
@@ -5907,10 +5928,10 @@ window.shelfieDiscoverGroups = async function() {
       if (book) { openDetail(titleId); return; }
       if (typeof window.shelfieOpenRatedBook === 'function' &&
           (entry.mediaType === 'book' || titleId.startsWith('openlibrary_'))) {
-        window.shelfieOpenRatedBook(titleId, entry.title); return;
+        window.shelfieOpenRatedBook(titleId, entry.title.replace(/^(?:Rated|Reviewed|Marked|Added)\s+/i, '').replace(/\s+to\s+(?:TBR|Watchlist)$/i, '')); return;
       }
       if (titleId && typeof window.shelfieOpenRatedBook === 'function') {
-        window.shelfieOpenRatedBook(titleId, entry.title); return;
+        window.shelfieOpenRatedBook(titleId, entry.title.replace(/^(?:Rated|Reviewed|Marked|Added)\s+/i, '').replace(/\s+to\s+(?:TBR|Watchlist)$/i, '')); return;
       }
       go('Search'); search = entry.title.replace(/^Rated\s+/i,'');
       const input = document.getElementById('searchInput');
