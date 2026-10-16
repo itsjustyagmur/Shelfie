@@ -4096,5 +4096,47 @@ window.shelfieOpenNotifications = async function() {
   modal('Notifications ♡', content);
 };
 </script>
+
+ <script>
+(function () {
+  function addNotificationBell() {
+    if (document.getElementById('shelfie-notification-bell')) return;
+
+    const bell = document.createElement('button');
+    bell.id = 'shelfie-notification-bell';
+    bell.innerHTML = '♧';
+    bell.setAttribute('aria-label', 'Open notifications');
+    bell.innerHTML = '🔔';
+
+    bell.style.cssText = `
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 14px);
+      right: 16px;
+      z-index: 999;
+      width: 43px;
+      height: 43px;
+      border-radius: 50%;
+      background: #39203F;
+      border: 1px solid #E99AD2;
+      color: #E99AD2;
+      font-size: 21px;
+      cursor: pointer;
+      box-shadow: 0 3px 12px #0005;
+    `;
+
+    bell.onclick = function () {
+      shelfieOpenNotifications();
+    };
+
+    document.body.appendChild(bell);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addNotificationBell);
+  } else {
+    addNotificationBell();
+  }
+})();
+</script>
  
 </body></html>
