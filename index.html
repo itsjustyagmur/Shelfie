@@ -3647,6 +3647,86 @@ function shelfieUsernameFromEmail(email) {
   padding-right: 48px !important;
 }
 </style>
+<script>
+(function () {
+  let sharedGroups = [];
 
+  async function loadSharedGroups() {
+    if (!cloud || !cloudUser) return;
+
+    const { data, error } = await cloud
+      .from('shelfie_groups')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Shelfie groups:', error.message);
+      return;
+    }
+
+    sharedGroups = data || [];
+    if (tab === 'Groups') render();
+  }
+
+  const previousGroupsPage = groupsPage;
+
+  groupsPage = function () {
+    const html = previousGroupsPage();
+
+    if (!sharedGroups.length) return html;
+
+    const cards = sharedGroups.map(group => `
+      <button class="shelfie-book-button"
+        style="margin:10px 0;text-align:left"
+        onclick="shelfieOpenSharedGroup('${group.id}')">
+        <strong>♧ ${esc(group.name)}</strong>
+        <div class="muted" style="margin-top:5px">
+          ${group.visibility === 'private'
+            ? '🔒 Private group'
+            : '♡ Public group'}
+        </div>
+      </button>
+    `).join('');
+
+    return html + `
+      <section class="shelfie-profile-section">
+        <h2>♡ Shared Groups</h2>
+        ${cards}
+      </section>
+    `;
+  };
+
+  window.shelfieOpenSharedGroup = function (id) {
+    const group = sharedGroups.find(g => g.id === id);
+    if (!group) return;
+
+    modal(esc(group.name) + ' ♡', `
+      <p class="muted">${esc(group.description || '')}</p>
+      <p>${group.visibility === 'private'
+        ? '🔒 Private group'
+        : '♡ Public group'}</p>
+      <p class="muted">
+        Shared group chat is coming in the next step ♡
+      </p>
+    `);
+  };
+
+  const previousSaveGroup = window.shelfieSaveCloudGroup;
+
+  window.shelfieSaveCloudGroup = async function () {
+    await previousSaveGroup();
+    await loadSharedGroups();
+  };
+
+  const previousRefresh = refreshCloud;
+
+  refreshCloud = async function () {
+    await previousRefresh();
+    await loadSharedGroups();
+  };
+
+  loadSharedGroups();
+})();
+</script>
  
 </body></html>
