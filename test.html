@@ -8330,7 +8330,7 @@ window.shelfieFilterRatings = function(query) {
  'use strict';
  const cache=new Map(), queue=[];
  let running=0;
- const fallback=/placehold\.co|text=Shelfie|\/undefined-|\/null-|\/0-M\./i;
+ const fallback=/placehold\.co|text=Shelfie|\/undefined-|\/null-|\/0-M\.|\/0-L\./i;
  const clean=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/\([^)]*\)/g,' ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
  const mainTitle=s=>clean(String(s||'').split(/\s+\((?:[^)]*series|book\s*\d|part\s*\d)/i)[0]);
  const valid=(url)=>typeof url==='string'&&/^https:\/\//.test(url)&&!fallback.test(url);
@@ -8358,7 +8358,7 @@ window.shelfieFilterRatings = function(query) {
        const response=await fetch(url,{signal:AbortSignal.timeout(8500)});
        if(!response.ok)continue;
        const data=await response.json();
-       const doc=(data.docs||[]).find(d=>d.cover_i&&matches(d.title,title)&&(!author||!(d.author_name||[]).length||(d.author_name||[]).some(n=>clean(n).split(' ').some(part=>part.length>3&&clean(author).includes(part)))));
+       const doc=(data.docs||[]).find(d=>d.cover_i&&matches(d.title,title)&&(!author||!(d.author_name||[]).length||(d.author_name||[]).some(n=>clean(n).split(' ').some(part=>part.length>3&&clean(author).split(' ').includes(part)))));
        if(doc){if(!book.author&&doc.author_name?.length)book.author=doc.author_name.join(', ');if(!book.year&&doc.first_publish_year)book.year=String(doc.first_publish_year);if(!book.workKey&&doc.key)book.workKey=doc.key;if(!book.description&&typeof doc.first_sentence==='string')book.description=doc.first_sentence;return 'https://covers.openlibrary.org/b/id/'+doc.cover_i+'-L.jpg';}
      }catch(e){}
    }
@@ -8378,6 +8378,7 @@ window.shelfieFilterRatings = function(query) {
    const id=String(book.id||'');
    if(!id.startsWith('goodreads_'))return Promise.resolve('');
    if(!cache.has(id)){
+     try { const saved=JSON.parse(sessionStorage.getItem('shelfie-cover-v3-'+id)||'null');if(saved?.url){book.cover=saved.url;return Promise.resolve(saved.url)} }catch(e){}
      let resolve;
      const promise=new Promise(r=>resolve=r);
      cache.set(id,promise);
@@ -8389,7 +8390,7 @@ window.shelfieFilterRatings = function(query) {
    while(running<3&&queue.length){
      const task=queue.shift();running++;
      findCover(task.book).then(url=>{
-       if(url){task.book.cover=url;task.book.fallback ||= url;}
+       if(url){task.book.cover=url;task.book.fallback ||= url;try{sessionStorage.setItem('shelfie-cover-v3-'+task.book.id,JSON.stringify({url}))}catch(e){}}
        task.resolve(url);
      }).catch(()=>task.resolve('')).finally(()=>{running--;pump()});
    }
@@ -8420,12 +8421,12 @@ window.shelfieFilterRatings = function(query) {
      };
      img.addEventListener('error',repair,{once:true});
      img.addEventListener('load',()=>{if(fallback.test(img.currentSrc||img.src))repair()},{once:true});
-     if(fallback.test(existing)||!existing)repair();
+     if(fallback.test(existing)||!existing||existing.includes('covers.openlibrary.org/b/isbn/'))repair();
      else if(img.complete&&img.naturalWidth<5)repair();
      else img.addEventListener('load',()=>{if(img.naturalWidth<5||img.naturalHeight<5)repair()},{once:true});
    });
  }
- const observer=new MutationObserver(()=>{scan()});
+ let scheduled=false;const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;scan()})});
  function start(){if(!document.body)return;observer.observe(document.body,{subtree:true,childList:true});scan()}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
