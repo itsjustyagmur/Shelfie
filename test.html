@@ -8312,17 +8312,26 @@ window.shelfieFilterRatings = function(query) {
 <!-- Shelfie shared weekly featured-book rotation (ISO week, same for all visitors). -->
 <script>
 window.shelfieWeeklyBooks=function(items,limit){
- const now=new Date(),d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
+ const now=new Date(), current=now.getFullYear();
+ const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
- const y=d.getUTCFullYear(),week=Math.ceil((((d-new Date(Date.UTC(y,0,1)))/86400000)+1)/7);
- const seed=y*53+week,seen=new Set();
- const pool=(items||[]).filter(x=>x&&x.title&&(x.cover_i||x.cover)).filter(x=>{
+ const isoYear=d.getUTCFullYear();
+ const week=Math.ceil((((d-new Date(Date.UTC(isoYear,0,1)))/86400000)+1)/7);
+ const seed=isoYear*53+week,seen=new Set();
+ // Filter AFTER Google Books / Open Library returns results. An old edition,
+ // classic, or undated book must never enter the weekly featured pool.
+ const pool=(items||[]).filter(x=>{
+  if(!x||!x.title||!(x.cover_i||x.cover))return false;
+  const year=Number(x.first_publish_year||x.year);
+  if(!Number.isInteger(year)||year<current-1||year>current)return false;
   const name=String(x.title).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
   if(!name||seen.has(name)||/box set|boxed set|bundle|collection|omnibus/i.test(name))return false;
   seen.add(name);return true;
  });
  const hash=x=>{let h=(seed^0x811c9dc5)>>>0;for(const c of String(x.key||x.id||x.title)){h=Math.imul(h^c.charCodeAt(0),16777619)>>>0}return h};
- pool.sort((a,b)=>hash(a)-hash(b));return pool.slice(0,limit||12);
+ // New releases first; the weekly seed changes the order within each year.
+ pool.sort((a,b)=>Number(b.first_publish_year||b.year)-Number(a.first_publish_year||a.year)||hash(a)-hash(b));
+ return pool.slice(0,limit||12);
 };
 </script>
 <!-- Shelfie dynamic API featured discovery: replaces static search suggestions -->
