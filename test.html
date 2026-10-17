@@ -66,12 +66,36 @@ try {
    const cacheKey=JSON.stringify(info),hit=requestCache.get(cacheKey);
    if(hit&&Date.now()-hit.at<10*60*1000)return hit.docs;
    let volumes=[],googleFailure=null;
-   const queries=info.year?[info.query,'subject:fiction','subject:romance']: [info.query];
+   // For featured shelves, query actual recent releases instead of taking the
+   // first page of timeless fiction and then discarding every old title.
+   if(info.year){
+     const earliest=info.year-1;
+     const recent=[];
+     for(const subject of ['fiction','romance','fantasy','thriller','mystery']){
+       try{
+         const params=new URLSearchParams({q:`first_publish_year:[${earliest} TO ${info.year}] AND subject:${subject}`,fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'40',sort:'new'});
+         const r=await nativeFetch('https://openlibrary.org/search.json?'+params);
+         if(!r.ok)throw Error('Open Library HTTP '+r.status);
+         const data=await r.json();recent.push(...(data.docs||[]));
+       }catch(e){console.warn('Shelfie recent releases search:',e)}
+     }
+     const seenRecent=new Set();
+     const docs=recent.filter(d=>{
+       const y=Number(d.first_publish_year),key=String(d.title||'').toLowerCase().trim();
+       if(!d.key||!d.cover_i||!key||seenRecent.has(key)||y<earliest||y>info.year)return false;
+       seenRecent.add(key);return true;
+     });
+     // An explicit empty result is preferable to displaying classics as new.
+     if(docs.length){requestCache.set(cacheKey,{at:Date.now(),docs});return docs}
+   }
+   const queries=info.year
+     ? [`subject:fiction after:${info.year-1}-01-01`,`subject:romance after:${info.year-1}-01-01`,`subject:fantasy after:${info.year-1}-01-01`]
+     : [info.query];
    for(const q of [...new Set(queries)]){
      try{
        const found=await google(q,{newest:!!info.year,maxResults:40});
        volumes.push(...found);
-       if(volumes.length>=25)break;
+       if(!info.year&&volumes.length>=25)break;
      }catch(e){googleFailure=e;console.warn('Shelfie Google Books request failed:',e);break}
    }
    const seen=new Set();
@@ -80,10 +104,11 @@ try {
      if(!k||!d.cover_i||seen.has(k))return false;
      seen.add(k);return true;
    });
+   if(info.year)docs=docs.filter(d=>Number(d.first_publish_year)>=info.year-1&&Number(d.first_publish_year)<=info.year);
    // The public Google Books endpoint can return 403/429 or omit covers.
    // Use the real Open Library API as a fallback, rather than silently showing
    // empty shelves. Existing Open Library IDs are preserved.
-   if(docs.length<6){
+   if(docs.length<6&&!info.year){
      try{
        const params=new URLSearchParams({q:info.year?'subject:fiction':(info.subject?'subject:'+info.subject:info.query),fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'40'});
        const r=await nativeFetch('https://openlibrary.org/search.json?'+params);
