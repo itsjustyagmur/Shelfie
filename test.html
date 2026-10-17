@@ -8578,4 +8578,57 @@ window.openAdd=function(){
   };
 })();
 </script>
+
+<!-- Shelfie Explore: full-width categories and API-powered genre discovery -->
+<style>
+#screen .chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:100%;overflow:visible;padding:4px 0 12px}
+#screen .chips .chip{min-width:0;width:100%;padding:11px 3px;text-align:center;font-size:clamp(12px,3.5vw,16px)}
+.shelfie-genre-bar{margin:2px 0 18px;display:flex;align-items:center;gap:10px}
+.shelfie-genre-bar label{font-weight:750;color:#f0b0dd;white-space:nowrap}
+.shelfie-genre-bar select{flex:1;min-width:0;width:auto;border:1px solid #795076;border-radius:13px;background:#29202f;color:#fbe5f6;padding:12px}
+.shelfie-genre-message{grid-column:1/-1;color:#cbb0cc;padding:16px 4px}
+</style>
+<script>
+(function(){
+ 'use strict';
+ const genres=['Fantasy','Romance','Thriller','Mystery','Horror','Science Fiction','Adventure','Action','Comedy','Drama','Crime','Historical Fiction','Young Adult','Animation','Documentary'];
+ const subject={Fantasy:'fantasy',Romance:'romance',Thriller:'thrillers',Mystery:'mystery',Horror:'horror', 'Science Fiction':'science_fiction',Adventure:'adventure',Action:'action',Comedy:'humor',Drama:'drama',Crime:'crime','Historical Fiction':'historical_fiction','Young Adult':'young_adult_fiction',Animation:'animation',Documentary:'nonfiction'};
+ const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
+ let chosen='',generation=0;
+ const oldPage=searchPage,oldUpdate=updateResults;
+ const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function insert(){
+   if(tab!=='Search')return;
+   const chips=document.querySelector('#screen .chips');if(!chips)return;
+   let bar=document.getElementById('shelfieGenreBar');
+   if(!bar){bar=document.createElement('div');bar.className='shelfie-genre-bar';bar.id='shelfieGenreBar';chips.insertAdjacentElement('afterend',bar)}
+   bar.innerHTML='<label for="shelfieGenre">Genre</label><select id="shelfieGenre"><option value="">All genres</option>'+genres.map(g=>'<option value="'+safe(g)+'"'+(chosen===g?' selected':'')+'>'+safe(g)+'</option>').join('')+'</select>';
+   bar.querySelector('select').addEventListener('change',e=>{chosen=e.target.value;updateResults()});
+ }
+ function add(obj){const existing=item(obj.id);if(existing)Object.assign(existing,obj);else catalog.push(obj);return existing||obj}
+ async function bookGenre(g){
+   const url='https://openlibrary.org/subjects/'+subject[g]+'.json?limit=36';
+   const r=await fetch(url);if(!r.ok)throw Error('Books unavailable');const d=await r.json();
+   const seen=new Set();return (d.works||[]).filter(w=>w.key&&w.title&&w.cover_id).filter(w=>{const t=w.title.toLowerCase();if(seen.has(t))return false;seen.add(t);return true}).slice(0,18).map(w=>add({id:'openlibrary_'+w.key.split('/').pop(),title:w.title,type:'Book',author:(w.authors||[]).map(a=>a.name).join(', '),year:String(w.first_publish_year||''),genre:g,workKey:w.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+w.cover_id+'-M.jpg',fallback}));
+ }
+ async function mediaGenre(g,type){
+   const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
+   const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});if(!r.ok)throw Error('Movies and shows unavailable');const d=await r.json();
+   const term=g.toLowerCase(),aliases={'Science Fiction':['sci-fi','science fiction'],'Thriller':['thriller','suspense'],'Young Adult':['family','teen'],'Historical Fiction':['history','historical'],'Adventure':['adventure'],'Animation':['animation']};
+   return (d.results||[]).filter(x=>x.poster&&(x.genres||[]).some(name=>[term,...(aliases[g]||[])].some(word=>String(name).toLowerCase().includes(word)))).slice(0,18).map(x=>add({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', '),description:x.description||'',cover:x.poster,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''}));
+ }
+ async function discover(){
+   const seq=++generation,kind=filter,g=chosen,el=document.getElementById('results');if(!el)return;
+   el.innerHTML='<div class="shelfie-genre-message">Finding '+safe(g.toLowerCase())+' favorites ✨</div>';
+   const categories=kind==='All'?['Books','Movies','Shows']:[kind];
+   const results=await Promise.allSettled(categories.map(k=>k==='Books'?bookGenre(g):mediaGenre(g,k==='Movies'?'movie':'tv')));
+   if(seq!==generation||tab!=='Search'||filter!==kind||chosen!==g||search.trim())return;
+   el.innerHTML=results.map((r,i)=>'<div class="shelfie-featured-head">'+(categories[i]==='Books'?'📖 Books':categories[i]==='Movies'?'🎬 Movies':'📺 Shows')+' · '+safe(g)+'</div>'+(r.status==='fulfilled'?(r.value.length?r.value.map(coverCard).join(''):'<div class="shelfie-genre-message">No matching featured titles right now ♡</div>'):'<div class="shelfie-genre-message">Could not load this category right now ♡</div>')).join('');
+ }
+ searchPage=function(){const html=oldPage();setTimeout(insert,0);return html};
+ updateResults=function(){++generation;if(chosen&&!search.trim()){const chips=document.querySelector('#screen .chips');if(chips)chips.innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');insert();discover();return}oldUpdate();insert()};
+ const oldGo=go;go=function(page){if(page!=='Search')chosen='';return oldGo.apply(this,arguments)};
+ setTimeout(insert,100);
+})();
+</script>
 </body></html>
