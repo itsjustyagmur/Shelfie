@@ -8323,4 +8323,109 @@ window.shelfieFilterRatings = function(query) {
   };
 })();
 </script>
+
+<!-- Shelfie · API cover repair for Goodreads imports (books only) -->
+<script>
+(function(){
+ 'use strict';
+ const cache=new Map(), queue=[];
+ let running=0;
+ const fallback=/placehold\.co|text=Shelfie|\/undefined-|\/null-|\/0-M\./i;
+ const clean=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/\([^)]*\)/g,' ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+ const mainTitle=s=>clean(String(s||'').split(/\s+\((?:[^)]*series|book\s*\d|part\s*\d)/i)[0]);
+ const valid=(url)=>typeof url==='string'&&/^https:\/\//.test(url)&&!fallback.test(url);
+ function candidates(title,author){
+   const a=mainTitle(title), b=mainTitle(author);
+   return {a,b};
+ }
+ function matches(found,want){
+   const a=mainTitle(found),b=mainTitle(want);
+   return !!a&&!!b&&(a===b||(a.length>8&&b.startsWith(a+' '))||(b.length>8&&a.startsWith(b+' ')));
+ }
+ async function findCover(book){
+   const title=String(book.title||'').trim(), author=String(book.author||'').trim();
+   if(!title)return '';
+   const id=String(book.id||'');
+   const isbn=id.startsWith('goodreads_isbn_')?id.slice('goodreads_isbn_'.length):'';
+   // ISBN searches are more precise than relying on the image URL alone.
+   const queries=[];
+   if(isbn)queries.push({isbn});
+   queries.push({title, ...(author?{author}:{})});
+   if(author)queries.push({title});
+   for(const q of queries){
+     try{
+       const url='https://openlibrary.org/search.json?'+new URLSearchParams({...q,fields:'title,author_name,cover_i,isbn,edition_key',limit:'12'});
+       const response=await fetch(url,{signal:AbortSignal.timeout(8500)});
+       if(!response.ok)continue;
+       const data=await response.json();
+       const doc=(data.docs||[]).find(d=>d.cover_i&&matches(d.title,title)&&(!author||!(d.author_name||[]).length||(d.author_name||[]).some(n=>clean(n).split(' ').some(part=>part.length>3&&clean(author).includes(part)))));
+       if(doc)return 'https://covers.openlibrary.org/b/id/'+doc.cover_i+'-L.jpg';
+     }catch(e){}
+   }
+   try{
+     const query='intitle:'+title+(author?' inauthor:'+author:'');
+     const url='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({q:query,maxResults:'12',printType:'books'});
+     const response=await fetch(url,{signal:AbortSignal.timeout(8500)});
+     if(response.ok){
+       const data=await response.json();
+       const entry=(data.items||[]).find(x=>matches(x.volumeInfo?.title,title)&&x.volumeInfo?.imageLinks?.thumbnail);
+       if(entry){const img=entry.volumeInfo.imageLinks.thumbnail.replace(/^http:/,'https:');if(valid(img))return img.replace(/zoom=\d+/,'zoom=2');}
+     }
+   }catch(e){}
+   return '';
+ }
+ function schedule(book){
+   const id=String(book.id||'');
+   if(!id.startsWith('goodreads_'))return Promise.resolve('');
+   if(!cache.has(id)){
+     let resolve;
+     const promise=new Promise(r=>resolve=r);
+     cache.set(id,promise);
+     queue.push({book,resolve});pump();
+   }
+   return cache.get(id);
+ }
+ function pump(){
+   while(running<3&&queue.length){
+     const task=queue.shift();running++;
+     findCover(task.book).then(url=>{
+       if(url){task.book.cover=url;task.book.fallback ||= url;}
+       task.resolve(url);
+     }).catch(()=>task.resolve('')).finally(()=>{running--;pump()});
+   }
+ }
+ function imageFor(img){
+   const card=img.closest('[data-finished-id],.shelfie-read-book');
+   if(!card)return null;
+   const id=card.getAttribute('data-finished-id')||card.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/)?.[1];
+   if(!id||!id.startsWith('goodreads_'))return null;
+   return item(id);
+ }
+ function scan(){
+   document.querySelectorAll('.shelfie-finished-grid img,.shelfie-read-grid img').forEach(img=>{
+     if(img.dataset.shelfieCoverRepair)return;
+     const book=imageFor(img);
+     if(!book)return;
+     img.dataset.shelfieCoverRepair='1';
+     const existing=img.getAttribute('src')||'';
+     // Retain covers that are already working; only look up failures and placeholders.
+     const repair=()=>{
+       if(img.dataset.shelfieCoverResolved)return;
+       schedule(book).then(url=>{
+         if(!url||!img.isConnected)return;
+         img.dataset.shelfieCoverResolved='1';
+         img.onerror=()=>{img.onerror=null;img.src='https://placehold.co/180x270/38213f/f8b5e4?text=Shelfie'};
+         img.src=url;
+       });
+     };
+     img.addEventListener('error',repair,{once:true});
+     if(fallback.test(existing)||!existing)repair();
+     else if(img.complete&&img.naturalWidth===0)repair();
+   });
+ }
+ const observer=new MutationObserver(()=>{scan()});
+ function start(){if(!document.body)return;observer.observe(document.body,{subtree:true,childList:true});scan()}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
 </body></html>
