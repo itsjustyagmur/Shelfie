@@ -8312,7 +8312,7 @@ window.shelfieFilterRatings = function(query) {
  async function tmdb(type){
   const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
   const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
-  const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB featured titles unavailable');return (d.results||[]).filter(x=>x.poster).slice(0,12).map(tmdbObj)
+  const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB featured titles unavailable');return (type==='tv'?window.shelfieFreshShows(d.results,12):(d.results||[]).filter(x=>x.poster).slice(0,12)).map(tmdbObj)
  }
  function get(key){if(cached[key]&&Date.now()-cached[key].time<3600000)return Promise.resolve(cached[key].items);if(running[key])return running[key];running[key]=(key==='Books'?books():tmdb(key==='Movies'?'movie':'tv')).then(items=>{cached[key]={items,time:Date.now()};return items}).finally(()=>delete running[key]);return running[key]}
  function label(k){return k==='Books'?'📖 Featured books':k==='Movies'?'🎬 Featured movies':'📺 Featured shows'}
@@ -8330,6 +8330,17 @@ window.shelfieFilterRatings = function(query) {
 })();
 </script>
 
+<!-- Shelfie: prioritize newly premiered series, while retaining popular favorites -->
+<script>
+window.shelfieFreshShows=function(results,limit){
+ const year=new Date().getFullYear(), seen=new Set();
+ return (results||[]).filter(x=>x&&x.poster).sort((a,b)=>{
+   const ay=Number(String(a.year||a.first_air_date||'').slice(0,4)),by=Number(String(b.year||b.first_air_date||'').slice(0,4));
+   const rank=y=>y===year?0:y===year-1?1:y>0?2:3;
+   return rank(ay)-rank(by)||(rank(ay)<=1?by-ay:0);
+ }).filter(x=>{const key=String(x.id||x.title);if(seen.has(key))return false;seen.add(key);return true}).slice(0,limit);
+};
+</script>
 <!-- Shelfie: API-powered Home discovery, matching Explore -->
 <style>
 #shelfieHomeFresh{min-height:90px}
@@ -8348,7 +8359,7 @@ window.shelfieFilterRatings = function(query) {
  function book(x){return store({id:'openlibrary_'+String(x.key).split('/').pop(),title:x.title,type:'Book',year:String(x.first_publish_year||''),genre:'Book',author:(x.author_name||[]).join(', '),workKey:x.key,description:'',cover:(window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback})}
  function media(x){return store({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', ')||'Entertainment',description:x.description||'',cover:x.poster||fallback,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''})}
  async function fetchBooks(){const y=new Date().getFullYear();const url='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(y-1)+' TO '+y+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'80'});const r=await fetch(url);if(!r.ok)throw Error('Books unavailable');const d=await r.json(),seen=new Set();return(d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i&&Number(x.first_publish_year)>=y-1&&Number(x.first_publish_year)<=y).filter(x=>{const t=x.title.toLowerCase().trim();if(seen.has(t)||/box set|bundle|collection|omnibus/i.test(t))return false;seen.add(t);return true}).sort((a,b)=>Number(b.first_publish_year)-Number(a.first_publish_year)||Number(b.edition_count||0)-Number(a.edition_count||0)).slice(0,10).map(book)}
- async function fetchMedia(kind){const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type:kind==='Movies'?'movie':'tv',featured:'1'});const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB unavailable');return(d.results||[]).filter(x=>x.poster).slice(0,10).map(media)}
+ async function fetchMedia(kind){const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type:kind==='Movies'?'movie':'tv',featured:'1'});const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB unavailable');return(kind==='Shows'?window.shelfieFreshShows(d.results,10):(d.results||[]).filter(x=>x.poster).slice(0,10)).map(media)}
  function get(k){if(cache[k]&&Date.now()-cache[k].at<3600000)return Promise.resolve(cache[k].list);if(pending[k])return pending[k];pending[k]=(k==='Books'?fetchBooks():fetchMedia(k)).then(list=>{cache[k]={list,at:Date.now()};return list}).finally(()=>delete pending[k]);return pending[k]}
  function section(k,list){const label=k==='Books'?'📖 Featured books':k==='Movies'?'🎬 Featured movies':'📺 Featured shows';return '<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+label+'</div><div class="shelfie-home-fresh-rail">'+list.map(coverCard).join('')+'</div>'+(list.length?'':'<div class="shelfie-home-fresh-note">No new titles available right now ♡</div>')+'</div>'}
  async function update(){const el=document.getElementById('shelfieHomeFresh');if(!el||tab!=='Home')return;const id=++seq,active=filter,keys=active==='All'?['Books','Movies','Shows']:[active];el.innerHTML='<div class="shelfie-home-fresh-note">Finding fresh favorites ✨</div>';const results=await Promise.allSettled(keys.map(get));if(id!==seq||tab!=='Home'||filter!==active||!document.getElementById('shelfieHomeFresh'))return;el.innerHTML=results.map((r,i)=>r.status==='fulfilled'?section(keys[i],r.value):'<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+(keys[i]==='Books'?'📖 Featured books':keys[i]==='Movies'?'🎬 Featured movies':'📺 Featured shows')+'</div><div class="shelfie-home-fresh-note">Could not load right now. Refresh to try again ♡</div></div>').join('')+(keys.some(k=>k!=='Books')?'<div class="shelfie-tmdb-source">Movie & TV information provided by TMDB. Not endorsed or certified by TMDB.</div>':'')}
@@ -8597,7 +8608,7 @@ async function findFeaturedMedia(type){
  const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
  const response=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
  if(!response.ok)throw Error('Featured titles unavailable');
- const json=await response.json();return(json.results||[]).filter(x=>x.poster).slice(0,8).map(addMedia);
+ const json=await response.json();return(type==='tv'?window.shelfieFreshShows(json.results,8):(json.results||[]).filter(x=>x.poster).slice(0,8)).map(addMedia);
 }
 async function showFeatured(){
  const token=++sequence,target=resultsNode();if(!target)return;
