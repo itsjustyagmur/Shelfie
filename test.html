@@ -8308,4 +8308,31 @@ window.shelfieFilterRatings = function(query) {
 })();
 </script>
 
+<!-- Shelfie: API-powered Home discovery, matching Explore -->
+<style>
+#shelfieHomeFresh{min-height:90px}
+.shelfie-home-fresh-section{margin:12px 0 18px}
+.shelfie-home-fresh-title{font-size:16px;font-weight:800;color:#f4b4de;margin:12px 0}
+.shelfie-home-fresh-rail{display:flex;overflow-x:auto;gap:14px;padding:4px 0 14px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.shelfie-home-fresh-rail>*{flex:0 0 145px;scroll-snap-align:start}
+.shelfie-home-fresh-note{padding:16px 0;color:#d2accb;font-size:14px}
+</style>
+<script>
+(function(){
+ let seq=0, cache={}, pending={};
+ const originalHome=home, originalRender=render;
+ const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
+ function store(x){let found=item(x.id);if(found){Object.assign(found,x);return found}catalog.push(x);return x}
+ function book(x){return store({id:'openlibrary_'+String(x.key).split('/').pop(),title:x.title,type:'Book',year:String(x.first_publish_year||''),genre:'Book',author:(x.author_name||[]).join(', '),workKey:x.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg',fallback})}
+ function media(x){return store({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', ')||'Entertainment',description:x.description||'',cover:x.poster||fallback,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''})}
+ async function fetchBooks(){const y=new Date().getFullYear();const url='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(y-1)+' TO '+y+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'80'});const r=await fetch(url);if(!r.ok)throw Error('Books unavailable');const d=await r.json(),seen=new Set();return(d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i&&Number(x.first_publish_year)>=y-1&&Number(x.first_publish_year)<=y).filter(x=>{const t=x.title.toLowerCase().trim();if(seen.has(t)||/box set|bundle|collection|omnibus/i.test(t))return false;seen.add(t);return true}).sort((a,b)=>Number(b.first_publish_year)-Number(a.first_publish_year)||Number(b.edition_count||0)-Number(a.edition_count||0)).slice(0,10).map(book)}
+ async function fetchMedia(kind){const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type:kind==='Movies'?'movie':'tv',featured:'1'});const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB unavailable');return(d.results||[]).filter(x=>x.poster).slice(0,10).map(media)}
+ function get(k){if(cache[k]&&Date.now()-cache[k].at<3600000)return Promise.resolve(cache[k].list);if(pending[k])return pending[k];pending[k]=(k==='Books'?fetchBooks():fetchMedia(k)).then(list=>{cache[k]={list,at:Date.now()};return list}).finally(()=>delete pending[k]);return pending[k]}
+ function section(k,list){const label=k==='Books'?'📖 New books':k==='Movies'?'🎬 New movies':'📺 New shows';return '<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+label+'</div><div class="shelfie-home-fresh-rail">'+list.map(coverCard).join('')+'</div>'+(list.length?'':'<div class="shelfie-home-fresh-note">No new titles available right now ♡</div>')+'</div>'}
+ async function update(){const el=document.getElementById('shelfieHomeFresh');if(!el||tab!=='Home')return;const id=++seq,active=filter,keys=active==='All'?['Books','Movies','Shows']:[active];el.innerHTML='<div class="shelfie-home-fresh-note">Finding fresh favorites ✨</div>';const results=await Promise.allSettled(keys.map(get));if(id!==seq||tab!=='Home'||filter!==active||!document.getElementById('shelfieHomeFresh'))return;el.innerHTML=results.map((r,i)=>r.status==='fulfilled'?section(keys[i],r.value):'<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+(keys[i]==='Books'?'📖 New books':keys[i]==='Movies'?'🎬 New movies':'📺 New shows')+'</div><div class="shelfie-home-fresh-note">Could not load right now. Refresh to try again ♡</div></div>').join('')+(keys.some(k=>k!=='Books')?'<div class="shelfie-tmdb-source">Movie & TV information provided by TMDB. Not endorsed or certified by TMDB.</div>':'')}
+ home=function(){let html=originalHome();const heading='<div class="sectionhead"><h2>✦ Discover something good</h2>';const start=html.indexOf(heading);if(start<0)return html;const rail=html.indexOf('<div class="coverrail">',start);if(rail<0)return html;const next=html.indexOf('<div class="sectionhead">',rail+1);if(next<0)return html;return html.slice(0,rail)+'<div id="shelfieHomeFresh"><div class="shelfie-home-fresh-note">Finding fresh favorites ✨</div></div>'+html.slice(next)};
+ render=function(){originalRender();if(tab==='Home')update()};
+ setTimeout(()=>{if(tab==='Home')update()},150);
+})();
+</script>
 </body></html>
