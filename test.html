@@ -8651,7 +8651,7 @@ window.shelfieFreshShows=function(results,limit){
  }
  function schedule(book){
    const id=String(book.id||'');
-   if(!id.startsWith('goodreads_'))return Promise.resolve('');
+   if(!id)return Promise.resolve('');
    if(!cache.has(id)){
      try { const saved=JSON.parse(sessionStorage.getItem('shelfie-google-v1-'+id)||'null');if(saved?.url){book.cover=saved.url;return Promise.resolve(saved.url)} }catch(e){}
      let resolve;
@@ -8665,20 +8665,20 @@ window.shelfieFreshShows=function(results,limit){
    while(running<3&&queue.length){
      const task=queue.shift();running++;
      findCover(task.book).then(url=>{
-       if(url){task.book.cover=url;task.book.fallback ||= url;try{sessionStorage.setItem('shelfie-google-v1-'+task.book.id,JSON.stringify({url}))}catch(e){}}
+       if(url){if(!valid(task.book.cover)||fallback.test(task.book.cover))task.book.cover=url;task.book.fallback ||= url;try{sessionStorage.setItem('shelfie-google-v1-'+task.book.id,JSON.stringify({url}))}catch(e){}}
        task.resolve(url);
      }).catch(()=>task.resolve('')).finally(()=>{running--;pump()});
    }
  }
  function imageFor(img){
-   const card=img.closest('[data-finished-id],.shelfie-read-book');
+   const card=img.closest('[data-finished-id],.shelfie-read-book,.coveritem');
    if(!card)return null;
    const id=card.getAttribute('data-finished-id')||card.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/)?.[1];
-   if(!id||!id.startsWith('goodreads_'))return null;
-   let book=item(id);if(!book){const label=card.querySelector('span')?.textContent||img.getAttribute('alt')?.replace(/ cover$/i,'')||'';book={id,title:label,author:'',cover:''};catalog.push(book);}return book;
+   if(!id)return null;
+   let book=item(id);if(!book){const label=card.querySelector('b')?.textContent||card.querySelector('span')?.textContent||img.getAttribute('alt')?.replace(/ cover$/i,'')||'';book={id,title:label,author:'',type:'Book',cover:''};catalog.push(book);}return book.type==='Book'?book:null;
  }
  function scan(){
-   document.querySelectorAll('.shelfie-finished-grid img,.shelfie-read-grid img').forEach(img=>{
+   document.querySelectorAll('.shelfie-finished-grid img,.shelfie-read-grid img,.coveritem img').forEach(img=>{
      if(img.dataset.shelfieCoverRepair)return;
      const book=imageFor(img);
      if(!book)return;
