@@ -518,7 +518,7 @@ const response = await fetch(url);
 if (!response.ok) throw new Error('Book search unavailable');
 
 const data = await response.json();
-if (version !== searchVersion || tab !== 'Search') return;
+if (version !== searchVersion || tab !== 'Search' || filter !== 'Books') return;
 
 
 const queryWords = search.trim().toLowerCase().split(/\s+/);
@@ -8198,6 +8198,72 @@ window.shelfieFilterRatings = function(query) {
       const el=document.querySelector('#overlay .modal .shelfie-tmdb-overview');if(el)el.innerHTML='<b>About ♡</b><p>'+esc(x.description)+'</p>';
     }).catch(()=>{});
   };
+})();
+</script>
+
+<!-- Shelfie: unified All search across Open Library + TMDB -->
+<style>
+.shelfie-all-label{grid-column:1/-1;color:#f0a3d7;font-size:15px;font-weight:800;margin:16px 0 2px}
+.shelfie-all-status{grid-column:1/-1;color:#d4aecb;padding:14px 4px}
+.shelfie-all-error{grid-column:1/-1;color:#d4aecb;font-size:13px}
+</style>
+<script>
+(function(){
+  let timer=null,serial=0;
+  const priorUpdate=updateResults;
+  const priorSearchPage=searchPage;
+  const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
+  function addBook(book){
+    const id='openlibrary_'+String(book.key||'').split('/').pop();
+    const obj={id,title:book.title||'Untitled',type:'Book',year:String(book.first_publish_year||''),genre:'Book',author:(book.author_name||[]).join(', '),description:'',workKey:book.key,cover:book.cover_i?'https://covers.openlibrary.org/b/id/'+book.cover_i+'-M.jpg':fallback,fallback};
+    const old=item(id);if(old)Object.assign(old,obj);else catalog.push(obj);
+    return old||obj;
+  }
+  function addTmdb(x){
+    const id='tmdb_'+x.media_type+'_'+x.id;
+    const obj={id,title:x.title||'Untitled',type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', ')||(x.media_type==='movie'?'Movie':'TV Show'),description:x.description||'',cover:x.poster||fallback,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''};
+    const old=item(id);if(old)Object.assign(old,obj);else catalog.push(obj);
+    return old||obj;
+  }
+  async function books(q){
+    const url='https://openlibrary.org/search.json?'+new URLSearchParams({q,fields:'key,title,author_name,cover_i,first_publish_year',limit:'18'});
+    const res=await fetch(url);if(!res.ok)throw Error('Book search unavailable');
+    const data=await res.json();const seen=new Set();const words=q.toLowerCase().trim().split(/\s+/);
+    return (data.docs||[]).filter(b=>b.key&&b.title&&b.cover_i).filter(b=>{
+      const title=b.title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+      if(!words.every(w=>title.includes(w))||seen.has(title)||/box set|boxed set|bundle/i.test(title))return false;
+      seen.add(title);return true;
+    }).sort((a,b)=>{const rank=x=>x.title.toLowerCase()===q.toLowerCase()?0:x.title.toLowerCase().startsWith(q.toLowerCase())?1:2;return rank(a)-rank(b)}).slice(0,12).map(addBook);
+  }
+  async function tmdb(type,q){
+    if(typeof SHELFIE_URL==='undefined'||typeof SHELFIE_KEY==='undefined')throw Error('TMDB not configured');
+    const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,q});
+    const res=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
+    const data=await res.json();if(!res.ok)throw Error(data.error||'Movie and TV search unavailable');
+    return (data.results||[]).slice(0,12).map(addTmdb);
+  }
+  function heading(label,items){return items.length?'<div class="shelfie-all-label">'+label+'</div>'+items.map(coverCard).join(''):''}
+  updateResults=function(){
+    clearTimeout(timer);const current=++serial;
+    if(filter!=='All'){document.getElementById('shelfieTmdbCredit')?.remove();return priorUpdate()}
+    const chips=document.querySelector('.chips');if(chips)chips.innerHTML=['All','Books','Movies','Shows'].map(f=>`<button class="chip ${filter===f?'active':''}" onclick="filter='${f}';updateResults()">${f}</button>`).join('');
+    const el=document.getElementById('results');if(!el)return;
+    const q=search.trim();
+    if(q.length<2){el.innerHTML=catalog.filter(x=>!q||x.title.toLowerCase().includes(q.toLowerCase())).slice(0,24).map(coverCard).join('');return}
+    el.innerHTML='<div class="shelfie-all-status">Searching books, movies & shows ♡</div>';
+    timer=setTimeout(async()=>{
+      const outcomes=await Promise.allSettled([books(q),tmdb('movie',q),tmdb('tv',q)]);
+      if(current!==serial||tab!=='Search'||filter!=='All'||search.trim()!==q)return;
+      const [b,m,t]=outcomes.map(x=>x.status==='fulfilled'?x.value:[]);
+      const errors=outcomes.filter(x=>x.status==='rejected');
+      el.innerHTML=heading('📖 Books',b)+heading('🎬 Movies',m)+heading('📺 Shows',t)
+        ||'<div class="shelfie-all-status">No titles found. Try another search ♡</div>';
+      if(errors.length)el.insertAdjacentHTML('beforeend','<div class="shelfie-all-error">Some sources could not load. Please try again ♡</div>');
+      document.getElementById('shelfieTmdbCredit')?.remove();
+      if(m.length||t.length)el.insertAdjacentHTML('afterend','<div class="shelfie-tmdb-source" id="shelfieTmdbCredit">Movie & TV information provided by TMDB. Not endorsed or certified by TMDB.</div>');
+    },350);
+  };
+  searchPage=function(){const html=priorSearchPage();setTimeout(()=>{if(tab==='Search'&&filter==='All'&&search.trim().length>=2)updateResults()},0);return html};
 })();
 </script>
 
