@@ -8632,3 +8632,96 @@ window.openAdd=function(){
 })();
 </script>
 </body></html>
+
+
+<!-- Shelfie Explore: personalized For You based on ratings and finished titles -->
+<style>
+.shelfie-for-you{margin:15px 0 24px}.shelfie-for-you-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.shelfie-for-you-head h2{font-size:clamp(19px,5vw,25px);margin:0;color:#f5c2e6}.shelfie-for-you-note{font-size:12px;color:#bba6be;margin:0 0 12px}.shelfie-for-you-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.shelfie-for-you-grid .coveritem{min-width:0}.shelfie-for-you-grid .coveritem img{width:100%;aspect-ratio:2/3;object-fit:cover}.shelfie-for-you-empty{color:#cdb5ce;padding:12px 0}
+</style>
+<script>
+(function(){
+ 'use strict';
+ let generation=0,renderTimer=0;
+ const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
+ const subjects={fantasy:'fantasy',romance:'romance',thriller:'thrillers',mystery:'mystery',horror:'horror',science_fiction:'science_fiction',adventure:'adventure',comedy:'humor',crime:'crime',history:'historical_fiction',young_adult:'young_adult_fiction',fiction:'fiction',drama:'drama',action:'action',animation:'animation'};
+ const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const scored=()=>{
+   const scores={Book:{},Movie:{},Show:{}};
+   const seen=new Set([...(state.completed||[]),...(state.reviews||[]).map(r=>r.id)]);
+   for(const r of state.reviews||[]){
+     const x=item(r.id);if(!x||!scores[x.type])continue;
+     const stars=Number(r.stars)||0;
+     if(stars<3)continue;
+     for(const genre of String(x.genre||'').split(/[,/|]/)){
+       const k=norm(genre);if(k)scores[x.type][k]=(scores[x.type][k]||0)+(stars>=4?stars:1);
+     }
+   }
+   for(const id of state.completed||[]){
+     if((state.reviews||[]).some(r=>r.id===id))continue;
+     const x=item(id);if(!x||!scores[x.type])continue;
+     for(const genre of String(x.genre||'').split(/[,/|]/)){
+       const k=norm(genre);if(k)scores[x.type][k]=(scores[x.type][k]||0)+1;
+     }
+   }
+   return {scores,seen};
+ };
+ const topGenres=obj=>Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).filter(x=>x!=='general').slice(0,3);
+ const add=x=>{const old=item(x.id);if(old)return old;catalog.push(x);return x};
+ async function books(genres){
+   const genre=genres.find(g=>subjects[g]||subjects[g.replace(/ /g,'_')]);
+   if(!genre)return [];
+   const subject=subjects[genre]||subjects[genre.replace(/ /g,'_')];
+   const r=await fetch('https://openlibrary.org/subjects/'+subject+'.json?limit=40');if(!r.ok)return [];
+   const d=await r.json();
+   return (d.works||[]).filter(x=>x.key&&x.title&&x.cover_id).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.authors||[]).map(a=>a.name).join(', '),year:String(x.first_publish_year||''),genre:genre,workKey:x.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+x.cover_id+'-M.jpg',fallback}));
+ }
+ async function media(type,genres){
+   if(!genres.length)return [];
+   const endpoint=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type:type==='Movie'?'movie':'tv',featured:'1'});
+   const r=await fetch(endpoint,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});if(!r.ok)return [];
+   const d=await r.json();
+   return (d.results||[]).filter(x=>x.poster&&(x.genres||[]).some(g=>genres.some(w=>norm(g).includes(w)||w.includes(norm(g))))).map(x=>add({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type,year:x.year||'',genre:(x.genres||[]).join(', '),description:x.description||'',cover:x.poster,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''}));
+ }
+ function mount(){
+   if(tab!=='Search')return null;
+   const results=document.getElementById('results');if(!results)return null;
+   let root=document.getElementById('shelfieForYou');
+   if(!root){root=document.createElement('section');root.id='shelfieForYou';root.className='shelfie-for-you';results.before(root)}
+   return root;
+ }
+ async function refresh(){
+   const root=mount();if(!root)return;
+   const token=++generation,category=filter;
+   if(String(search||'').trim()||document.getElementById('shelfieGenre')?.value){root.hidden=true;return}
+   root.hidden=false;
+   const {scores,seen}=scored();
+   const types=category==='All'?['Book','Movie','Show']:[category==='Books'?'Book':category==='Movies'?'Movie':'Show'];
+   const prefs=types.map(t=>({type:t,genres:topGenres(scores[t])})).filter(x=>x.genres.length);
+   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Picked from your ratings and read / watched history</p><div class="shelfie-for-you-empty">'+(prefs.length?'Finding your next favorites ✨':'Rate or finish a few titles to unlock recommendations ✨')+'</div>';
+   if(!prefs.length)return;
+   const results=await Promise.allSettled(prefs.map(x=>x.type==='Book'?books(x.genres):media(x.type,x.genres)));
+   if(token!==generation||tab!=='Search'||filter!==category||String(search||'').trim()||document.getElementById('shelfieGenre')?.value)return;
+   const ranked=[];const dedupe=new Set();
+   results.forEach((r,i)=>{
+     if(r.status!=='fulfilled')return;
+     r.value.forEach((x,j)=>{
+       const name=norm(x.title),id=x.id;
+       if(seen.has(id)||dedupe.has(x.type+':'+name)||!x.cover)return;
+       dedupe.add(x.type+':'+name);
+       ranked.push({x,rank:j,group:i});
+     });
+   });
+   ranked.sort((a,b)=>a.rank-b.rank||a.group-b.group);
+   const selected=ranked.slice(0,12).map(o=>o.x);
+   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Based on your highly rated and finished titles</p>'+(selected.length?'<div class="shelfie-for-you-grid">'+selected.map(coverCard).join('')+'</div>':'<div class="shelfie-for-you-empty">No recommendations found yet. Try another category ♡</div>');
+ }
+ function schedule(){clearTimeout(renderTimer);renderTimer=setTimeout(refresh,130)}
+ const oldSearchPage=searchPage;
+ searchPage=function(){const html=oldSearchPage();schedule();return html};
+ const oldUpdate=updateResults;
+ updateResults=function(){const r=oldUpdate.apply(this,arguments);schedule();return r};
+ const oldRender=render;
+ render=function(){const r=oldRender.apply(this,arguments);if(tab==='Search')schedule();return r};
+ schedule();
+})();
+</script>
