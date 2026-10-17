@@ -8612,10 +8612,39 @@ window.openAdd=function(){
    const seen=new Set();return (d.works||[]).filter(w=>w.key&&w.title&&w.cover_id).filter(w=>{const t=w.title.toLowerCase();if(seen.has(t))return false;seen.add(t);return true}).slice(0,18).map(w=>add({id:'openlibrary_'+w.key.split('/').pop(),title:w.title,type:'Book',author:(w.authors||[]).map(a=>a.name).join(', '),year:String(w.first_publish_year||''),genre:g,workKey:w.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+w.cover_id+'-M.jpg',fallback}));
  }
  async function mediaGenre(g,type){
-   const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
-   const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});if(!r.ok)throw Error('Movies and shows unavailable');const d=await r.json();
-   const term=g.toLowerCase(),aliases={'Science Fiction':['sci-fi','science fiction'],'Thriller':['thriller','suspense'],'Young Adult':['family','teen'],'Historical Fiction':['history','historical'],'Adventure':['adventure'],'Animation':['animation']};
-   return (d.results||[]).filter(x=>x.poster&&(x.genres||[]).some(name=>[term,...(aliases[g]||[])].some(word=>String(name).toLowerCase().includes(word)))).slice(0,18).map(x=>add({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', '),description:x.description||'',cover:x.poster,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''}));
+   // TMDB has no Young Adult genre, and the featured feed is too small to filter reliably.
+   // Search the full catalog using genre-relevant phrases instead of filtering featured titles.
+   const terms={
+     'Young Adult':type==='movie'?['teen romance','coming of age','high school','young adult fantasy']:['teen drama','high school','coming of age','teen fantasy'],
+     'Science Fiction':['science fiction','sci fi','space adventure'],
+     'Historical Fiction':['historical drama','period drama'],
+     'Animation':['animated','animation'],
+     'Documentary':['documentary'],
+     'Fantasy':['fantasy','magic'],Romance:['romance','love story'],
+     Thriller:['thriller','suspense'],Mystery:['mystery','detective'],
+     Horror:['horror'],Adventure:['adventure'],Action:['action'],
+     Comedy:['comedy'],Drama:['drama'],Crime:['crime']
+   };
+   const queries=terms[g]||[g];
+   const fetchResults=async(q)=>{
+     const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,q});
+     const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
+     if(!r.ok)throw Error('TMDB search unavailable');
+     const d=await r.json();return d.results||[];
+   };
+   const settled=await Promise.allSettled(queries.map(fetchResults));
+   const seen=new Set(),out=[];
+   for(const entry of settled){
+     if(entry.status!=='fulfilled')continue;
+     for(const x of entry.value){
+       if(!x.poster||!x.id||seen.has(x.id))continue;
+       seen.add(x.id);
+       out.push(add({id:'tmdb_'+type+'_'+x.id,title:x.title,type:type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', '),description:x.description||'',cover:x.poster,fallback,tmdbId:x.id,tmdbType:type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''}));
+       if(out.length>=18)return out;
+     }
+   }
+   if(!settled.some(r=>r.status==='fulfilled'))throw Error('TMDB search unavailable');
+   return out;
  }
  async function discover(){
    const seq=++generation,kind=filter,g=chosen,el=document.getElementById('results');if(!el)return;
