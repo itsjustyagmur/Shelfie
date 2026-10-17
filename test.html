@@ -8346,12 +8346,20 @@ window.shelfieFilterRatings = function(query) {
 <!-- Shelfie: prioritize newly premiered series, while retaining popular favorites -->
 <script>
 window.shelfieFreshShows=function(results,limit){
- const year=new Date().getFullYear(), seen=new Set();
- return (results||[]).filter(x=>x&&x.poster).sort((a,b)=>{
-   const ay=Number(String(a.year||a.first_air_date||'').slice(0,4)),by=Number(String(b.year||b.first_air_date||'').slice(0,4));
-   const rank=y=>y===year?0:y===year-1?1:y>0?2:3;
-   return rank(ay)-rank(by)||(rank(ay)<=1?by-ay:0);
- }).filter(x=>{const key=String(x.id||x.title);if(seen.has(key))return false;seen.add(key);return true}).slice(0,limit);
+ // ISO week is identical for all visitors; no localStorage or Supabase writes.
+ const now=new Date(), utc=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()));
+ utc.setUTCDate(utc.getUTCDate()+4-(utc.getUTCDay()||7));
+ const isoYear=utc.getUTCFullYear(),week=Math.ceil((((utc-new Date(Date.UTC(isoYear,0,1)))/86400000)+1)/7);
+ const seed=isoYear*53+week, year=now.getFullYear(), seen=new Set();
+ const pool=(results||[]).filter(x=>x&&x.poster).filter(x=>{
+   const key=String(x.id||x.title);if(seen.has(key))return false;seen.add(key);return true;
+ });
+ const rank=x=>{const y=Number(String(x.year||x.first_air_date||'').slice(0,4));return y===year?0:y===year-1?1:y>0?2:3};
+ // Deterministic weekly shuffle within premiere-year groups. Prefer new series.
+ const hash=x=>{let h=(seed^0x811c9dc5)>>>0;for(const c of String(x.id||x.title)){h=Math.imul(h^c.charCodeAt(0),16777619)>>>0}return h};
+ pool.sort((a,b)=>rank(a)-rank(b)||hash(a)-hash(b));
+ // When the API supplies more than one page of candidates, rotate the selection.
+ return pool.slice(0,limit);
 };
 </script>
 <!-- Shelfie: API-powered Home discovery, matching Explore -->
