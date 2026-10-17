@@ -8408,13 +8408,24 @@ window.shelfieFilterRatings = function(query) {
  // are optional enhancements and must never hold the Home page hostage.
  window.shelfieCuratedFeaturedBooks=async function(limit){
   const current=new Date().getFullYear();
-  return rotate(titles).filter(x=>x[2]>=current-1&&x[2]<=current).slice(0,limit||12).map(([title,author,firstYear])=>{
+  const chosen=rotate(titles).filter(x=>x[2]>=current-1&&x[2]<=current).slice(0,limit||12);
+  // Keep the editorial picks, but retrieve actual covers for titles without a known ISBN.
+  // Bound the lookup time so book-cover services cannot stall Home or TMDB sections.
+  return Promise.all(chosen.map(async ([title,author,firstYear])=>{
    const isbn=isbnCovers[title];
+   let cover=isbn?'https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg':'';
+   if(!cover){
+    try{
+     const found=await Promise.race([find([title,author,firstYear]),new Promise(resolve=>setTimeout(()=>resolve(null),2800))]);
+     if(found?.shelfieCuratedCover)cover=found.shelfieCuratedCover;
+     else if(found?.cover_i&&Number.isFinite(Number(found.cover_i)))cover='https://covers.openlibrary.org/b/id/'+found.cover_i+'-L.jpg';
+    }catch(e){console.warn('Shelfie cover lookup:',title,e)}
+   }
    return {key:'/works/SHELFIE'+norm(title).replace(/ /g,''),title,author_name:[author],
     first_publish_year:firstYear,cover_i:'SHELFIE'+norm(title).replace(/ /g,''),
-    shelfieCuratedCover:isbn?'https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg':'https://placehold.co/300x450/38213f/f8b5e4?text='+encodeURIComponent(title),
+    shelfieCuratedCover:cover||'https://placehold.co/300x450/38213f/f8b5e4?text='+encodeURIComponent(title),
     shelfieGenres:genreTags[title]||'fiction'};
-  });
+  }));
  };
 
 })();
