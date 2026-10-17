@@ -8671,9 +8671,12 @@ window.openAdd=function(){
    const genre=genres.find(g=>subjects[g]||subjects[g.replace(/ /g,'_')]);
    if(!genre)return [];
    const subject=subjects[genre]||subjects[genre.replace(/ /g,'_')];
-   const r=await fetch('https://openlibrary.org/subjects/'+subject+'.json?limit=40');if(!r.ok)return [];
+   const year=new Date().getFullYear();
+   // Search by subject and first publication year, rather than older popular subject works.
+   const params=new URLSearchParams({subject,first_publish_year:String(year),sort:'new',limit:'60',fields:'key,title,author_name,first_publish_year,cover_i'});
+   const r=await fetch('https://openlibrary.org/search.json?'+params);if(!r.ok)return [];
    const d=await r.json();
-   return (d.works||[]).filter(x=>x.key&&x.title&&x.cover_id).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.authors||[]).map(a=>a.name).join(', '),year:String(x.first_publish_year||''),genre:genre,workKey:x.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+x.cover_id+'-M.jpg',fallback}));
+   return (d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i&&Number(x.first_publish_year)===year).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.author_name||[]).join(', '),year:String(year),genre:genre,workKey:x.key,description:'',cover:'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg',fallback}));
  }
  async function media(type,genres){
    if(!genres.length)return [];
@@ -8706,6 +8709,7 @@ window.openAdd=function(){
      if(r.status!=='fulfilled')return;
      r.value.forEach((x,j)=>{
        const name=norm(x.title),id=x.id;
+       if(x.type==='Book'&&Number(x.year)!==new Date().getFullYear())return;
        if(seen.has(id)||dedupe.has(x.type+':'+name)||!x.cover)return;
        dedupe.add(x.type+':'+name);
        ranked.push({x,rank:j,group:i});
@@ -8713,7 +8717,7 @@ window.openAdd=function(){
    });
    ranked.sort((a,b)=>a.rank-b.rank||a.group-b.group);
    const selected=ranked.slice(0,12).map(o=>o.x);
-   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Based on your highly rated and finished titles</p>'+(selected.length?'<div class="shelfie-for-you-grid">'+selected.map(coverCard).join('')+'</div>':'<div class="shelfie-for-you-empty">No recommendations found yet. Try another category ♡</div>');
+   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Based on your highly rated and finished titles · Books published this year</p>'+(selected.length?'<div class="shelfie-for-you-grid">'+selected.map(coverCard).join('')+'</div>':'<div class="shelfie-for-you-empty">No recommendations found yet. Try another category ♡</div>');
  }
  function schedule(){clearTimeout(renderTimer);renderTimer=setTimeout(refresh,130)}
  const oldSearchPage=searchPage;
