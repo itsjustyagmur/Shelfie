@@ -8535,4 +8535,45 @@ window.openAdd=function(){
 };
 })();
 </script>
+
+<!-- Shelfie: rating a movie or show automatically adds it to Watched. -->
+<script>
+(function () {
+  const previousSubmitReview = submitReview;
+  submitReview = async function (id) {
+    const title = item(id);
+    await previousSubmitReview(id);
+    if (!title || (title.type !== 'Movie' && title.type !== 'Show')) return;
+    // Only mark watched when the rating was actually recorded.
+    if (!state.reviews.some(r => r.id === id)) return;
+    if (cloudUser && cloud) {
+      const userId = cloudUser.id;
+      const mediaType = title.type === 'Movie' ? 'movie' : 'show';
+      const metadata = {
+        author:title.author || '', cover:title.cover || '',
+        year:title.year || '', genre:title.genre || '',
+        description:title.description || '', workKey:title.workKey || '',
+        fallback:title.fallback || ''
+      };
+      const {error} = await cloud.from('shelfie_library').upsert({
+        user_id:userId, media_type:mediaType, title_id:id,
+        title_name:title.title, status:'watched', metadata,
+        updated_at:new Date().toISOString()
+      }, {onConflict:'user_id,media_type,title_id'});
+      if (error) {
+        console.warn('Shelfie automatic Watched status:', error);
+        toast('Rating saved, but could not update Watched: ' + error.message);
+        return;
+      }
+      if (cloudUser?.id !== userId) return;
+    }
+    if (!state.completed.includes(id)) state.completed.push(id);
+    state.saved = state.saved.filter(savedId => savedId !== id);
+    save();
+    // Reload the authoritative cloud library so counts and lists stay in sync.
+    if (cloudUser && cloud && typeof refreshCloud === 'function') await refreshCloud();
+    else render();
+  };
+})();
+</script>
 </body></html>
