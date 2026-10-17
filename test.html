@@ -4350,7 +4350,8 @@ window.shelfieOpenNotifications = async function() {
     `;
 
     bell.onclick = function () {
-      shelfieOpenNotifications();
+      if (typeof shelfieNotifications === 'function') shelfieNotifications();
+      else shelfieOpenNotifications();
     };
 
     bell.style.display = 'flex';
@@ -7980,7 +7981,7 @@ window.shelfieFilterRatings = function(query) {
 (function(){
  let notices=[],activities=[],last=0,busy=false,activityLikes=[],activityComments=[];
  const date=d=>new Date(d).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
- function bell(){let b=document.getElementById('shelfieBell');if(!b){b=document.createElement('button');b.id='shelfieBell';b.className='iconbtn shelfie-bell';b.setAttribute('aria-label','Notifications');b.onclick=()=>shelfieNotifications();document.querySelector('.header-right')?.prepend(b)}if(b){const n=notices.filter(x=>!x.read_at).length;b.innerHTML='🔔'+(n?'<i>'+n+'</i>':'')}}
+ function bell(){const old=document.getElementById('shelfieBell');if(old)old.remove();const b=document.getElementById('shelfie-notification-bell');if(!b)return;const n=notices.filter(x=>!x.read_at).length;b.classList.add('shelfie-bell');b.setAttribute('aria-label',n?`Notifications (${n} unread)`:'Notifications');b.onclick=()=>shelfieNotifications();let count=b.querySelector('.shelfie-unread-count');if(n){if(!count){count=document.createElement('i');count.className='shelfie-unread-count';b.appendChild(count)}count.textContent=n>99?'99+':String(n)}else if(count)count.remove()}
  async function reload(force=false){if(!cloudUser||!cloud){notices=[];activities=[];bell();return}if(busy||(!force&&Date.now()-last<20000))return;busy=true;try{
  const uid=cloudUser.id;
  const [n,l,c,r]=await Promise.all([cloud.from('shelfie_notifications').select('*').eq('recipient_id',uid).order('created_at',{ascending:false}).limit(80),cloud.from('shelfie_rating_likes').select('rating_id,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),cloud.from('shelfie_rating_comments').select('rating_id,body,parent_comment_id,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),cloud.from('ratings').select('id,title_id,title_name,stars,review,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(50)]);
