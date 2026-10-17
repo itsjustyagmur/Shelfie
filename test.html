@@ -22,56 +22,84 @@ try {
 } catch (_) {}
 </script>
 </head><body><div class="app"><header><div class="brand">shelfie<span> ✦</span></div><div class="header-right"><button class="iconbtn" onclick="openSearch()" aria-label="Search">⌕</button><button class="iconbtn" onclick="openInvite()" aria-label="Share">↗</button></div></header><main id="screen"><section class="hero"><div class="eyebrow">SHELFIE ✦</div><h1>Good stories. Better company.</h1><p>Welcome to Shelfie! If this message stays visible, your file viewer is blocking JavaScript. Open Shelfie in a full web browser or host it on a website.</p></section></main></div><nav class="nav" id="nav"></nav><div id="overlay"></div>
-<!-- Shelfie Google Books primary data adapter: keeps existing Shelfie IDs and Supabase history intact. -->
+<!-- Shelfie Google Books primary adapter: compatible with legacy Shelfie book calls. -->
 <script>
 (function(){
  'use strict';
- const nativeFetch=window.fetch.bind(window), covers=new Map(), details=new Map();
- const cover=(v)=>{const im=v.imageLinks||{};return (im.large||im.medium||im.thumbnail||im.smallThumbnail||'').replace(/^http:/,'https:').replace(/&edge=curl/g,'')};
- window.shelfieGoogleCover=function(id){return covers.get(String(id))||''};
- const year=()=>new Date().getFullYear();
- function queryFrom(url){
-   const q=url.searchParams.get('q')||'';
-   const subject=url.searchParams.get('subject')||url.pathname.match(/\/subjects\/([^/.]+)/)?.[1];
-   const yr=url.searchParams.get('first_publish_year')||q.match(/first_publish_year:\[(\d+) TO (\d+)\]/)?.[2];
-   const text=q.replace(/first_publish_year:\[[^\]]+\]/g,'').replace(/AND subject:fiction/gi,'').trim();
-   if(subject)return 'subject:'+subject.replace(/_/g,' ')+(yr?' after:'+Math.max(1900,Number(yr)-1):'');
-   if(yr)return 'subject:fiction after:'+Math.max(1900,Number(yr)-1);
-   if(url.searchParams.has('isbn'))return 'isbn:'+url.searchParams.get('isbn');
-   if(url.searchParams.has('title'))return 'intitle:'+url.searchParams.get('title')+(url.searchParams.has('author')?' inauthor:'+url.searchParams.get('author'):'');
-   return text||'subject:fiction';
+ const nativeFetch=window.fetch.bind(window);
+ const covers=new Map(),details=new Map(),requestCache=new Map();
+ window.shelfieGoogleCover=id=>covers.get(String(id))||'';
+ const currentYear=()=>new Date().getFullYear();
+ const picture=d=>{const links=d.imageLinks||{};return String(links.extraLarge||links.large||links.medium||links.thumbnail||links.smallThumbnail||'').replace(/^http:/,'https:').replace(/&edge=curl/g,'')};
+ function parseRequest(url){
+   const raw=url.searchParams.get('q')||'';
+   const yearMatch=raw.match(/first_publish_year:\[(\d+) TO (\d+)\]/i);
+   const year=Number(url.searchParams.get('first_publish_year')||yearMatch?.[2]||0);
+   const subj=url.searchParams.get('subject')||url.pathname.match(/\/subjects\/([^/.]+)/)?.[1]||raw.match(/subject:([\w_-]+)/i)?.[1]||'';
+   const subject=decodeURIComponent(subj).replace(/_/g,' ');
+   const isbn=url.searchParams.get('isbn');
+   const title=url.searchParams.get('title');
+   const author=url.searchParams.get('author');
+   let query;
+   if(isbn)query='isbn:'+isbn;
+   else if(title)query='intitle:'+title+(author?' inauthor:'+author:'');
+   else if(year)query='subject:'+(subject||'fiction');
+   else if(subject)query='subject:'+subject;
+   else query=raw.replace(/first_publish_year:\[[^\]]+\]/gi,'').replace(/\bAND\s+subject:[\w_-]+/gi,'').trim()||'subject:fiction';
+   return {query,year,limit:Math.min(40,Number(url.searchParams.get('limit'))||40),subject};
  }
- async function google(query,max=40){
-   const url='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({q:query,maxResults:String(Math.min(40,max)),printType:'books',orderBy:query.includes('after:')?'newest':'relevance'});
-   const r=await nativeFetch(url);if(!r.ok)throw Error('Google Books unavailable');return (await r.json()).items||[];
+ async function google(query,{newest=false,startIndex=0,maxResults=40}={}){
+   const u='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({q,maxResults:String(Math.min(40,maxResults)),startIndex:String(startIndex),printType:'books',orderBy:newest?'newest':'relevance'});
+   const r=await nativeFetch(u);
+   if(!r.ok)throw Error('Google Books request failed ('+r.status+')');
+   const data=await r.json();return data.items||[];
  }
  function convert(v){
    const d=v.volumeInfo||{},id='GB'+String(v.id||'').replace(/[^a-zA-Z0-9_-]/g,'');
-   const pic=cover(d);if(pic)covers.set(id,pic);
-   const description=typeof d.description==='string'?d.description:'';
-   details.set(id,{title:d.title||'',description,subjects:d.categories||[],covers:pic?[pic]:[],first_publish_date:d.publishedDate||'',author_name:d.authors||[]});
-   return {key:'/works/'+id,title:d.title||'',author_name:d.authors||[],authors:(d.authors||[]).map(name=>({name})),cover_i:pic?id:null,cover_id:pic?id:null,first_publish_year:Number((d.publishedDate||'').slice(0,4))||0,edition_count:1,first_sentence:description,description,googleBooksId:v.id};
+   const pic=picture(d),published=d.publishedDate||'',description=typeof d.description==='string'?d.description:'';
+   if(pic)covers.set(id,pic);
+   details.set(id,{title:d.title||'',description,subjects:d.categories||[],covers:pic?[pic]:[],first_publish_date:published,author_name:d.authors||[]});
+   return {key:'/works/'+id,title:d.title||'',author_name:d.authors||[],authors:(d.authors||[]).map(name=>({name})),cover_i:pic?id:null,cover_id:pic?id:null,first_publish_year:Number(published.slice(0,4))||0,edition_count:1,first_sentence:description,description,googleBooksId:v.id};
  }
- const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
+ const respond=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
+ async function load(info){
+   const cacheKey=JSON.stringify(info),hit=requestCache.get(cacheKey);
+   if(hit&&Date.now()-hit.at<10*60*1000)return hit.docs;
+   // Google Books does not understand Open Library's first_publish_year query syntax.
+   // Search Google Books by subject, sorted newest, then filter its publication dates.
+   let volumes=await google(info.query,{newest:!!info.year,maxResults:40});
+   if(info.year){
+     let matches=volumes.filter(v=>{const y=Number((v.volumeInfo?.publishedDate||'').slice(0,4));return y>=info.year-1&&y<=currentYear()});
+     if(matches.length<6){
+       const more=await google(info.query,{newest:true,startIndex:40,maxResults:40});
+       matches=matches.concat(more.filter(v=>{const y=Number((v.volumeInfo?.publishedDate||'').slice(0,4));return y>=info.year-1&&y<=currentYear()}));
+     }
+     volumes=matches;
+   }
+   const seen=new Set();
+   const docs=volumes.map(convert).filter(d=>{
+     const k=d.title.toLowerCase().trim();
+     if(!k||!d.cover_i||seen.has(k))return false;
+     seen.add(k);return true;
+   });
+   requestCache.set(cacheKey,{at:Date.now(),docs});return docs;
+ }
  window.fetch=async function(resource,init){
    const str=typeof resource==='string'?resource:resource?.url||'';
    if(!/^https:\/\/openlibrary\.org\/(search\.json|subjects\/|works\/)/.test(str))return nativeFetch(resource,init);
+   const url=new URL(str);
+   if(url.pathname.startsWith('/works/')){
+     const id=url.pathname.split('/').pop().replace(/\.json$/,'');
+     if(details.has(id))return respond(details.get(id));
+     // Existing Goodreads/Open Library identifiers remain valid and unchanged.
+     return nativeFetch(resource,init);
+   }
    try{
-     const url=new URL(str);
-     if(url.pathname.startsWith('/works/')){
-       const id=url.pathname.split('/').pop().replace(/\.json$/,'');
-       if(details.has(id))return response(details.get(id));
-       // Legacy work IDs are left intact; existing user data is never rewritten.
-       return nativeFetch(resource,init);
-     }
-     const q=queryFrom(url),max=Number(url.searchParams.get('limit'))||40;
-     const items=await google(q,max);
-     const docs=items.map(convert).filter(x=>x.title);
-     if(url.pathname.startsWith('/subjects/'))return response({works:docs});
-     return response({docs,numFound:docs.length});
-   }catch(error){
-     // Avoid silently swapping the primary provider to Open Library.
-     return response({docs:[],works:[],numFound:0,error:String(error.message||error)});
+     const info=parseRequest(url),docs=await load(info);
+     return respond(url.pathname.startsWith('/subjects/')?{works:docs}:{docs,numFound:docs.length});
+   }catch(e){
+     console.warn('Shelfie Google Books:',e);
+     return respond({docs:[],works:[],numFound:0,error:String(e.message||e)});
    }
  };
 })();
