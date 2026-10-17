@@ -8385,7 +8385,38 @@ window.shelfieFilterRatings = function(query) {
   })();cache.set(key,result);return result;
  }
  window.shelfieWeeklyBooks=function(items,limit){const now=new Date().getFullYear(),seen=new Set();return (items||[]).filter(x=>{const y=Number(x.first_publish_year||x.year);const n=norm(x.title);if(!n||seen.has(n)||y<now-1||y>now)return false;seen.add(n);return true}).sort((a,b)=>score(norm(a.title),week())-score(norm(b.title),week())).slice(0,limit||12)};
- window.shelfieCuratedFeaturedBooks=async function(limit){const entries=rotate(titles).filter(x=>x[2]>=new Date().getFullYear()-1&&x[2]<=new Date().getFullYear());const matches=await Promise.all(entries.map(find));return matches.filter(Boolean).slice(0,limit||12)};
+ const isbnCovers={
+  'Onyx Storm':'9781649374189',
+  'Sunrise on the Reaping':'9781546171461',
+  'Great Big Beautiful Life':'9780593441299',
+  'Atmosphere':'9780593158715',
+  'The Knight and the Moth':'9780316581080',
+  'The Favorites':'9780593818411',
+  'The Tenant':'9781464227264'
+ };
+ const genreTags={
+  'Onyx Storm':'fantasy romance', 'Sunrise on the Reaping':'fantasy adventure dystopian',
+  'Great Big Beautiful Life':'romance contemporary fiction', 'Atmosphere':'romance historical fiction',
+  'The Knight and the Moth':'fantasy romance', 'The Favorites':'romance contemporary fiction',
+  'The Tenant':'thriller mystery', 'The Crash':'thriller mystery',
+  'The Secret of Secrets':'thriller mystery', 'The Names':'literary contemporary fiction',
+  'The Correspondent':'literary contemporary fiction', 'The Love Haters':'romance comedy',
+  'The Stolen Queen':'historical fiction mystery', 'The Compound':'thriller dystopian',
+  'The Buffalo Hunter Hunter':'horror historical fiction'
+ };
+ // Render a reliable, editorially curated shelf immediately. Remote cover lookups
+ // are optional enhancements and must never hold the Home page hostage.
+ window.shelfieCuratedFeaturedBooks=async function(limit){
+  const current=new Date().getFullYear();
+  return rotate(titles).filter(x=>x[2]>=current-1&&x[2]<=current).slice(0,limit||12).map(([title,author,firstYear])=>{
+   const isbn=isbnCovers[title];
+   return {key:'/works/SHELFIE'+norm(title).replace(/ /g,''),title,author_name:[author],
+    first_publish_year:firstYear,cover_i:'SHELFIE'+norm(title).replace(/ /g,''),
+    shelfieCuratedCover:isbn?'https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg':'https://placehold.co/300x450/38213f/f8b5e4?text='+encodeURIComponent(title),
+    shelfieGenres:genreTags[title]||'fiction'};
+  });
+ };
+
 })();
 </script>
 <!-- Shelfie dynamic API featured discovery: replaces static search suggestions -->
@@ -8907,15 +8938,20 @@ window.openAdd=function(){
  const topGenres=obj=>Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).filter(x=>x!=='general').slice(0,3);
  const add=x=>{const old=item(x.id);if(old)return old;catalog.push(x);return x};
  async function books(genres){
-   const genre=genres.find(g=>subjects[g]||subjects[g.replace(/ /g,'_')]);
-   if(!genre)return [];
-   const subject=subjects[genre]||subjects[genre.replace(/ /g,'_')];
-   const year=new Date().getFullYear();
-   // Search by subject and first publication year, rather than older popular subject works.
-   const params=new URLSearchParams({subject,first_publish_year:String(year),sort:'new',limit:'60',fields:'key,title,author_name,first_publish_year,cover_i'});
-   const r=await fetch('https://openlibrary.org/search.json?'+params);if(!r.ok)return [];
-   const d=await r.json();
-   return (d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i).sort((a,b)=>(Number(b.first_publish_year)===year)-(Number(a.first_publish_year)===year)).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.author_name||[]).join(', '),year:String(x.first_publish_year||''),genre:genre,workKey:x.key,description:'',cover:(x.shelfieCuratedCover||window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback}));
+   const list=await window.shelfieCuratedFeaturedBooks(15);
+   const mapped=list.map(b=>{
+     const id='openlibrary_'+b.key.split('/').pop();
+     const data={id,title:b.title,type:'Book',author:(b.author_name||[]).join(', '),
+       year:String(b.first_publish_year||''),genre:b.shelfieGenres||'fiction',
+       workKey:b.key,description:'',cover:b.shelfieCuratedCover,fallback};
+     const existing=item(id);if(existing){Object.assign(existing,data);return existing}
+     catalog.push(data);return data;
+   });
+   const relevant=mapped.filter(b=>genres.some(g=>{
+     const a=norm(g),tags=norm(b.genre);
+     return tags.includes(a)||a.includes('fantasy')&&tags.includes('fantasy')||a.includes('romance')&&tags.includes('romance')||a.includes('thriller')&&tags.includes('thriller')||a.includes('mystery')&&tags.includes('mystery');
+   }));
+   return relevant.length?relevant:mapped;
  }
  async function media(type,genres){
    if(!genres.length)return [];
@@ -8948,7 +8984,7 @@ window.openAdd=function(){
      if(r.status!=='fulfilled')return;
      r.value.forEach((x,j)=>{
        const name=norm(x.title),id=x.id;
-       if(x.type==='Book'&&Number(x.year)!==new Date().getFullYear())return;
+       if(x.type==='Book'&&Number(x.year)<new Date().getFullYear()-1)return;
        if(seen.has(id)||dedupe.has(x.type+':'+name)||!x.cover)return;
        dedupe.add(x.type+':'+name);
        ranked.push({x,rank:j,group:i});
@@ -8956,7 +8992,7 @@ window.openAdd=function(){
    });
    ranked.sort((a,b)=>a.rank-b.rank||a.group-b.group);
    const selected=ranked.slice(0,12).map(o=>o.x);
-   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Based on your highly rated and finished titles · Books published this year</p>'+(selected.length?'<div class="shelfie-for-you-grid">'+selected.map(coverCard).join('')+'</div>':'<div class="shelfie-for-you-empty">No recommendations found yet. Try another category ♡</div>');
+   root.innerHTML='<div class="shelfie-for-you-head"><h2>💗 For You</h2></div><p class="shelfie-for-you-note">Based on your highly rated and finished titles · Recent book releases</p>'+(selected.length?'<div class="shelfie-for-you-grid">'+selected.map(coverCard).join('')+'</div>':'<div class="shelfie-for-you-empty">No recommendations found yet. Try another category ♡</div>');
  }
  function schedule(){clearTimeout(renderTimer);renderTimer=setTimeout(refresh,130)}
  const oldSearchPage=searchPage;
