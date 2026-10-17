@@ -6256,9 +6256,13 @@ window.shelfieDiscoverGroups = async function() {
     const get = (r, name) => String(r[headers.indexOf(name)] || '').trim();
 
     importRows = rows.map(r => {
-      const isbn = (
-        get(r, 'ISBN13') || get(r, 'ISBN')
-      ).replace(/[^0-9X]/gi, '');
+      // Goodreads exports ISBNs as Excel-style strings, e.g. ="978...".
+      // Preserve both edition identifiers for future shared cover matching.
+      const cleanIsbn = value => String(value || '').replace(/[^0-9X]/gi, '').toUpperCase();
+      const isbn13 = cleanIsbn(get(r, 'ISBN13'));
+      const isbn10 = cleanIsbn(get(r, 'ISBN'));
+      const isbn = isbn13 || isbn10;
+      const goodreadsId = get(r, 'Book Id');
 
       const shelf = get(r, 'Exclusive Shelf').toLowerCase();
       const rating = Number(get(r, 'My Rating'));
@@ -6266,7 +6270,8 @@ window.shelfieDiscoverGroups = async function() {
       return {
         id: isbn
           ? 'goodreads_isbn_' + isbn
-          : 'goodreads_' + get(r, 'Book Id'),
+          : 'goodreads_' + goodreadsId,
+        isbn, isbn13, isbn10, goodreadsId,
         title: get(r, 'Title'),
         author: get(r, 'Author'),
         status: shelf === 'read' ? 'read'
@@ -6339,7 +6344,13 @@ window.shelfieDiscoverGroups = async function() {
           title_id: r.id,
           title_name: r.title,
           status: r.status,
-          metadata: { author: r.author }
+          metadata: {
+            author: r.author,
+            isbn: r.isbn,
+            isbn13: r.isbn13,
+            isbn10: r.isbn10,
+            goodreads_book_id: r.goodreadsId
+          }
         }));
 
         const ratings = batch.filter(r => r.rating).map(r => ({
