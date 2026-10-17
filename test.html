@@ -8615,6 +8615,27 @@ window.shelfieFreshShows=function(results,limit){
  }
  async function lookup({title,author}){
   const normalized=norm(title),isbn=knownISBN[normalized];
+  // Prefer a previously verified cover: no metadata API request on repeat visits.
+  const key='shelfie:verified-cover:v1:'+normalized+'|'+norm(author);
+  try{const saved=localStorage.getItem(key);if(saved&&await testImage(saved))return saved;}catch(e){}
+  // Shared Shelfie cover endpoint: authenticated, read-only, no ratings or storage writes.
+  // Fail fast; the existing Google Books / Open Library fallback remains available.
+  try{
+   if(typeof cloud!=='undefined'&&cloud){
+    const sessionResult=await cloud.auth.getSession();
+    const token=sessionResult.data?.session?.access_token;
+    if(token){
+     const response=await fetch(SHELFIE_URL+'/functions/v1/book-cover-cache',{
+      method:'POST',headers:{'Content-Type':'application/json',apikey:SHELFIE_KEY,Authorization:'Bearer '+token},
+      body:JSON.stringify({title,author,isbn:isbn||''}),signal:AbortSignal.timeout(4000)
+     });
+     if(response.ok){const data=await response.json();if(data.coverUrl&&await testImage(data.coverUrl)){
+      try{localStorage.setItem(key,data.coverUrl)}catch(e){}return data.coverUrl;
+     }}
+    }
+   }
+  }catch(e){}
+
   if(isbn){const u='https://covers.openlibrary.org/b/isbn/'+isbn+'-L.jpg?default=false';if(await testImage(u))return u;}
   const queries=[`intitle:"${title}"${author?` inauthor:"${author}"`:''}`,title+(author?' '+author:'')];
   for(const q of queries){
@@ -8641,7 +8662,7 @@ window.shelfieFreshShows=function(results,limit){
   return '';
  }
  function getCover(book){const key=norm(book.title)+'|'+norm(book.author);if(cache.has(key))return cache.get(key);let resolve;const promise=new Promise(r=>resolve=r);cache.set(key,promise);queue.push({book,resolve});pump();return promise;}
- function pump(){while(running<3&&queue.length){const task=queue.shift();running++;lookup(task.book).then(task.resolve,()=>task.resolve('')).finally(()=>{running--;pump()});}}
+ function pump(){while(running<3&&queue.length){const task=queue.shift();running++;lookup(task.book).then(url=>{if(url){try{localStorage.setItem('shelfie:verified-cover:v1:'+norm(task.book.title)+'|'+norm(task.book.author),url)}catch(e){}}task.resolve(url)},()=>task.resolve('')).finally(()=>{running--;pump()});}}
  function repair(img,book){if(img.dataset.shelfieCoverBusy)return;img.dataset.shelfieCoverBusy='1';getCover(book).then(url=>{
   if(!url||!img.isConnected)return;
   // This changes only the displayed image. It never modifies ratings or Supabase records.
