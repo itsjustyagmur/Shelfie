@@ -8613,14 +8613,14 @@ window.shelfieFreshShows=function(results,limit){
  const cache=new Map();const queue=[];let running=0;
  function testImage(url){return new Promise(resolve=>{if(!/^https:\/\//i.test(url||''))return resolve(false);const im=new Image();let done=false;const timer=setTimeout(()=>finish(false),4500);function finish(ok){if(done)return;done=true;clearTimeout(timer);im.onload=im.onerror=null;resolve(ok)}im.onload=()=>finish(im.naturalWidth>40&&im.naturalHeight>40);im.onerror=()=>finish(false);im.src=url;});}
  function identity(img){
-  const card=img.closest('.coveritem,[data-finished-id],.shelfie-read-book,.shelfie-friend-list,.shelfie-add-item,.shelfie-featured-card,.shelfie-discover-card,.shelfie-media-card,article,li');
+  const card=img.closest('.coveritem,[data-finished-id],.shelfie-finished-cover,.shelfie-read-book,.shelfie-friend-list,.shelfie-add-item,.shelfie-featured-card,.shelfie-discover-card,.shelfie-media-card,article,li');
   const onclick=img.getAttribute('onclick')||card?.getAttribute('onclick')||'';
   const id=card?.getAttribute('data-finished-id')||onclick.match(/openDetail\(['"]([^'"]+)/)?.[1]||'';
   const book=typeof catalog!=='undefined'&&Array.isArray(catalog)?catalog.find(x=>String(x.id)===String(id)):null;
-  let title=book?.title||img.getAttribute('alt')?.replace(/\s*(?:book\s*)?cover\s*$/i,'')||card?.querySelector('b,h3,h4')?.textContent||'';
+  let title=book?.title||img.getAttribute('alt')?.replace(/\s*(?:book\s*)?cover\s*$/i,'')||card?.querySelector('b,h3,h4,span')?.textContent||'';
   title=String(title).trim();
   const author=book?.author||'';
-  const isBook=book?.type==='Book'||(/book/i.test(img.closest('[data-media-type]')?.getAttribute('data-media-type')||''))||(/book|read|finished|coveritem/i.test(card?.className||''))||/book/i.test(img.getAttribute('alt')||'');
+  const isBook=!!img.closest('.shelfie-finished-cover,.shelfie-read-book')||book?.type==='Book'||(/book/i.test(img.closest('[data-media-type]')?.getAttribute('data-media-type')||''))||(/book|read|finished|coveritem/i.test(card?.className||''))||/book/i.test(img.getAttribute('alt')||'');
   if(!title||!isBook)return null;
   return {title,author};
  }
@@ -8679,14 +8679,21 @@ window.shelfieFreshShows=function(results,limit){
   // This changes only the displayed image. It never modifies ratings or Supabase records.
   img.onerror=null;img.src=url;img.dataset.shelfieCoverDone='1';
  }).finally(()=>{delete img.dataset.shelfieCoverBusy;});}
+ const observer=('IntersectionObserver' in window)?new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{if(!entry.isIntersecting)return;observer.unobserve(entry.target);checkCover(entry.target);});
+ },{rootMargin:'450px 0px'}):null;
+ function checkCover(img){
+  const book=identity(img);if(!book||img.dataset.shelfieCoverDone)return;
+  const src=img.currentSrc||img.getAttribute('src')||'';
+  if(bad(src)||(img.complete&&img.naturalWidth<40))repair(img,book);
+ }
  function scan(){document.querySelectorAll('img').forEach(img=>{
   if(img.dataset.shelfieCoverObserved)return;
   const book=identity(img);if(!book)return;
   img.dataset.shelfieCoverObserved='1';
-  const check=()=>{if(img.dataset.shelfieCoverDone)return;const src=img.currentSrc||img.getAttribute('src')||'';if(bad(src)||img.complete&&img.naturalWidth<40)repair(img,book);};
   img.addEventListener('error',()=>repair(img,book));
-  img.addEventListener('load',check);
-  if(bad(img.getAttribute('src')||'')||img.complete&&img.naturalWidth<40)repair(img,book);
+  img.addEventListener('load',()=>checkCover(img));
+  if(observer)observer.observe(img);else checkCover(img);
  });}
  let pending=false;function scheduleScan(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;scan()});}
  function start(){scan();new MutationObserver(scheduleScan).observe(document.body,{childList:true,subtree:true});}
