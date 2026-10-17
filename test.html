@@ -8334,30 +8334,59 @@ window.shelfieFilterRatings = function(query) {
 })();
 </script>
 
-<!-- Shelfie shared weekly featured-book rotation (ISO week, same for all visitors). -->
+<!-- Shelfie curated, weekly rotating 2025–2026 fiction releases. -->
 <script>
-window.shelfieWeeklyBooks=function(items,limit){
- const now=new Date(), current=now.getFullYear();
- const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
- d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
- const isoYear=d.getUTCFullYear();
- const week=Math.ceil((((d-new Date(Date.UTC(isoYear,0,1)))/86400000)+1)/7);
- const seed=isoYear*53+week,seen=new Set();
- // Filter AFTER Google Books / Open Library returns results. An old edition,
- // classic, or undated book must never enter the weekly featured pool.
- const pool=(items||[]).filter(x=>{
-  if(!x||!x.title||!(x.cover_i||x.cover))return false;
-  const year=Number(x.first_publish_year||x.year);
-  if(!Number.isInteger(year)||year<current-1||year>current)return false;
-  const name=String(x.title).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  if(!name||seen.has(name)||/box set|boxed set|bundle|collection|omnibus/i.test(name))return false;
-  seen.add(name);return true;
- });
- const hash=x=>{let h=(seed^0x811c9dc5)>>>0;for(const c of String(x.key||x.id||x.title)){h=Math.imul(h^c.charCodeAt(0),16777619)>>>0}return h};
- // New releases first; the weekly seed changes the order within each year.
- pool.sort((a,b)=>Number(b.first_publish_year||b.year)-Number(a.first_publish_year||a.year)||hash(a)-hash(b));
- return pool.slice(0,limit||12);
-};
+(function(){
+ 'use strict';
+ // Curated English-language novels, with first publication dates in 2025.
+ // Add verified 2026 titles to this list as they are released.
+ const titles=[
+  ['Onyx Storm','Rebecca Yarros',2025],
+  ['Sunrise on the Reaping','Suzanne Collins',2025],
+  ['Great Big Beautiful Life','Emily Henry',2025],
+  ['Atmosphere','Taylor Jenkins Reid',2025],
+  ['The Knight and the Moth','Rachel Gillig',2025],
+  ['The Favorites','Layne Fargo',2025],
+  ['The Tenant','Freida McFadden',2025],
+  ['The Crash','Freida McFadden',2025],
+  ['The Secret of Secrets','Dan Brown',2025],
+  ['The Names','Florence Knapp',2025],
+  ['The Correspondent','Virginia Evans',2025],
+  ['The Love Haters','Katherine Center',2025],
+  ['The Stolen Queen','Fiona Davis',2025],
+  ['The Compound','Aisling Rawle',2025],
+  ['The Buffalo Hunter Hunter','Stephen Graham Jones',2025]
+ ];
+ const norm=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+ function week(){const d=new Date();const x=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));return x.getUTCFullYear()*53+Math.ceil((((x-new Date(Date.UTC(x.getUTCFullYear(),0,1)))/86400000)+1)/7)}
+ function score(str,seed){let h=seed>>>0;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return h}
+ function rotate(arr){const seed=week();return arr.slice().sort((a,b)=>score(a[0],seed)-score(b[0],seed))}
+ const cache=new Map();
+ async function find([title,author,firstYear]){
+  const key=norm(title)+'|'+norm(author);
+  if(cache.has(key))return cache.get(key);
+  const result=(async()=>{
+   const q='intitle:"'+title+'" inauthor:"'+author+'"';
+   try{
+    const u='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({q,maxResults:'20',printType:'books',langRestrict:'en'});
+    const r=await fetch(u);if(!r.ok)throw Error('Google Books HTTP '+r.status);
+    const data=await r.json();
+    const match=(data.items||[]).find(v=>{const info=v.volumeInfo||{};return norm(info.title)===norm(title)&&(info.authors||[]).some(a=>norm(a).includes(norm(author))||norm(author).includes(norm(a)))&&info.language!=='fr'&&info.language!=='de'&&info.imageLinks});
+    if(match){const v=match.volumeInfo,cover=(v.imageLinks.thumbnail||v.imageLinks.smallThumbnail||'').replace(/^http:/,'https:').replace(/&edge=curl/g,'');return {key:'/works/GB'+match.id,title,author_name:[author],cover_i:'GB'+match.id,first_publish_year:firstYear,shelfieCuratedCover:cover,shelfieGoogleId:match.id}};
+   }catch(e){console.warn('Shelfie featured Google Books lookup:',title,e)}
+   // Fallback searches for the specific verified novel, never generic recent results.
+   try{
+    const u='https://openlibrary.org/search.json?'+new URLSearchParams({title,author,fields:'key,title,author_name,cover_i,first_publish_year',limit:'15'});
+    const r=await fetch(u);if(!r.ok)throw Error('Open Library HTTP '+r.status);
+    const data=await r.json();const match=(data.docs||[]).find(b=>norm(b.title)===norm(title)&&(b.author_name||[]).some(a=>norm(a).includes(norm(author))||norm(author).includes(norm(a)))&&b.cover_i);
+    if(match)return {...match,title,first_publish_year:firstYear};
+   }catch(e){console.warn('Shelfie featured Open Library lookup:',title,e)}
+   return null;
+  })();cache.set(key,result);return result;
+ }
+ window.shelfieWeeklyBooks=function(items,limit){const now=new Date().getFullYear(),seen=new Set();return (items||[]).filter(x=>{const y=Number(x.first_publish_year||x.year);const n=norm(x.title);if(!n||seen.has(n)||y<now-1||y>now)return false;seen.add(n);return true}).sort((a,b)=>score(norm(a.title),week())-score(norm(b.title),week())).slice(0,limit||12)};
+ window.shelfieCuratedFeaturedBooks=async function(limit){const entries=rotate(titles).filter(x=>x[2]>=new Date().getFullYear()-1&&x[2]<=new Date().getFullYear());const matches=await Promise.all(entries.map(find));return matches.filter(Boolean).slice(0,limit||12)};
+})();
 </script>
 <!-- Shelfie dynamic API featured discovery: replaces static search suggestions -->
 <style>
@@ -8371,14 +8400,11 @@ window.shelfieWeeklyBooks=function(items,limit){
  const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
  const previousUpdate=updateResults, previousPage=searchPage;
  function upsert(o){let old=item(o.id);if(old)Object.assign(old,o);else catalog.push(o);return old||o}
- function bookObj(b){return upsert({id:'openlibrary_'+String(b.key).split('/').pop(),title:b.title,type:'Book',year:String(b.first_publish_year||''),genre:'Book',author:(b.author_name||[]).join(', '),workKey:b.key,description:'',cover:(window.shelfieGoogleCover?.(b.cover_i)||'https://covers.openlibrary.org/b/id/'+b.cover_i+'-M.jpg'),fallback})}
+ function bookObj(b){return upsert({id:'openlibrary_'+String(b.key).split('/').pop(),title:b.title,type:'Book',year:String(b.first_publish_year||''),genre:'Book',author:(b.author_name||[]).join(', '),workKey:b.key,description:'',cover:(b.shelfieCuratedCover||window.shelfieGoogleCover?.(b.cover_i)||'https://covers.openlibrary.org/b/id/'+b.cover_i+'-M.jpg'),fallback})}
  function tmdbObj(x){return upsert({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', ')||'Entertainment',description:x.description||'',cover:x.poster||fallback,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''})}
  async function books(){
-  const year=new Date().getFullYear();
-  const url='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(year-1)+' TO '+year+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'80'});
-  const r=await fetch(url);if(!r.ok)throw Error('Books unavailable');const data=await r.json();let seen=new Set();
-  const candidates=(data.docs||[]).filter(b=>b.key&&b.title&&b.cover_i).filter(b=>{const name=b.title.toLowerCase().trim();if(seen.has(name)||/box set|bundle|collection|omnibus/i.test(name))return false;seen.add(name);return true}).sort((a,b)=>Number(b.first_publish_year)-Number(a.first_publish_year)||Number(b.edition_count||0)-Number(a.edition_count||0));
-  return window.shelfieWeeklyBooks(candidates,12).map(bookObj)
+  const candidates=await window.shelfieCuratedFeaturedBooks(12);
+  return candidates.map(bookObj);
  }
  async function tmdb(type){
   const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
@@ -8435,10 +8461,9 @@ window.shelfieFreshShows=function(results,limit){
  const originalHome=home, originalRender=render;
  const fallback='https://placehold.co/300x450/38213f/f8b5e4?text=Shelfie';
  function store(x){let found=item(x.id);if(found){Object.assign(found,x);return found}catalog.push(x);return x}
- function book(x){return store({id:'openlibrary_'+String(x.key).split('/').pop(),title:x.title,type:'Book',year:String(x.first_publish_year||''),genre:'Book',author:(x.author_name||[]).join(', '),workKey:x.key,description:'',cover:(window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback})}
+ function book(x){return store({id:'openlibrary_'+String(x.key).split('/').pop(),title:x.title,type:'Book',year:String(x.first_publish_year||''),genre:'Book',author:(x.author_name||[]).join(', '),workKey:x.key,description:'',cover:(x.shelfieCuratedCover||window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback})}
  function media(x){return store({id:'tmdb_'+x.media_type+'_'+x.id,title:x.title,type:x.media_type==='movie'?'Movie':'Show',year:x.year||'',genre:(x.genres||[]).join(', ')||'Entertainment',description:x.description||'',cover:x.poster||fallback,fallback,tmdbId:x.id,tmdbType:x.media_type,tmdbRating:x.rating,tmdbBackdrop:x.backdrop||''})}
- async function fetchBooks(){const y=new Date().getFullYear();const url='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(y-1)+' TO '+y+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'80'});const r=await fetch(url);if(!r.ok)throw Error('Books unavailable');const d=await r.json(),seen=new Set();const candidates=(d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i).filter(x=>{const t=x.title.toLowerCase().trim();if(seen.has(t)||/box set|bundle|collection|omnibus/i.test(t))return false;seen.add(t);return true});return window.shelfieWeeklyBooks(candidates,10).map(book)}
- async function fetchMedia(kind){const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type:kind==='Movies'?'movie':'tv',featured:'1'});const r=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});const d=await r.json();if(!r.ok)throw Error(d.error||'TMDB unavailable');return(kind==='Shows'?window.shelfieFreshShows(d.results,10):(d.results||[]).filter(x=>x.poster).slice(0,10)).map(media)}
+ async function fetchBooks(){return (await window.shelfieCuratedFeaturedBooks(10)).map(book)}
  function get(k){if(cache[k]&&Date.now()-cache[k].at<3600000)return Promise.resolve(cache[k].list);if(pending[k])return pending[k];pending[k]=(k==='Books'?fetchBooks():fetchMedia(k)).then(list=>{cache[k]={list,at:Date.now()};return list}).finally(()=>delete pending[k]);return pending[k]}
  function section(k,list){const label=k==='Books'?'📖 Featured books':k==='Movies'?'🎬 Featured movies':'📺 Featured shows';return '<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+label+'</div><div class="shelfie-home-fresh-rail">'+list.map(coverCard).join('')+'</div>'+(list.length?'':'<div class="shelfie-home-fresh-note">No new titles available right now ♡</div>')+'</div>'}
  async function update(){const el=document.getElementById('shelfieHomeFresh');if(!el||tab!=='Home')return;const id=++seq,active=filter,keys=active==='All'?['Books','Movies','Shows']:[active];el.innerHTML='<div class="shelfie-home-fresh-note">Finding fresh favorites ✨</div>';const results=await Promise.allSettled(keys.map(get));if(id!==seq||tab!=='Home'||filter!==active||!document.getElementById('shelfieHomeFresh'))return;el.innerHTML=results.map((r,i)=>r.status==='fulfilled'?section(keys[i],r.value):'<div class="shelfie-home-fresh-section"><div class="shelfie-home-fresh-title">'+(keys[i]==='Books'?'📖 Featured books':keys[i]==='Movies'?'🎬 Featured movies':'📺 Featured shows')+'</div><div class="shelfie-home-fresh-note">Could not load right now. Refresh to try again ♡</div></div>').join('')+(keys.some(k=>k!=='Books')?'<div class="shelfie-tmdb-source">Movie & TV information provided by TMDB. Not endorsed or certified by TMDB.</div>':'')}
@@ -8641,7 +8666,7 @@ const placeholder='https://placehold.co/100x150/38213f/f8b5e4?text=Shelfie';
 const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const addBook=b=>{
  const id='openlibrary_'+String(b.key||'').split('/').pop();
- const data={id,title:b.title||'Untitled',type:'Book',year:String(b.first_publish_year||''),genre:'Book',author:(b.author_name||[]).join(', '),description:'',workKey:b.key,cover:b.cover_i?(window.shelfieGoogleCover?.(b.cover_i)||'https://covers.openlibrary.org/b/id/'+b.cover_i+'-M.jpg'):placeholder,fallback:placeholder};
+ const data={id,title:b.title||'Untitled',type:'Book',year:String(b.first_publish_year||''),genre:'Book',author:(b.author_name||[]).join(', '),description:'',workKey:b.key,cover:b.cover_i?(b.shelfieCuratedCover||window.shelfieGoogleCover?.(b.cover_i)||'https://covers.openlibrary.org/b/id/'+b.cover_i+'-M.jpg'):placeholder,fallback:placeholder};
  let existing=item(id);if(existing)Object.assign(existing,data);else{catalog.push(data);existing=data}return existing;
 };
 const addMedia=x=>{
@@ -8671,12 +8696,8 @@ async function loadFeatured(){
  if(featuredCache&&Date.now()-featuredCache.at<3600000)return featuredCache.items;
  if(featuredPending)return featuredPending;
  featuredPending=(async()=>{
-  const year=new Date().getFullYear();
-  const bookURL='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(year-1)+' TO '+year+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'60'});
   const sources=await Promise.allSettled([
-   fetch(bookURL).then(r=>{if(!r.ok)throw Error('Books unavailable');return r.json()}).then(d=>{
-    const seen=new Set();const candidates=(d.docs||[]).filter(b=>b.key&&b.title&&b.cover_i&&Number(b.first_publish_year)>=year-1).filter(b=>{const name=b.title.toLowerCase().trim();if(seen.has(name)||/box set|bundle|collection|omnibus/i.test(name))return false;seen.add(name);return true});return window.shelfieWeeklyBooks(candidates,8).map(addBook);
-   }),
+   window.shelfieCuratedFeaturedBooks(8).then(books=>books.map(addBook)),
    findFeaturedMedia('movie'),findFeaturedMedia('tv')
   ]);
   const lists=sources.map(r=>r.status==='fulfilled'?r.value:[]);
@@ -8894,7 +8915,7 @@ window.openAdd=function(){
    const params=new URLSearchParams({subject,first_publish_year:String(year),sort:'new',limit:'60',fields:'key,title,author_name,first_publish_year,cover_i'});
    const r=await fetch('https://openlibrary.org/search.json?'+params);if(!r.ok)return [];
    const d=await r.json();
-   return (d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i).sort((a,b)=>(Number(b.first_publish_year)===year)-(Number(a.first_publish_year)===year)).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.author_name||[]).join(', '),year:String(x.first_publish_year||''),genre:genre,workKey:x.key,description:'',cover:(window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback}));
+   return (d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i).sort((a,b)=>(Number(b.first_publish_year)===year)-(Number(a.first_publish_year)===year)).map(x=>add({id:'openlibrary_'+x.key.split('/').pop(),title:x.title,type:'Book',author:(x.author_name||[]).join(', '),year:String(x.first_publish_year||''),genre:genre,workKey:x.key,description:'',cover:(x.shelfieCuratedCover||window.shelfieGoogleCover?.(x.cover_i)||'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg'),fallback}));
  }
  async function media(type,genres){
    if(!genres.length)return [];
