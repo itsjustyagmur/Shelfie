@@ -8354,12 +8354,12 @@ window.shelfieFilterRatings = function(query) {
    if(author)queries.push({title});
    for(const q of queries){
      try{
-       const url='https://openlibrary.org/search.json?'+new URLSearchParams({...q,fields:'title,author_name,cover_i,isbn,edition_key',limit:'12'});
+       const url='https://openlibrary.org/search.json?'+new URLSearchParams({...q,fields:'key,title,author_name,cover_i,isbn,edition_key,first_publish_year,first_sentence',limit:'12'});
        const response=await fetch(url,{signal:AbortSignal.timeout(8500)});
        if(!response.ok)continue;
        const data=await response.json();
        const doc=(data.docs||[]).find(d=>d.cover_i&&matches(d.title,title)&&(!author||!(d.author_name||[]).length||(d.author_name||[]).some(n=>clean(n).split(' ').some(part=>part.length>3&&clean(author).includes(part)))));
-       if(doc)return 'https://covers.openlibrary.org/b/id/'+doc.cover_i+'-L.jpg';
+       if(doc){if(!book.author&&doc.author_name?.length)book.author=doc.author_name.join(', ');if(!book.year&&doc.first_publish_year)book.year=String(doc.first_publish_year);if(!book.workKey&&doc.key)book.workKey=doc.key;if(!book.description&&typeof doc.first_sentence==='string')book.description=doc.first_sentence;return 'https://covers.openlibrary.org/b/id/'+doc.cover_i+'-L.jpg';}
      }catch(e){}
    }
    try{
@@ -8369,7 +8369,7 @@ window.shelfieFilterRatings = function(query) {
      if(response.ok){
        const data=await response.json();
        const entry=(data.items||[]).find(x=>matches(x.volumeInfo?.title,title)&&x.volumeInfo?.imageLinks?.thumbnail);
-       if(entry){const img=entry.volumeInfo.imageLinks.thumbnail.replace(/^http:/,'https:');if(valid(img))return img.replace(/zoom=\d+/,'zoom=2');}
+       if(entry){if(!book.author&&entry.volumeInfo.authors)book.author=entry.volumeInfo.authors.join(', ');if(!book.description&&entry.volumeInfo.description)book.description=entry.volumeInfo.description;if(!book.year&&entry.volumeInfo.publishedDate)book.year=entry.volumeInfo.publishedDate.slice(0,4);const img=entry.volumeInfo.imageLinks.thumbnail.replace(/^http:/,'https:');if(valid(img))return img.replace(/zoom=\d+/,'zoom=2');}
      }
    }catch(e){}
    return '';
@@ -8399,7 +8399,7 @@ window.shelfieFilterRatings = function(query) {
    if(!card)return null;
    const id=card.getAttribute('data-finished-id')||card.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/)?.[1];
    if(!id||!id.startsWith('goodreads_'))return null;
-   return item(id);
+   let book=item(id);if(!book){const label=card.querySelector('span')?.textContent||img.getAttribute('alt')?.replace(/ cover$/i,'')||'';book={id,title:label,author:'',cover:''};catalog.push(book);}return book;
  }
  function scan(){
    document.querySelectorAll('.shelfie-finished-grid img,.shelfie-read-grid img').forEach(img=>{
@@ -8419,8 +8419,10 @@ window.shelfieFilterRatings = function(query) {
        });
      };
      img.addEventListener('error',repair,{once:true});
+     img.addEventListener('load',()=>{if(fallback.test(img.currentSrc||img.src))repair()},{once:true});
      if(fallback.test(existing)||!existing)repair();
-     else if(img.complete&&img.naturalWidth===0)repair();
+     else if(img.complete&&img.naturalWidth<5)repair();
+     else img.addEventListener('load',()=>{if(img.naturalWidth<5||img.naturalHeight<5)repair()},{once:true});
    });
  }
  const observer=new MutationObserver(()=>{scan()});
