@@ -8919,6 +8919,110 @@ window.openAdd=function(){
  setTimeout(insert,100);
 })();
 </script>
+<script>
+/* Shelfie: safe Goodreads metadata repair for previously imported books.
+   This updates ONLY metadata on existing shelfie_library records. */
+(function(){
+  function csvRows(src){
+    const rows=[];let row=[],cell='',quoted=false;
+    for(let i=0;i<src.length;i++){
+      const c=src[i];
+      if(c==='"') {if(quoted&&src[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}
+      else if(c===','&&!quoted){row.push(cell);cell='';}
+      else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&src[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell='';}
+      else cell+=c;
+    }
+    if(quoted)throw Error('CSV contains an unclosed quote');
+    row.push(cell);if(row.some(x=>x.trim()))rows.push(row);
+    const headers=(rows.shift()||[]).map(x=>x.trim());
+    if(!headers.includes('Book Id')||!headers.includes('Title'))throw Error('Select your Goodreads library export CSV');
+    return rows.map(values=>Object.fromEntries(headers.map((h,i)=>[h,String(values[i]||'').trim()])));
+  }
+  const isbn=v=>String(v||'').replace(/[^0-9X]/gi,'').toUpperCase();
+  const norm=v=>String(v||'').toLowerCase().replace(/\s*\([^)]*\)\s*/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+  window.shelfieRepairGoodreadsMetadata=function(){
+    if(!cloudUser||!cloud){toast('Sign in to Shelfie first');return;}
+    modal('Repair imported book details ♡',
+      '<p class="muted">Choose your original Goodreads CSV. Shelfie will add missing ISBN and Goodreads identifiers to <b>existing</b> books only. Ratings, reviews, and reading statuses are not changed.</p>'+ 
+      '<input id="shelfieRepairCsv" type="file" accept=".csv,text/csv">'+
+      '<div id="shelfieRepairProgress" class="cloudhint">Nothing changes until you confirm.</div>'+
+      '<button class="primary full" onclick="shelfieRunGoodreadsRepair()">Repair existing book metadata</button>');
+  };
+  window.shelfieRunGoodreadsRepair=async function(){
+    const file=document.getElementById('shelfieRepairCsv')?.files?.[0];
+    const progress=document.getElementById('shelfieRepairProgress');
+    if(!file){toast('Choose your Goodreads CSV first');return;}
+    if(file.size>8*1024*1024){toast('CSV must be under 8 MB');return;}
+    const uid=cloudUser?.id;
+    if(!uid||!cloud){toast('Sign in first');return;}
+    const button=document.querySelector('[onclick="shelfieRunGoodreadsRepair()"]');
+    if(button)button.disabled=true;
+    try{
+      const rows=csvRows(await file.text());
+      const byId=new Map();const byTitle=new Map();
+      for(const r of rows){
+        const id13=isbn(r.ISBN13),id10=isbn(r.ISBN),id=id13||id10;
+        const entry={id, id13,id10,goodreadsId:r['Book Id'],title:r.Title,author:r.Author};
+        if(id)byId.set('goodreads_isbn_'+id,entry);
+        if(id13)byId.set('goodreads_isbn_'+id13,entry);
+        if(id10)byId.set('goodreads_isbn_'+id10,entry);
+        byId.set('goodreads_'+entry.goodreadsId,entry);
+        const key=norm(entry.title)+'|'+norm(entry.author);
+        if(!byTitle.has(key))byTitle.set(key,[]);
+        byTitle.get(key).push(entry);
+      }
+      let checked=0,updated=0,ambiguous=0,unmatched=0;
+      // Paginate to avoid Supabase's default 1000-row result limit.
+      for(let offset=0;;offset+=200){
+        if(cloudUser?.id!==uid)throw Error('Account changed; repair stopped');
+        const {data,error}=await cloud.from('shelfie_library')
+          .select('title_id,title_name,metadata,media_type')
+          .eq('user_id',uid).eq('media_type','book')
+          .range(offset,offset+199);
+        if(error)throw error;
+        if(!data?.length)break;
+        for(const book of data){
+          checked++;
+          const old=book.metadata&&typeof book.metadata==='object'?book.metadata:{};
+          let match=byId.get(book.title_id);
+          if(!match){
+            const candidates=byTitle.get(norm(book.title_name)+'|'+norm(old.author));
+            if(candidates?.length===1)match=candidates[0];
+            else if(candidates?.length>1){ambiguous++;continue;}
+          }
+          if(!match){unmatched++;continue;}
+          const metadata={...old};
+          // Never overwrite existing identifiers or cover references.
+          if(!metadata.author&&match.author)metadata.author=match.author;
+          if(!metadata.isbn&&match.id)metadata.isbn=match.id;
+          if(!metadata.isbn13&&match.id13)metadata.isbn13=match.id13;
+          if(!metadata.isbn10&&match.id10)metadata.isbn10=match.id10;
+          if(!metadata.goodreads_book_id&&match.goodreadsId)metadata.goodreads_book_id=match.goodreadsId;
+          if(JSON.stringify(metadata)===JSON.stringify(old))continue;
+          const {error:saveError}=await cloud.from('shelfie_library')
+            .update({metadata}).eq('user_id',uid).eq('media_type','book').eq('title_id',book.title_id);
+          if(saveError)throw saveError;
+          updated++;
+        }
+        if(progress)progress.textContent=`Checked ${checked} existing books; enriched ${updated} ♡`;
+        if(data.length<200)break;
+      }
+      if(progress)progress.textContent=`Complete ♡ ${updated} books enriched, ${unmatched} unmatched, ${ambiguous} ambiguous. No ratings, reviews, or statuses changed. Missing covers still require a separate verified-cover process.`;
+      if(typeof refreshCloud==='function')await refreshCloud();
+    }catch(e){if(progress)progress.textContent='Repair stopped: '+(e.message||'Unknown error');}
+    finally{if(button)button.disabled=false;}
+  };
+  // Place this in the existing Goodreads import dialog, not a separate hidden page.
+  const previous=window.shelfieGoodreadsImport;
+  if(typeof previous==='function')window.shelfieGoodreadsImport=function(){
+    previous.apply(this,arguments);
+    const dialog=document.querySelector('#shelfieImportPreview');
+    if(dialog)dialog.insertAdjacentHTML('afterend',
+      '<p class="muted tiny">Already imported your Goodreads books?</p>'+ 
+      '<button class="secondary full" onclick="shelfieRepairGoodreadsMetadata()">Repair existing imported book details</button>');
+  };
+})();
+</script>
 </body></html>
 
 
