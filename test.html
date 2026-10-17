@@ -1444,11 +1444,6 @@ function saveBookStatuses() {
           '<div class="empty">Your activity will appear here ♡</div>'
         }
       </section>
-
-      <button class="secondary full"
-        onclick="openInvite()">
-        ↗ Share my profile
-      </button>
     `;
   };
 
@@ -8288,6 +8283,43 @@ window.shelfieFilterRatings = function(query) {
   profilePage = function(){
     const html = previousProfilePage();
     return html.replace(/<section\s+class="shelfie-profile-section"\s*>\s*<h2>✦ My Activity<\/h2>[\s\S]*?<\/section>/, '');
+  };
+})();
+</script>
+
+<!-- Shelfie · Move Share my profile into Account settings -->
+<script>
+(function(){
+  const settings=document.getElementById('shelfieSettings');
+  if(!settings)return;
+  const oldClick=settings.onclick;
+  settings.onclick=function(event){
+    oldClick?.call(this,event);
+    const panel=document.querySelector('.modal');
+    if(!panel||panel.querySelector('#shelfieShareProfileSetting'))return;
+    const button=document.createElement('button');
+    button.id='shelfieShareProfileSetting';
+    button.className='secondary full';
+    button.style.marginTop='12px';
+    button.textContent='↗ Share my profile';
+    button.onclick=window.shelfieShareMyProfile;
+    const account=[...panel.querySelectorAll('button')].find(b=>b.textContent.includes('My account'));
+    if(account)account.insertAdjacentElement('afterend',button);
+    else panel.appendChild(button);
+  };
+  window.shelfieShareMyProfile=async function(){
+    if(!cloudUser){toast('Sign in to share your profile ♡');return;}
+    const handle=cloudProfile?.username;
+    if(!handle){toast('Set your username in My account first ♡');return;}
+    const url=new URL(location.href);
+    url.searchParams.set('profile',handle);
+    url.hash='';
+    const link=url.toString();
+    try{
+      if(navigator.share){await navigator.share({title:'My Shelfie profile',text:'Find me on Shelfie! @'+handle,url:link});}
+      else if(navigator.clipboard){await navigator.clipboard.writeText(link);toast('Profile link copied ♡');}
+      else{modal('Share my profile ♡','<p class="muted">Copy your profile link:</p><input class="searchbox" readonly value="'+esc(link)+'">');}
+    }catch(err){if(err.name!=='AbortError')toast('Could not share your profile');}
   };
 })();
 </script>
