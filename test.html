@@ -8475,13 +8475,45 @@ function displayItems(label,items){
  if(!items.length)return '';
  return '<div class="shelfie-add-label">'+label+'</div>'+items.map(x=>'<button type="button" class="shelfie-add-item" data-shelfie-add-id="'+escapeText(x.id)+'"><img loading="lazy" src="'+escapeText(x.cover||placeholder)+'" onerror="this.onerror=null;this.src=\''+placeholder+'\'" alt=""><span class="shelfie-add-copy"><b>'+escapeText(x.title)+'</b><small>'+escapeText(x.type+(x.author?' · '+x.author:x.year?' · '+x.year:''))+'</small></span><span class="arrow">→</span></button>').join('');
 }
+let featuredCache=null,featuredPending=null;
+async function loadFeatured(){
+ if(featuredCache&&Date.now()-featuredCache.at<3600000)return featuredCache.items;
+ if(featuredPending)return featuredPending;
+ featuredPending=(async()=>{
+  const year=new Date().getFullYear();
+  const bookURL='https://openlibrary.org/search.json?'+new URLSearchParams({q:'first_publish_year:['+(year-1)+' TO '+year+'] AND subject:fiction',fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'60'});
+  const sources=await Promise.allSettled([
+   fetch(bookURL).then(r=>{if(!r.ok)throw Error('Books unavailable');return r.json()}).then(d=>{
+    const seen=new Set();return(d.docs||[]).filter(b=>b.key&&b.title&&b.cover_i&&Number(b.first_publish_year)>=year-1).filter(b=>{const name=b.title.toLowerCase().trim();if(seen.has(name)||/box set|bundle|collection|omnibus/i.test(name))return false;seen.add(name);return true}).slice(0,8).map(addBook);
+   }),
+   findFeaturedMedia('movie'),findFeaturedMedia('tv')
+  ]);
+  const lists=sources.map(r=>r.status==='fulfilled'?r.value:[]);
+  featuredCache={items:lists,at:Date.now()};return lists;
+ })().finally(()=>{featuredPending=null});return featuredPending;
+}
+async function findFeaturedMedia(type){
+ const url=SHELFIE_URL+'/functions/v1/tmdb-search?'+new URLSearchParams({type,featured:'1'});
+ const response=await fetch(url,{headers:{apikey:SHELFIE_KEY,Authorization:'Bearer '+SHELFIE_KEY}});
+ if(!response.ok)throw Error('Featured titles unavailable');
+ const json=await response.json();return(json.results||[]).filter(x=>x.poster).slice(0,8).map(addMedia);
+}
+async function showFeatured(){
+ const token=++sequence,target=resultsNode();if(!target)return;
+ target.innerHTML='<div class="shelfie-add-message">Finding featured books, movies & shows ✨</div>';
+ const lists=await loadFeatured();
+ if(token!==sequence||!resultsNode()||document.getElementById('shelfie-add-search')?.value.trim())return;
+ const allowed=selectedKinds();const mixed=[];
+ for(let i=0;i<8;i++)for(let j=0;j<3;j++)if(allowed.includes(['book','movie','tv'][j])&&lists[j][i])mixed.push(lists[j][i]);
+ target.innerHTML='<div class="shelfie-add-label">✨ Featured books, movies & shows</div>'+(mixed.length?displayItems('',mixed).replace('<div class="shelfie-add-label"></div>',''):'<div class="shelfie-add-message">Featured titles are unavailable right now. Search for any title above ♡</div>')+'<div class="subtle" style="font-size:11px;margin-top:12px">Movie & TV data provided by TMDB. Not endorsed or certified by TMDB.</div>';
+}
 function resultsNode(){return document.getElementById('shelfie-add-results')}
 function selectedKinds(){return kind==='Books'?['book']:kind==='Movies'?['movie']:kind==='Shows'?['tv']:['book','movie','tv']}
 function searchNow(){
  clearTimeout(timer);const token=++sequence;
  const q=document.getElementById('shelfie-add-search')?.value.trim()||'';
  const target=resultsNode();if(!target)return;
- if(q.length<2){target.innerHTML='<div class="shelfie-add-message">Type at least 2 letters to search books, movies, and shows ♡</div>';return}
+ if(q.length<2){showFeatured();return}
  target.innerHTML='<div class="shelfie-add-message">Searching '+(kind==='All'?'books, movies & shows':kind.toLowerCase())+'… ♡</div>';
  timer=setTimeout(async()=>{
    const types=selectedKinds();
@@ -8496,7 +8528,8 @@ window.shelfieAddFilter=function(next){kind=next;const chips=document.getElement
 window.shelfieAddSearch=searchNow;
 window.openAdd=function(){
  clearTimeout(timer);sequence++;kind='All';
- modal('What did you finish? ✨','<p class="muted">Search any book, movie, or show to rate.</p><input id="shelfie-add-search" class="searchbox" type="search" placeholder="Search all books, movies & shows…" autocomplete="off" oninput="shelfieAddSearch()"><div class="shelfie-add-chips" id="shelfie-add-chips">'+['All','Books','Movies','Shows'].map(k=>'<button type="button" class="chip '+(k==='All'?'active':'')+'" data-kind="'+k+'" onclick="shelfieAddFilter(\''+k+'\')">'+k+'</button>').join('')+'</div><div id="shelfie-add-results" aria-live="polite"><div class="shelfie-add-message">Type at least 2 letters to search books, movies, and shows ♡</div></div>');
+ modal('What did you finish? ✨','<p class="muted">Search any book, movie, or show to rate.</p><input id="shelfie-add-search" class="searchbox" type="search" placeholder="Search all books, movies & shows…" autocomplete="off" oninput="shelfieAddSearch()"><div class="shelfie-add-chips" id="shelfie-add-chips">'+['All','Books','Movies','Shows'].map(k=>'<button type="button" class="chip '+(k==='All'?'active':'')+'" data-kind="'+k+'" onclick="shelfieAddFilter(\''+k+'\')">'+k+'</button>').join('')+'</div><div id="shelfie-add-results" aria-live="polite"><div class="shelfie-add-message">Finding featured favorites ✨</div></div>');
+ showFeatured();
  const list=resultsNode();if(list)list.addEventListener('click',e=>{const button=e.target.closest('[data-shelfie-add-id]');if(!button)return;const id=button.dataset.shelfieAddId;if(item(id))openReview(id)});
  setTimeout(()=>document.getElementById('shelfie-add-search')?.focus(),120);
 };
