@@ -65,36 +65,43 @@ try {
  async function load(info){
    const cacheKey=JSON.stringify(info),hit=requestCache.get(cacheKey);
    if(hit&&Date.now()-hit.at<10*60*1000)return hit.docs;
-   // Google Books does not understand Open Library's first_publish_year query syntax.
-   // Search Google Books by subject, sorted newest, then filter its publication dates.
-   // Google Books has limited coverage of year-specific searches. Do not make
-   // the entire featured shelf empty just because a year filter finds no hits.
-   let volumes=[];
-   const queries=[info.query];
-   if(info.year){
-     queries.push('subject:fiction','fiction','romance fantasy');
-   }else if(info.subject){queries.push(info.subject)}
+   let volumes=[],googleFailure=null;
+   const queries=info.year?[info.query,'subject:fiction','subject:romance']: [info.query];
    for(const q of [...new Set(queries)]){
      try{
        const found=await google(q,{newest:!!info.year,maxResults:40});
-       if(found.length)volumes.push(...found);
-       if(volumes.length>=35)break;
-     }catch(e){console.warn('Shelfie books query:',q,e)}
-   }
-   if(info.year){
-     const recent=volumes.filter(v=>{
-       const y=Number((v.volumeInfo?.publishedDate||'').slice(0,4));
-       return y>=info.year-1&&y<=currentYear();
-     });
-     // Prefer new releases, but show discoverable books if publication metadata is sparse.
-     if(recent.length>=5)volumes=recent.concat(volumes.filter(v=>!recent.includes(v)));
+       volumes.push(...found);
+       if(volumes.length>=25)break;
+     }catch(e){googleFailure=e;console.warn('Shelfie Google Books request failed:',e);break}
    }
    const seen=new Set();
-   const docs=volumes.map(convert).filter(d=>{
+   let docs=volumes.map(convert).filter(d=>{
      const k=d.title.toLowerCase().trim();
      if(!k||!d.cover_i||seen.has(k))return false;
      seen.add(k);return true;
    });
+   // The public Google Books endpoint can return 403/429 or omit covers.
+   // Use the real Open Library API as a fallback, rather than silently showing
+   // empty shelves. Existing Open Library IDs are preserved.
+   if(docs.length<6){
+     try{
+       const params=new URLSearchParams({q:info.year?'subject:fiction':(info.subject?'subject:'+info.subject:info.query),fields:'key,title,author_name,cover_i,first_publish_year,edition_count',limit:'40'});
+       const r=await nativeFetch('https://openlibrary.org/search.json?'+params);
+       if(!r.ok)throw Error('Open Library HTTP '+r.status);
+       const d=await r.json();
+       const backup=(d.docs||[]).filter(x=>x.key&&x.title&&x.cover_i).filter(x=>{
+         const k=x.title.toLowerCase().trim();if(seen.has(k))return false;seen.add(k);return true;
+       });
+       docs.push(...backup);
+     }catch(e){console.warn('Shelfie fallback books request failed:',e)}
+   }
+   if(info.year)docs.sort((a,b)=>{
+     const ya=Number(a.first_publish_year)||0,yb=Number(b.first_publish_year)||0;
+     const ra=ya>=info.year-1&&ya<=currentYear()?1:0;
+     const rb=yb>=info.year-1&&yb<=currentYear()?1:0;
+     return rb-ra||yb-ya;
+   });
+   if(!docs.length&&googleFailure)console.error('Shelfie book APIs unavailable:',googleFailure);
    requestCache.set(cacheKey,{at:Date.now(),docs});return docs;
  }
  window.fetch=async function(resource,init){
