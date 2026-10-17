@@ -8280,4 +8280,15 @@ window.shelfieFilterRatings = function(query) {
  setTimeout(()=>{if(tab==='Home')update()},150);
 })();
 </script>
+
+<!-- Shelfie: remove the duplicate upper My Activity section; keep the lower social activity feed. -->
+<script>
+(function(){
+  const previousProfilePage = profilePage;
+  profilePage = function(){
+    const html = previousProfilePage();
+    return html.replace(/<section\s+class="shelfie-profile-section"\s*>\s*<h2>✦ My Activity<\/h2>[\s\S]*?<\/section>/, '');
+  };
+})();
+</script>
 </body></html>
