@@ -8611,7 +8611,7 @@ window.shelfieFreshShows=function(results,limit){
  };
  const norm=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/\([^)]*\)/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
  const bad=u=>!u||/placehold\.co|text=Shelfie|\/undefined-|\/null-|\/0-[ML]\.|\/b\/id\/SHELFIE/i.test(u);
- const cache=new Map();const queue=[];let running=0;
+ const cache=new Map();const queue=[];let running=0;window.shelfieCoverStats={recovered:0,skippedMissingAuthor:0,skippedNoSession:0,apiErrors:0,checked:0};
  function testImage(url){return new Promise(resolve=>{if(!/^https:\/\//i.test(url||''))return resolve(false);const im=new Image();let done=false;const timer=setTimeout(()=>finish(false),4500);function finish(ok){if(done)return;done=true;clearTimeout(timer);im.onload=im.onerror=null;resolve(ok)}im.onload=()=>finish(im.naturalWidth>40&&im.naturalHeight>40);im.onerror=()=>finish(false);im.src=url;});}
  function identity(img){
   const card=img.closest('.coveritem,[data-finished-id],.shelfie-finished-cover,.shelfie-read-book,.shelfie-friend-list,.shelfie-add-item,.shelfie-featured-card,.shelfie-discover-card,.shelfie-media-card,article,li');
@@ -8635,28 +8635,28 @@ window.shelfieFreshShows=function(results,limit){
   // Never reuse old v3 entries: those could have been guessed from an unrelated edition.
   const key='shelfie:verified-cover:v4:'+normalized+'|'+norm(author)+'|'+isbn;
   try{const saved=localStorage.getItem(key);if(saved&&await testImage(saved))return saved;}catch(e){}
-  if(!author)return '';
+  if(!author){window.shelfieCoverStats.skippedMissingAuthor++;return '';}
   try{
    if(typeof cloud==='undefined'||!cloud)return '';
    const sessionResult=await cloud.auth.getSession();
    const token=sessionResult.data?.session?.access_token;
-   if(!token)return '';
+   if(!token){window.shelfieCoverStats.skippedNoSession++;return '';}
    const response=await fetch(SHELFIE_URL+'/functions/v1/book-cover-cache',{
     method:'POST',
     headers:{'Content-Type':'application/json',apikey:SHELFIE_KEY,Authorization:'Bearer '+token},
     body:JSON.stringify({title:cleanTitle,author,isbn}),
     signal:AbortSignal.timeout(18000)
    });
-   if(!response.ok)return '';
+   if(!response.ok){window.shelfieCoverStats.apiErrors++;console.warn('Shelfie cover API HTTP',response.status,title);return '';}
    const data=await response.json();
    // Supports both future cached responses and the current preview-only endpoint.
    if(data.coverUrl&&data.status==='cached'&&await testImage(data.coverUrl)){
     try{localStorage.setItem(key,data.coverUrl)}catch(e){}
     return data.coverUrl;
    }
-   if(data.status!=='preview_only'||!isbn)return '';
+   if(data.status!=='preview_only')return '';
    const eligible=(data.candidates||[]).filter(c=>
-    c.provider==='google_books'&&c.isbnMatch===true&&
+    c.provider==='google_books'&&(c.isbnMatch===true||(!isbn&&c.score>=60))&&
     norm(c.title)===normalized&&
     Array.isArray(c.authors)&&c.authors.some(a=>norm(a)===norm(author))&&
     !/box(?:ed)? set|bundle|omnibus|collection|trilogy/i.test(c.title||'')&&
@@ -8675,7 +8675,7 @@ window.shelfieFreshShows=function(results,limit){
      im.onload=()=>done(im.naturalWidth>=180&&im.naturalHeight>=260&&im.naturalWidth/im.naturalHeight>=0.48&&im.naturalWidth/im.naturalHeight<=0.85);
      im.onerror=()=>done(false);im.src=url;
     });
-    if(ok){try{localStorage.setItem(key,url)}catch(e){}return url;}
+    if(ok){window.shelfieCoverStats.recovered++;try{localStorage.setItem(key,url)}catch(e){}return url;}
     }
    }
   }catch(e){console.warn('Shelfie verified cover lookup:',e)}
@@ -8693,7 +8693,7 @@ window.shelfieFreshShows=function(results,limit){
   entries.forEach(entry=>{if(!entry.isIntersecting)return;observer.unobserve(entry.target);checkCover(entry.target);});
  },{rootMargin:'450px 0px'}):null;
  function checkCover(img){
-  const book=identity(img);if(!book||img.dataset.shelfieCoverDone)return;
+  const book=identity(img);if(!book||img.dataset.shelfieCoverDone)return;window.shelfieCoverStats.checked++;
   const src=img.currentSrc||img.getAttribute('src')||'';
   if(bad(src)||(img.complete&&img.naturalWidth<40))repair(img,book);
  }
@@ -8706,7 +8706,7 @@ window.shelfieFreshShows=function(results,limit){
   if(observer)observer.observe(img);else checkCover(img);
  });}
  let pending=false;function scheduleScan(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;scan()});}
- function start(){scan();new MutationObserver(scheduleScan).observe(document.body,{childList:true,subtree:true});}
+ function start(){scan();new MutationObserver(scheduleScan).observe(document.body,{childList:true,subtree:true});console.info('Shelfie cover diagnostics: window.shelfieCoverStats');}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
