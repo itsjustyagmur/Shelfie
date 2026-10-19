@@ -8620,11 +8620,11 @@ window.shelfieFreshShows=function(results,limit){
   let title=book?.title||img.getAttribute('alt')?.replace(/\s*(?:book\s*)?cover\s*$/i,'')||card?.querySelector('b,h3,h4,span')?.textContent||'';
   title=String(title).trim();
   const author=book?.author||'';
-  const isbn=String(id).startsWith('goodreads_isbn_')?String(id).slice(15):'';
+  const isbn=(book?.isbn||book?.isbn13||book?.isbn_13||book?.isbn10||book?.isbn_10||'')|| (String(id).startsWith('goodreads_isbn_')?String(id).slice('goodreads_isbn_'.length):'');
   const existing=typeof catalog!=='undefined'&&Array.isArray(catalog)?catalog.find(x=>x!==book&&x.type==='Book'&&norm(x.title)===norm(title)&&(!author||!x.author||norm(x.author)===norm(author))&&!bad(x.cover))?.cover:'';
   const isBook=!!img.closest('.shelfie-finished-cover,.shelfie-read-book')||book?.type==='Book'||(/book/i.test(img.closest('[data-media-type]')?.getAttribute('data-media-type')||''))||(/book|read|finished|coveritem/i.test(card?.className||''))||/book/i.test(img.getAttribute('alt')||'');
   if(!title||!isBook)return null;
-  return {title,author,isbn,existing};
+  return {title,author,isbn:String(isbn).replace(/[^0-9X]/gi,''),existing};
  }
  async function lookup({title,author,isbn:bookISBN,existing}){
   const normalized=norm(title),isbn=bookISBN||knownISBN[normalized]||'';
@@ -8632,9 +8632,9 @@ window.shelfieFreshShows=function(results,limit){
   const canonical=norm(cleanTitle);
   if(existing&&await testImage(existing))return existing;
   // Prefer a previously verified cover: no metadata API request on repeat visits.
-  const key='shelfie:verified-cover:v2:'+normalized+'|'+norm(author);
+  const key='shelfie:verified-cover:v3:'+normalized+'|'+norm(author)+'|'+isbn;
   try{const saved=localStorage.getItem(key);if(saved&&await testImage(saved))return saved;}catch(e){}
-  // Shared Shelfie cover endpoint: authenticated, read-only, no ratings or storage writes.
+  // Shared Shelfie cover endpoint: authenticated; server stores verified images in book-covers, never touches ratings.
   // Fail fast; the existing Google Books / Open Library fallback remains available.
   try{
    if(typeof cloud!=='undefined'&&cloud){
@@ -8643,7 +8643,7 @@ window.shelfieFreshShows=function(results,limit){
     if(token){
      const response=await fetch(SHELFIE_URL+'/functions/v1/book-cover-cache',{
       method:'POST',headers:{'Content-Type':'application/json',apikey:SHELFIE_KEY,Authorization:'Bearer '+token},
-      body:JSON.stringify({title:cleanTitle,author,isbn:isbn||''}),signal:AbortSignal.timeout(4000)
+      body:JSON.stringify({title:cleanTitle,author,isbn:isbn||''}),signal:AbortSignal.timeout(8500)
      });
      if(response.ok){const data=await response.json();if(data.coverUrl&&await testImage(data.coverUrl)){
       try{localStorage.setItem(key,data.coverUrl)}catch(e){}return data.coverUrl;
@@ -8691,7 +8691,7 @@ window.shelfieFreshShows=function(results,limit){
   return '';
  }
  function getCover(book){const key=norm(book.title)+'|'+norm(book.author)+'|'+(book.isbn||'');if(cache.has(key))return cache.get(key);let resolve;const promise=new Promise(r=>resolve=r);cache.set(key,promise);queue.push({book,resolve});pump();return promise;}
- function pump(){while(running<3&&queue.length){const task=queue.shift();running++;lookup(task.book).then(url=>{if(url){try{localStorage.setItem('shelfie:verified-cover:v2:'+norm(task.book.title)+'|'+norm(task.book.author),url)}catch(e){}}task.resolve(url)},()=>task.resolve('')).finally(()=>{running--;pump()});}}
+ function pump(){while(running<4&&queue.length){const task=queue.shift();running++;lookup(task.book).then(url=>{if(url){try{localStorage.setItem('shelfie:verified-cover:v3:'+norm(task.book.title)+'|'+norm(task.book.author)+'|'+(task.book.isbn||knownISBN[norm(task.book.title)]||''),url)}catch(e){}}task.resolve(url)},()=>task.resolve('')).finally(()=>{running--;pump()});}}
  function repair(img,book){if(img.dataset.shelfieCoverBusy)return;img.dataset.shelfieCoverBusy='1';getCover(book).then(url=>{
   if(!url||!img.isConnected)return;
   // This changes only the displayed image. It never modifies ratings or Supabase records.
