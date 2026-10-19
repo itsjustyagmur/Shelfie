@@ -8622,18 +8622,21 @@ window.shelfieFreshShows=function(results,limit){
   title=String(title).trim();
   const author=book?.author||book?.metadata?.author||'';
   const isbn=(book?.isbn||book?.isbn13||book?.isbn_13||book?.isbn10||book?.isbn_10||'')|| (String(id).startsWith('goodreads_isbn_')?String(id).slice('goodreads_isbn_'.length):'');
-  const existing=typeof catalog!=='undefined'&&Array.isArray(catalog)?catalog.find(x=>x!==book&&x.type==='Book'&&norm(x.title)===norm(title)&&(!author||!x.author||norm(x.author)===norm(author))&&!bad(x.cover))?.cover:'';
+  // Never borrow a cover from another catalog record: editions and audiobooks can differ.
+  const existing='';
   const isBook=!!img.closest('.shelfie-finished-cover,.shelfie-read-book')||book?.type==='Book'||(/book/i.test(img.closest('[data-media-type]')?.getAttribute('data-media-type')||''))||(/book|read|finished|coveritem/i.test(card?.className||''))||/book/i.test(img.getAttribute('alt')||'');
   if(!title||!isBook)return null;
   return {title,author,isbn:String(isbn).replace(/[^0-9X]/gi,''),existing};
  }
  async function lookup({title,author,isbn:bookISBN,existing}){
-  const cleanTitle=String(title||'').replace(/\s*\([^)]*\)/g,'').replace(/\s*\[[^\]]*\]/g,'').trim();
+  // Preserve edition labels such as GraphicAudio, Part 1 of 2, and audiobook.
+  const cleanTitle=String(title||'').trim();
   const normalized=norm(cleanTitle);
+  // Known ISBNs apply only to the exact standalone title, never an edition variant.
   const isbn=String(bookISBN||knownISBN[normalized]||'').replace(/[^0-9X]/gi,'');
   if(existing&&await testImage(existing))return existing;
   // Never reuse old v3 entries: those could have been guessed from an unrelated edition.
-  const key='shelfie:verified-cover:v4:'+normalized+'|'+norm(author)+'|'+isbn;
+  const key='shelfie:verified-cover:v5:'+normalized+'|'+norm(author)+'|'+isbn;
   try{const saved=localStorage.getItem(key);if(saved&&await testImage(saved))return saved;}catch(e){}
   if(!author){window.shelfieCoverStats.skippedMissingAuthor++;return '';}
   try{
@@ -8683,7 +8686,7 @@ window.shelfieFreshShows=function(results,limit){
   return '';
  }
  function getCover(book){const key=norm(book.title)+'|'+norm(book.author)+'|'+(book.isbn||'');if(cache.has(key))return cache.get(key);let resolve;const promise=new Promise(r=>resolve=r);cache.set(key,promise);queue.push({book,resolve});pump();return promise;}
- function pump(){while(running<4&&queue.length){const task=queue.shift();running++;lookup(task.book).then(url=>{if(url){try{localStorage.setItem('shelfie:verified-cover:v4:'+norm(task.book.title)+'|'+norm(task.book.author)+'|'+(task.book.isbn||knownISBN[norm(task.book.title)]||''),url)}catch(e){}}task.resolve(url)},()=>task.resolve('')).finally(()=>{running--;pump()});}}
+ function pump(){while(running<4&&queue.length){const task=queue.shift();running++;lookup(task.book).then(url=>{if(url){try{localStorage.setItem('shelfie:verified-cover:v5:'+norm(task.book.title)+'|'+norm(task.book.author)+'|'+(task.book.isbn||knownISBN[norm(task.book.title)]||''),url)}catch(e){}}task.resolve(url)},()=>task.resolve('')).finally(()=>{running--;pump()});}}
  function repair(img,book){if(img.dataset.shelfieCoverBusy)return;img.dataset.shelfieCoverBusy='1';getCover(book).then(url=>{
   if(!url||!img.isConnected)return;
   // This changes only the displayed image. It never modifies ratings or Supabase records.
